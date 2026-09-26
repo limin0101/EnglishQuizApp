@@ -1,11 +1,11 @@
 // ==========================================
-// 1. 格蘭英語 B 級核心字彙母庫 (120+ 詞彙，對標兒童英檢 Pre-A1～A1)
+// 1. 格蘭英語 B 級官方全範圍字彙母庫 (450+ 核心生活與檢定字彙)
 // ==========================================
 const bLevelVocabMasterPool = [
-  // 【居家物品與生活】
+  // --- 居家生活與日常用品 (Home & Living) ---
   { word: "closet", meaning: "衣櫥 / 衣櫃", kk: "[ˋklɑzɪt]", tip: "closet (衣櫥) KK: [ˋklɑzɪt]" },
   { word: "pillow", meaning: "枕頭", kk: "[ˋpɪlo]", tip: "pillow (枕頭) KK: [ˋpɪlo]" },
-  { word: "blanket", meaning: "毛毯", kk: "[ˋblæŋkɪt]", tip: "blanket (毛毯) KK: [ˋblæŋkɪt]" },
+  { word: "blanket", meaning: "毛毯 / 被子", kk: "[ˋblæŋkɪt]", tip: "blanket (毛毯) KK: [ˋblæŋkɪt]" },
   { word: "hanger", meaning: "衣架", kk: "[ˋhæŋɚ]", tip: "hanger (衣架) KK: [ˋhæŋɚ]" },
   { word: "drawer", meaning: "抽屜", kk: "[drɔr]", tip: "drawer (抽屜) KK: [drɔr]" },
   { word: "shelf", meaning: "架子", kk: "[ʃɛlf]", tip: "shelf (架子) KK: [ʃɛlf]" },
@@ -17,13 +17,71 @@ const bLevelVocabMasterPool = [
   { word: "shampoo", meaning: "洗髮精", kk: "[ʃæmˋpu]", tip: "shampoo (洗髮精) KK: [ʃæmˋpu]" },
   { word: "radio", meaning: "收音機", kk: "[ˋredo]", tip: "radio (收音機) KK: [ˋredo]" },
   { word: "clock", meaning: "時鐘", kk: "[klɑk]", tip: "clock (時鐘) KK: [klɑk]" },
+  { word: "watch", meaning: "手錶", kk: "[wɑtʃ]", tip: "watch (手錶) KK: [wɑtʃ]" },
   { word: "plate", meaning: "盤子", kk: "[plet]", tip: "plate (盤子) KK: [plet]" },
+  { word: "bowl", meaning: "碗", kk: "[bol]", tip: "bowl (碗) KK: [bol]" },
+  { word: "fork", meaning: "叉子", kk: "[fɔrk]", tip: "fork (叉子) KK: [fɔrk]" },
+  { word: "knife", meaning: "刀子", kk: "[naɪf]", tip: "knife (刀子) KK: [naɪf]" },
+  { word: "spoon", meaning: "湯匙", kk: "[spun]", tip: "spoon (湯匙) KK: [spun]" },
+  { word: "glass", meaning: "玻璃杯", kk: "[glæs]", tip: "glass (玻璃杯) KK: [glæs]" },
+  { word: "cup", meaning: "茶杯", kk: "[kʌp]", tip: "cup (茶杯) KK: [kʌp]" },
+  { word: "bottle", meaning: "瓶子", kk: "[ˋbɑt!]", tip: "bottle (瓶子) KK: [ˋbɑt!]" },
+  { word: "door", meaning: "門", kk: "[dɔr]", tip: "door (門) KK: [dɔr]" },
+  { word: "window", meaning: "窗戶", kk: "[ˋwɪndo]", tip: "window (窗戶) KK: [ˋwɪndo]" },
+  { word: "floor", meaning: "地板", kk: "[flɔr]", tip: "floor (地板) KK: [flɔr]" },
+  { word: "wall", meaning: "牆壁", kk: "[wɔl]", tip: "wall (牆壁) KK: [wɔl]" },
+  { word: "mirror", meaning: "鏡子", kk: "[ˋmɪrɚ]", tip: "mirror (鏡子) KK: [ˋmɪrɚ]" },
+  { word: "trash can", meaning: "垃圾桶", kk: "[træʃ kæn]", tip: "trash can (垃圾桶) KK: [træʃ kæn]" },
+  { word: "umbrella", meaning: "雨傘", kk: "[ʌmˋbrɛlə]", tip: "umbrella (雨傘) KK: [ʌmˋbrɛlə]" },
 
-  // 【日常動作與狀態】
+  // --- 飲食、三餐與點心 (Food & Drinks) ---
+  { word: "sausages", meaning: "香腸", kk: "[ˋsɔsɪdʒɪz]", tip: "sausages (香腸) KK: [ˋsɔsɪdʒɪz]" },
+  { word: "sandwiches", meaning: "三明治", kk: "[ˋsændwɪtʃɪz]", tip: "sandwiches (三明治) KK: [ˋsændwɪtʃɪz]" },
+  { word: "cookies", meaning: "餅乾", kk: "[ˋkʊkɪz]", tip: "cookies (餅乾) KK: [ˋkʊkɪz]" },
+  { word: "noodles", meaning: "麵條", kk: "[ˋnud!z]", tip: "noodles (麵條) KK: [ˋnud!z]" },
+  { word: "hamburgers", meaning: "漢堡", kk: "[ˋhæmbɚgɚz]", tip: "hamburgers (漢堡) KK: [ˋhæmbɚgɚz]" },
+  { word: "vegetables", meaning: "蔬菜", kk: "[ˋvɛdʒətəb!z]", tip: "vegetables (蔬菜) KK: [ˋvɛdʒətəb!z]" },
+  { word: "strawberries", meaning: "草莓", kk: "[ˋstrɔ͵bɛrɪz]", tip: "strawberries (草莓) KK: [ˋstrɔ͵bɛrɪz]" },
+  { word: "breakfast", meaning: "早餐", kk: "[ˋbrɛkfəst]", tip: "breakfast (早餐) KK: [ˋbrɛkfəst]" },
+  { word: "lunch", meaning: "午餐", kk: "[lʌntʃ]", tip: "lunch (午餐) KK: [lʌntʃ]" },
+  { word: "dinner", meaning: "晚餐", kk: "[ˋdɪnɚ]", tip: "dinner (晚餐) KK: [ˋdɪnɚ]" },
+  { word: "picnic", meaning: "野餐", kk: "[ˋpɪknɪk]", tip: "picnic (野餐) KK: [ˋpɪknɪk]" },
+  { word: "sugar", meaning: "糖", kk: "[ˋʃʊgɚ]", tip: "sugar (糖/不可數) KK: [ˋʃʊgɚ]" },
+  { word: "soup", meaning: "湯", kk: "[sup]", tip: "soup (湯/不可數) KK: [sup]" },
+  { word: "milk", meaning: "牛奶", kk: "[mɪlk]", tip: "milk (牛奶/不可數) KK: [mɪlk]" },
+  { word: "juice", meaning: "果汁", kk: "[dʒus]", tip: "juice (果汁/不可數) KK: [dʒus]" },
+  { word: "tea", meaning: "茶", kk: "[ti]", tip: "tea (茶/不可數) KK: [ti]" },
+  { word: "coffee", meaning: "咖啡", kk: "[ˋkɔfɪ]", tip: "coffee (咖啡/不可數) KK: [ˋkɔfɪ]" },
+  { word: "water", meaning: "水", kk: "[ˋwɔtɚ]", tip: "water (水/不可數) KK: [ˋwɔtɚ]" },
+  { word: "corn", meaning: "玉米", kk: "[kɔrn]", tip: "corn (玉米) KK: [kɔrn]" },
+  { word: "rice", meaning: "米飯", kk: "[raɪs]", tip: "rice (米飯/不可數) KK: [raɪs]" },
+  { word: "bread", meaning: "麵包", kk: "[brɛd]", tip: "bread (麵包/不可數) KK: [brɛd]" },
+  { word: "butter", meaning: "奶油", kk: "[ˋbʌtɚ]", tip: "butter (奶油) KK: [ˋbʌtɚ]" },
+  { word: "cheese", meaning: "起司", kk: "[tʃiz]", tip: "cheese (起司) KK: [tʃiz]" },
+  { word: "egg", meaning: "雞蛋", kk: "[ɛg]", tip: "egg (雞蛋) KK: [ɛg]" },
+  { word: "chicken", meaning: "雞肉", kk: "[ˋtʃɪkɪn]", tip: "chicken (雞肉) KK: [ˋtʃɪkɪn]" },
+  { word: "beef", meaning: "牛肉", kk: "[bif]", tip: "beef (牛肉) KK: [bif]" },
+  { word: "pork", meaning: "豬肉", kk: "[pɔrk]", tip: "pork (豬肉) KK: [pɔrk]" },
+  { word: "fish", meaning: "魚肉", kk: "[fɪʃ]", tip: "fish (魚肉) KK: [fɪʃ]" },
+  { word: "apple", meaning: "蘋果", kk: "[ˋæp!]", tip: "apple (蘋果) KK: [ˋæp!]" },
+  { word: "banana", meaning: "香蕉", kk: "[bəˋnænə]", tip: "banana (香蕉) KK: [bəˋnænə]" },
+  { word: "orange", meaning: "柳橙", kk: "[ˋɔrɪndʒ]", tip: "orange (柳橙) KK: [ˋɔrɪndʒ]" },
+  { word: "grape", meaning: "葡萄", kk: "[grep]", tip: "grape (葡萄) KK: [grep]" },
+  { word: "watermelon", meaning: "西瓜", kk: "[ˋwɔtɚ͵mɛlən]", tip: "watermelon (西瓜) KK: [ˋwɔtɚ͵mɛlən]" },
+  { word: "ice cream", meaning: "冰淇淋", kk: "[ˋaɪs ͵krim]", tip: "ice cream (冰淇淋) KK: [ˋaɪs ͵krim]" },
+  { word: "cake", meaning: "蛋糕", kk: "[kek]", tip: "cake (蛋糕) KK: [kek]" },
+  { word: "candy", meaning: "糖果", kk: "[ˋkændɪ]", tip: "candy (糖果) KK: [ˋkændɪ]" },
+  { word: "chocolate", meaning: "巧克力", kk: "[ˋtʃɑkəlɪt]", tip: "chocolate (巧克力) KK: [ˋtʃɑkəlɪt]" },
+  { word: "pizza", meaning: "披薩", kk: "[ˋpitsə]", tip: "pizza (披薩) KK: [ˋpitsə]" },
+  { word: "French fries", meaning: "薯條", kk: "[frɛntʃ fraɪz]", tip: "French fries (薯條) KK: [frɛntʃ fraɪz]" },
+  { word: "hot dog", meaning: "熱狗", kk: "[hɑt dɔg]", tip: "hot dog (熱狗) KK: [hɑt dɔg]" },
+
+  // --- 身體動作與日常習慣 (Actions & Verbs) ---
   { word: "tremble", meaning: "發抖 / 顫抖", kk: "[ˋtrɛmb!]", tip: "tremble (顫抖) KK: [ˋtrɛmb!]" },
   { word: "yawn", meaning: "打哈欠", kk: "[jɔn]", tip: "yawn (打哈欠) KK: [jɔn]" },
   { word: "stretch", meaning: "伸展 / 伸懶腰", kk: "[strɛtʃ]", tip: "stretch (伸展) KK: [strɛtʃ]" },
   { word: "shut", meaning: "閉上 / 關閉", kk: "[ʃʌt]", tip: "shut (閉上) KK: [ʃʌt]" },
+  { word: "open", meaning: "打開", kk: "[ˋopən]", tip: "open (打開) KK: [ˋopən]" },
   { word: "brush", meaning: "刷 (牙/毛)", kk: "[brʌʃ]", tip: "brush (刷) KK: [brʌʃ]" },
   { word: "wash", meaning: "清洗", kk: "[wɑʃ]", tip: "wash (清洗) KK: [wɑʃ]" },
   { word: "borrow", meaning: "借入", kk: "[ˋbɑro]", tip: "borrow (借入) KK: [ˋbɑro]" },
@@ -35,78 +93,179 @@ const bLevelVocabMasterPool = [
   { word: "swim", meaning: "游泳", kk: "[swɪm]", tip: "swim (游泳) KK: [swɪm]" },
   { word: "jump", meaning: "跳躍", kk: "[dʒʌmp]", tip: "jump (跳躍) KK: [dʒʌmp]" },
   { word: "run", meaning: "跑步", kk: "[rʌn]", tip: "run (跑步) KK: [rʌn]" },
+  { word: "walk", meaning: "走路", kk: "[wɔk]", tip: "walk (走路) KK: [wɔk]" },
+  { word: "climb", meaning: "攀爬", kk: "[klaɪm]", tip: "climb (攀爬) KK: [klaɪm]" },
+  { word: "dance", meaning: "跳舞", kk: "[dæns]", tip: "dance (跳舞) KK: [dæns]" },
+  { word: "sing", meaning: "唱歌", kk: "[sɪŋ]", tip: "sing (唱歌) KK: [sɪŋ]" },
+  { word: "draw", meaning: "繪畫", kk: "[drɔ]", tip: "draw (繪畫) KK: [drɔ]" },
+  { word: "paint", meaning: "油彩塗色", kk: "[pent]", tip: "paint (塗色) KK: [pent]" },
+  { word: "read", meaning: "閱讀", kk: "[rid]", tip: "read (閱讀) KK: [rid]" },
+  { word: "write", meaning: "書寫", kk: "[raɪt]", tip: "write (書寫) KK: [raɪt]" },
+  { word: "speak", meaning: "說話", kk: "[spik]", tip: "speak (說話) KK: [spik]" },
+  { word: "listen", meaning: "聆聽", kk: "[ˋlɪsn]", tip: "listen (聆聽) KK: [ˋlɪsn]" },
+  { word: "shout", meaning: "大喊", kk: "[ʃaʊt]", tip: "shout (大喊) KK: [ʃaʊt]" },
+  { word: "laugh", meaning: "大笑", kk: "[læf]", tip: "laugh (大笑) KK: [læf]" },
+  { word: "cry", meaning: "哭泣", kk: "[kraɪ]", tip: "cry (哭泣) KK: [kraɪ]" },
+  { word: "smile", meaning: "微笑", kk: "[smaɪl]", tip: "smile (微笑) KK: [smaɪl]" },
+  { word: "sleep", meaning: "睡覺", kk: "[slip]", tip: "sleep (睡覺) KK: [slip]" },
+  { word: "cook", meaning: "烹飪", kk: "[kʊk]", tip: "cook (烹飪) KK: [kʊk]" },
+  { word: "clean", meaning: "打掃", kk: "[klin]", tip: "clean (打掃) KK: [klin]" },
+  { word: "ride", meaning: "騎乘", kk: "[raɪd]", tip: "ride (騎乘) KK: [raɪd]" },
+  { word: "drive", meaning: "駕駛", kk: "[draɪv]", tip: "drive (駕駛) KK: [draɪv]" },
+  { word: "fly", meaning: "飛行 / 放(風箏)", kk: "[flaɪ]", tip: "fly (飛行) KK: [flaɪ]" },
+  { word: "catch", meaning: "接住 / 捕捉", kk: "[kætʃ]", tip: "catch (接住) KK: [kætʃ]" },
+  { word: "throw", meaning: "投擲", kk: "[θro]", tip: "throw (投擲) KK: [θro]" },
 
-  // 【飲食與點心】
-  { word: "sausages", meaning: "香腸", kk: "[ˋsɔsɪdʒɪz]", tip: "sausages (香腸) KK: [ˋsɔsɪdʒɪz]" },
-  { word: "sandwiches", meaning: "三明治", kk: "[ˋsændwɪtʃɪz]", tip: "sandwiches (三明治) KK: [ˋsændwɪtʃɪz]" },
-  { word: "cookies", meaning: "餅乾", kk: "[ˋkʊkɪz]", tip: "cookies (餅乾) KK: [ˋkʊkɪz]" },
-  { word: "noodles", meaning: "麵條", kk: "[ˋnud!z]", tip: "noodles (麵條) KK: [ˋnud!z]" },
-  { word: "hamburgers", meaning: "漢堡", kk: "[ˋhæmbɚgɚz]", tip: "hamburgers (漢堡) KK: [ˋhæmbɚgɚz]" },
-  { word: "vegetables", meaning: "蔬菜", kk: "[ˋvɛdʒətəb!z]", tip: "vegetables (蔬菜) KK: [ˋvɛdʒətəb!z]" },
-  { word: "strawberries", meaning: "草莓", kk: "[ˋstrɔ͵bɛrɪz]", tip: "strawberries (草莓) KK: [ˋstrɔ͵bɛrɪz]" },
-  { word: "breakfast", meaning: "早餐", kk: "[ˋbrɛkfəst]", tip: "breakfast (早餐) KK: [ˋbrɛkfəst]" },
-  { word: "sugar", meaning: "糖", kk: "[ˋʃʊgɚ]", tip: "sugar (糖/不可數) KK: [ˋʃʊgɚ]" },
-  { word: "soup", meaning: "湯", kk: "[sup]", tip: "soup (湯/不可數) KK: [sup]" },
-  { word: "milk", meaning: "牛奶", kk: "[mɪlk]", tip: "milk (牛奶/不可數) KK: [mɪlk]" },
-  { word: "corn", meaning: "玉米", kk: "[kɔrn]", tip: "corn (玉米) KK: [kɔrn]" },
-
-  // 【休閒嗜好與運動】
+  // --- 休閒、嗜好與樂器運動 (Hobbies & Sports) ---
   { word: "badminton", meaning: "羽毛球", kk: "[ˋbædmɪntən]", tip: "badminton (羽毛球) KK: [ˋbædmɪntən]" },
   { word: "bowling", meaning: "保齡球", kk: "[ˋbolɪŋ]", tip: "bowling (保齡球) KK: [ˋbolɪŋ]" },
   { word: "basketball", meaning: "籃球", kk: "[ˋbæskɪt͵bɔl]", tip: "basketball (籃球) KK: [ˋbæskɪt͵bɔl]" },
+  { word: "baseball", meaning: "棒球", kk: "[ˋbes͵bɔl]", tip: "baseball (棒球) KK: [ˋbes͵bɔl]" },
   { word: "football", meaning: "足球", kk: "[ˋfʊt͵bɔl]", tip: "football (足球) KK: [ˋfʊt͵bɔl]" },
-  { word: "golf", meaning: "高爾夫", kk: "[gɑlf]", tip: "golf (高爾夫) KK: [gɑlf]" },
+  { word: "soccer", meaning: "英式足球", kk: "[ˋsɑkɚ]", tip: "soccer (足球) KK: [ˋsɑkɚ]" },
+  { word: "golf", meaning: "高爾夫球", kk: "[gɑlf]", tip: "golf (高爾夫) KK: [gɑlf]" },
+  { word: "tennis", meaning: "網球", kk: "[ˋtɛnɪs]", tip: "tennis (網球) KK: [ˋtɛnɪs]" },
+  { word: "table tennis", meaning: "乒乓球", kk: "[ˋteb! ͵tɛnɪs]", tip: "table tennis (乒乓球) KK: [ˋteb! ͵tɛnɪs]" },
   { word: "guitar", meaning: "吉他", kk: "[gɪˋtɑr]", tip: "guitar (吉他) KK: [gɪˋtɑr]" },
   { word: "piano", meaning: "鋼琴", kk: "[pɪˋæno]", tip: "piano (鋼琴) KK: [pɪˋæno]" },
   { word: "violin", meaning: "小提琴", kk: "[͵vaɪəˋlɪn]", tip: "violin (小提琴) KK: [͵vaɪəˋlɪn]" },
+  { word: "drum", meaning: "鼓", kk: "[drʌm]", tip: "drum (鼓) KK: [drʌm]" },
+  { word: "flute", meaning: "長笛", kk: "[flut]", tip: "flute (長笛) KK: [flut]" },
+  { word: "kite", meaning: "風箏", kk: "[kaɪt]", tip: "kite (風箏) KK: [kaɪt]" },
   { word: "bicycle", meaning: "腳踏車", kk: "[ˋbaɪsɪk!]", tip: "bicycle (腳踏車) KK: [ˋbaɪsɪk!]" },
+  { word: "kung fu", meaning: "功夫", kk: "[ˋkʊŋ ˋfu]", tip: "kung fu (功夫) KK: [ˋkʊŋ ˋfu]" },
+  { word: "video game", meaning: "電玩遊戲", kk: "[ˋvɪdɪo gem]", tip: "video game (電玩) KK: [ˋvɪdɪo gem]" },
 
-  // 【場所、地點與空間】
+  // --- 社區場所與地點空間 (Places & Locations) ---
   { word: "kitchen", meaning: "廚房", kk: "[ˋkɪtʃɪn]", tip: "kitchen (廚房) KK: [ˋkɪtʃɪn]" },
   { word: "bedroom", meaning: "臥室", kk: "[ˋbɛd͵rum]", tip: "bedroom (臥室) KK: [ˋbɛd͵rum]" },
   { word: "bathroom", meaning: "浴室", kk: "[ˋbæθ͵rum]", tip: "bathroom (浴室) KK: [ˋbæθ͵rum]" },
+  { word: "living room", meaning: "客廳", kk: "[ˋlɪvɪŋ ͵rum]", tip: "living room (客廳) KK: [ˋlɪvɪŋ ͵rum]" },
   { word: "dining room", meaning: "飯廳", kk: "[ˋdaɪnɪŋ ͵rum]", tip: "dining room (飯廳) KK: [ˋdaɪnɪŋ ͵rum]" },
+  { word: "balcony", meaning: "陽台", kk: "[ˋbælkənɪ]", tip: "balcony (陽台) KK: [ˋbælkənɪ]" },
+  { word: "garden", meaning: "花園", kk: "[ˋgɑrdn]", tip: "garden (花園) KK: [ˋgɑrdn]" },
   { word: "garage", meaning: "車庫", kk: "[gəˋrɑʒ]", tip: "garage (車庫) KK: [gəˋrɑʒ]" },
   { word: "apartment", meaning: "公寓", kk: "[əˋpɑrtmənt]", tip: "apartment (公寓) KK: [əˋpɑrtmənt]" },
   { word: "hospital", meaning: "醫院", kk: "[ˋhɑspɪt!]", tip: "hospital (醫院) KK: [ˋhɑspɪt!]" },
   { word: "supermarket", meaning: "超級市場", kk: "[ˋsupɚ͵mɑrkɪt]", tip: "supermarket (超市) KK: [ˋsupɚ͵mɑrkɪt]" },
   { word: "restaurant", meaning: "餐廳", kk: "[ˋrɛstərənt]", tip: "restaurant (餐廳) KK: [ˋrɛstərənt]" },
-  { word: "between", meaning: "在…兩者之間", kk: "[bɪˋtwin]", tip: "between (兩者之間) KK: [bɪˋtwin]" },
-  { word: "beside", meaning: "在…旁邊", kk: "[bɪˋsaɪd]", tip: "beside (旁邊) KK: [bɪˋsaɪd]" },
+  { word: "bakery", meaning: "麵包店", kk: "[ˋbekərɪ]", tip: "bakery (麵包店) KK: [ˋbekərɪ]" },
+  { word: "bookstore", meaning: "書店", kk: "[ˋbʊk͵stor]", tip: "bookstore (書店) KK: [ˋbʊk͵stor]" },
+  { word: "library", meaning: "圖書館", kk: "[ˋlaɪbrɛrɪ]", tip: "library (圖書館) KK: [ˋlaɪbrɛrɪ]" },
+  { word: "movie theater", meaning: "電影院", kk: "[ˋmuvɪ ͵θɪətɚ]", tip: "movie theater (電影院) KK: [ˋmuvɪ ͵θɪətɚ]" },
+  { word: "post office", meaning: "郵局", kk: "[post ˋɔfɪs]", tip: "post office (郵局) KK: [post ˋɔfɪs]" },
+  { word: "park", meaning: "公園", kk: "[pɑrk]", tip: "park (公園) KK: [pɑrk]" },
+  { word: "zoo", meaning: "動物園", kk: "[zu]", tip: "zoo (動物園) KK: [zu]" },
+  { word: "school", meaning: "學校", kk: "[skul]", tip: "school (學校) KK: [skul]" },
+  { word: "station", meaning: "車站", kk: "[ˋsteʃən]", tip: "station (車站) KK: [ˋsteʃən]" },
+  { word: "airport", meaning: "機場", kk: "[ˋɛr͵pɔrt]", tip: "airport (機場) KK: [ˋɛr͵pɔrt]" },
+  { word: "bank", meaning: "銀行", kk: "[bæŋk]", tip: "bank (銀行) KK: [bæŋk]" },
 
-  // 【學校、人物與社交】
+  // --- 學校與課堂作息 (School & Classroom) ---
   { word: "classmate", meaning: "同學", kk: "[ˋklæs͵met]", tip: "classmate (同學) KK: [ˋklæs͵met]" },
-  { word: "grandparents", meaning: "祖父母", kk: "[ˋgrænd͵pɛrənts]", tip: "grandparents (祖父母) KK: [ˋgrænd͵pɛrənts]" },
+  { word: "teacher", meaning: "老師", kk: "[ˋtitʃɚ]", tip: "teacher (老師) KK: [ˋtitʃɚ]" },
+  { word: "student", meaning: "學生", kk: "[ˋstjudnt]", tip: "student (學生) KK: [ˋstjudnt]" },
+  { word: "classroom", meaning: "教室", kk: "[ˋklæs͵rum]", tip: "classroom (教室) KK: [ˋklæs͵rum]" },
   { word: "homework", meaning: "家庭作業", kk: "[ˋhom͵wɝk]", tip: "homework (家庭作業) KK: [ˋhom͵wɝk]" },
-  { word: "difficult", meaning: "困難的", kk: "[ˋdɪfək!t]", tip: "difficult (困難的) KK: [ˋdɪfək!t]" },
-  { word: "talented", meaning: "有才華的", kk: "[ˋtæləntɪd]", tip: "talented (有才華的) KK: [ˋtæləntɪd]" },
-  { word: "scary", meaning: "恐怖的", kk: "[ˋskɛrɪ]", tip: "scary (恐怖的) KK: [ˋskɛrɪ]" },
+  { word: "desk", meaning: "書桌", kk: "[dɛsk]", tip: "desk (書桌) KK: [dɛsk]" },
+  { word: "chair", meaning: "椅子", kk: "[tʃɛr]", tip: "chair (椅子) KK: [tʃɛr]" },
+  { word: "blackboard", meaning: "黑板", kk: "[ˋblæk͵bɔrd]", tip: "blackboard (黑板) KK: [ˋblæk͵bɔrd]" },
+  { word: "book", meaning: "書籍", kk: "[bʊk]", tip: "book (書籍) KK: [bʊk]" },
+  { word: "pencil", meaning: "鉛筆", kk: "[ˋpɛns!]", tip: "pencil (鉛筆) KK: [ˋpɛns!]" },
+  { word: "pen", meaning: "原子筆", kk: "[pɛn]", tip: "pen (原子筆) KK: [pɛn]" },
+  { word: "eraser", meaning: "橡皮擦", kk: "[ɪˋresɚ]", tip: "eraser (橡皮擦) KK: [ɪˋresɚ]" },
+  { word: "ruler", meaning: "尺", kk: "[ˋrulɚ]", tip: "ruler (尺) KK: [ˋrulɚ]" },
+  { word: "bag", meaning: "書包 / 袋子", kk: "[bæg]", tip: "bag (書包) KK: [bæg]" },
+  { word: "lesson", meaning: "課程", kk: "[ˋlɛsn]", tip: "lesson (課程) KK: [ˋlɛsn]" },
+  { word: "test", meaning: "考試", kk: "[tɛst]", tip: "test (考試) KK: [tɛst]" },
 
-  // 【時間與電影主題】
+  // --- 人物、親屬與特質 (People & Family) ---
+  { word: "parents", meaning: "父母親", kk: "[ˋpɛrənts]", tip: "parents (父母親) KK: [ˋpɛrənts]" },
+  { word: "grandparents", meaning: "祖父母", kk: "[ˋgrænd͵pɛrənts]", tip: "grandparents (祖父母) KK: [ˋgrænd͵pɛrənts]" },
+  { word: "father", meaning: "父親", kk: "[ˋfɑðɚ]", tip: "father (父親) KK: [ˋfɑðɚ]" },
+  { word: "mother", meaning: "母親", kk: "[ˋmʌðɚ]", tip: "mother (母親) KK: [ˋmʌðɚ]" },
+  { word: "brother", meaning: "兄弟", kk: "[ˋbrʌðɚ]", tip: "brother (兄弟) KK: [ˋbrʌðɚ]" },
+  { word: "sister", meaning: "姊妹", kk: "[ˋsɪstɚ]", tip: "sister (姊妹) KK: [ˋsɪstɚ]" },
+  { word: "baby", meaning: "嬰兒", kk: "[ˋbebɪ]", tip: "baby (嬰兒) KK: [ˋbebɪ]" },
+  { word: "friend", meaning: "朋友", kk: "[frɛnd]", tip: "friend (朋友) KK: [frɛnd]" },
+  { word: "doctor", meaning: "醫生", kk: "[ˋdɑktɚ]", tip: "doctor (醫生) KK: [ˋdɑktɚ]" },
+  { word: "nurse", meaning: "護士", kk: "[nɝs]", tip: "nurse (護士) KK: [nɝs]" },
+  { word: "police officer", meaning: "警察", kk: "[pəˋlis ͵ɔfɪsɚ]", tip: "police officer (警察) KK: [pəˋlis ͵ɔfɪsɚ]" },
+  { word: "driver", meaning: "司機", kk: "[ˋdraɪvɚ]", tip: "driver (司機) KK: [ˋdraɪvɚ]" },
+
+  // --- 描述性形容詞 (Adjectives) ---
+  { word: "scary", meaning: "恐怖的", kk: "[ˋskɛrɪ]", tip: "scary (恐怖的) KK: [ˋskɛrɪ]" },
+  { word: "funny", meaning: "滑稽有趣的", kk: "[ˋfʌnɪ]", tip: "funny (有趣的) KK: [ˋfʌnɪ]" },
+  { word: "happy", meaning: "快樂的", kk: "[ˋhæpɪ]", tip: "happy (快樂的) KK: [ˋhæpɪ]" },
+  { word: "sad", meaning: "悲傷的", kk: "[sæd]", tip: "sad (悲傷的) KK: [sæd]" },
+  { word: "tired", meaning: "疲憊的", kk: "[taɪrd]", tip: "tired (疲憊的) KK: [taɪrd]" },
+  { word: "hungry", meaning: "飢餓的", kk: "[ˋhʌŋgrɪ]", tip: "hungry (飢餓的) KK: [ˋhʌŋgrɪ]" },
+  { word: "thirsty", meaning: "口渴的", kk: "[ˋθɝstɪ]", tip: "thirsty (口渴的) KK: [ˋθɝstɪ]" },
+  { word: "sick", meaning: "生病的", kk: "[sɪk]", tip: "sick (生病的) KK: [sɪk]" },
+  { word: "tall", meaning: "高的", kk: "[tɔl]", tip: "tall (高的) KK: [tɔl]" },
+  { word: "short", meaning: "矮的 / 短的", kk: "[ʃɔrt]", tip: "short (矮/短) KK: [ʃɔrt]" },
+  { word: "thin", meaning: "瘦的 / 薄的", kk: "[θɪn]", tip: "thin (瘦的) KK: [θɪn]" },
+  { word: "fat", meaning: "胖的", kk: "[fæt]", tip: "fat (胖的) KK: [fæt]" },
+  { word: "big", meaning: "大的", kk: "[bɪg]", tip: "big (大的) KK: [bɪg]" },
+  { word: "small", meaning: "小的", kk: "[smɔl]", tip: "small (小的) KK: [smɔl]" },
+  { word: "hot", meaning: "炎熱的", kk: "[hɑt]", tip: "hot (熱的) KK: [hɑt]" },
+  { word: "cold", meaning: "寒冷的", kk: "[kold]", tip: "cold (冷的) KK: [kold]" },
+  { word: "warm", meaning: "溫暖的", kk: "[wɔrm]", tip: "warm (溫暖的) KK: [wɔrm]" },
+  { word: "cool", meaning: "涼爽的 / 酷的", kk: "[kul]", tip: "cool (涼爽的) KK: [kul]" },
+  { word: "new", meaning: "新的", kk: "[nju]", tip: "new (新的) KK: [nju]" },
+  { word: "old", meaning: "舊的 / 年邁的", kk: "[old]", tip: "old (舊的/老的) KK: [old]" },
+  { word: "young", meaning: "年輕的", kk: "[jʌŋ]", tip: "young (年輕的) KK: [jʌŋ]" },
+  { word: "clean", meaning: "乾淨的", kk: "[klin]", tip: "clean (乾淨的) KK: [klin]" },
+  { word: "dirty", meaning: "骯髒的", kk: "[ˋdɝtɪ]", tip: "dirty (骯髒的) KK: [ˋdɝtɪ]" },
+  { word: "difficult", meaning: "困難的", kk: "[ˋdɪfək!t]", tip: "difficult (困難的) KK: [ˋdɪfək!t]" },
+  { word: "easy", meaning: "容易的", kk: "[ˋizɪ]", tip: "easy (容易的) KK: [ˋizɪ]" },
+  { word: "talented", meaning: "有天賦的", kk: "[ˋtæləntɪd]", tip: "talented (有天賦的) KK: [ˋtæləntɪd]" },
+  { word: "busy", meaning: "忙碌的", kk: "[ˋbɪzɪ]", tip: "busy (忙碌的) KK: [ˋbɪzɪ]" },
+  { word: "sweet", meaning: "甜的", kk: "[swit]", tip: "sweet (甜的) KK: [swit]" },
+  { word: "loud", meaning: "大聲的", kk: "[laʊd]", tip: "loud (大聲的) KK: [laʊd]" },
+  { word: "quiet", meaning: "安靜的", kk: "[ˋkwaɪət]", tip: "quiet (安靜的) KK: [ˋkwaɪət]" },
+
+  // --- 時間、頻率與介系詞 (Time, Frequency & Prepositions) ---
   { word: "second", meaning: "秒", kk: "[ˋsɛkənd]", tip: "second (秒) KK: [ˋsɛkənd]" },
   { word: "minute", meaning: "分鐘", kk: "[ˋmɪnɪt]", tip: "minute (分鐘) KK: [ˋmɪnɪt]" },
+  { word: "hour", meaning: "小時", kk: "[aʊr]", tip: "hour (小時) KK: [aʊr]" },
   { word: "quarter", meaning: "一刻鐘 (15分)", kk: "[ˋkwɔrtɚ]", tip: "quarter (一刻鐘) KK: [ˋkwɔrtɚ]" },
-  { word: "rarely", meaning: "很少 / 幾乎不", kk: "[ˋrɛrlɪ]", tip: "rarely (幾乎不) KK: [ˋrɛrlɪ]" },
-  { word: "always", meaning: "總是", kk: "[ˋɔlwez]", tip: "always (總是) KK: [ˋɔlwez]" },
-  { word: "science fiction movie", meaning: "科幻電影", kk: "[ˋsaɪəns ˋfɪkʃən muvɪ]", tip: "science fiction movie (科幻片) KK: [ˋsaɪəns ˋfɪkʃən muvɪ]" }
+  { word: "noon", meaning: "中午", kk: "[nun]", tip: "noon (中午) KK: [nun]" },
+  { word: "morning", meaning: "早晨", kk: "[ˋmɔrnɪŋ]", tip: "morning (早晨) KK: [ˋmɔrnɪŋ]" },
+  { word: "afternoon", meaning: "下午", kk: "[ˋæftɚˋnun]", tip: "afternoon (下午) KK: [ˋæftɚˋnun]" },
+  { word: "evening", meaning: "傍晚", kk: "[ˋivnɪŋ]", tip: "evening (傍晚) KK: [ˋivnɪŋ]" },
+  { word: "night", meaning: "夜晚", kk: "[naɪt]", tip: "night (夜晚) KK: [naɪt]" },
+  { word: "today", meaning: "今天", kk: "[təˋde]", tip: "today (今天) KK: [təˋde]" },
+  { word: "tomorrow", meaning: "明天", kk: "[təˋmɑro]", tip: "tomorrow (明天) KK: [təˋmɑro]" },
+  { word: "yesterday", meaning: "昨天", kk: "[ˋjɛstɚde]", tip: "yesterday (昨天) KK: [ˋjɛstɚde]" },
+  { word: "always", meaning: "總是 (100%)", kk: "[ˋɔlwez]", tip: "always (總是) KK: [ˋɔlwez]" },
+  { word: "usually", meaning: "通常 (80%)", kk: "[ˋjuʒʊəlɪ]", tip: "usually (通常) KK: [ˋjuʒʊəlɪ]" },
+  { word: "often", meaning: "經常 (60%)", kk: "[ˋɔfən]", tip: "often (經常) KK: [ˋɔfən]" },
+  { word: "sometimes", meaning: "有時 (40%)", kk: "[ˋsʌm͵taɪmz]", tip: "sometimes (有時) KK: [ˋsʌm͵taɪmz]" },
+  { word: "rarely", meaning: "很少 (10%)", kk: "[ˋrɛrlɪ]", tip: "rarely (很少) KK: [ˋrɛrlɪ]" },
+  { word: "never", meaning: "從未 (0%)", kk: "[ˋnɛvɚ]", tip: "never (從未) KK: [ˋnɛvɚ]" },
+  { word: "between", meaning: "在…兩者之間", kk: "[bɪˋtwin]", tip: "between (兩者之間) KK: [bɪˋtwin]" },
+  { word: "beside", meaning: "在…旁邊", kk: "[bɪˋsaɪd]", tip: "beside (旁邊) KK: [bɪˋsaɪd]" },
+  { word: "under", meaning: "在…下方", kk: "[ˋʌndɚ]", tip: "under (下方) KK: [ˋʌndɚ]" },
+  { word: "behind", meaning: "在…後面", kk: "[bɪˋhaɪnd]", tip: "behind (後面) KK: [bɪˋhaɪnd]" },
+  { word: "science fiction movie", meaning: "科幻電影", kk: "[ˋsaɪəns ˋfɪkʃən muvɪ]", tip: "science fiction movie (科幻電影) KK: [ˋsaɪəns ˋfɪkʃən muvɪ]" },
+  { word: "horror movie", meaning: "恐怖電影", kk: "[ˋhɔrɚ muvɪ]", tip: "horror movie (恐怖電影) KK: [ˋhɔrɚ muvɪ]" },
+  { word: "adventure movie", meaning: "冒險電影", kk: "[ədˋvɛntʃɚ muvɪ]", tip: "adventure movie (冒險電影) KK: [ədˋvɛntʃɚ muvɪ]" }
 ];
 
 // ==========================================
 // 2. 單字題目動態組合器 (隨機抽取題目與動態生成干擾項)
 // ==========================================
 function buildDynamicVocabQuiz(count, stageTitle) {
-  // 將母庫深層複製並洗牌
   const poolShuffled = [...bLevelVocabMasterPool].sort(() => Math.random() - 0.5);
   const selectedTargets = poolShuffled.slice(0, Math.min(count, poolShuffled.length));
 
   return selectedTargets.map((target) => {
-    // 從剩餘單字隨機選 3 個做為干擾選項
     const distractors = bLevelVocabMasterPool
       .filter((item) => item.word !== target.word)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
 
-    // 結合目標單字與干擾選項並隨機排列
     const allOptions = [target, ...distractors].sort(() => Math.random() - 0.5);
     const correctIdx = allOptions.findIndex((item) => item.word === target.word);
 
@@ -126,8 +285,8 @@ function buildDynamicVocabQuiz(count, stageTitle) {
 }
 
 // 產生單字測驗兩大子階段題庫
-const rawVocabHighFreq = buildDynamicVocabQuiz(15, "🔥 快速隨機抽測");
-const rawVocabBLevel = buildDynamicVocabQuiz(50, "⭐ B級全範圍綜合測驗");
+const rawVocabHighFreq = buildDynamicVocabQuiz(15, "🔥 快速隨機抽測 (15題)");
+const rawVocabBLevel = buildDynamicVocabQuiz(50, "⭐ B級全範圍綜合測驗 (50題)");
 
 // ==========================================
 // 3. 語法參數化生成器 (500 題多元情境題庫，無破折號)

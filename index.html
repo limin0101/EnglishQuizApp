@@ -37,7 +37,7 @@
       flex-wrap: wrap;
     }
     .main-tab-btn {
-      padding: 8px 14px;
+      padding: 8px 12px;
       border: none;
       background: #f1f5f9;
       border-radius: 8px;
@@ -76,34 +76,24 @@
       color: white;
     }
 
-    .score-board { font-size: 14px; color: #64748b; margin-bottom: 12px; }
-    .part-tag {
-      display: inline-block;
-      background: #e2e8f0;
-      color: #334155;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
+    .score-board { font-size: 15px; font-weight: 600; color: #475569; margin-bottom: 14px; }
 
-    .start-screen, .result-screen {
+    .start-screen, .result-screen, .analysis-screen {
       background: #f8fafc;
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
-      padding: 30px 16px;
+      padding: 24px 16px;
       margin-bottom: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 14px;
     }
-    .result-screen {
+    .result-screen, .analysis-screen {
       display: none;
     }
     .start-title { font-size: 20px; font-weight: bold; color: #1e293b; }
-    .start-desc { font-size: 14px; color: #64748b; line-height: 1.6; max-width: 460px; }
+    .start-desc { font-size: 14px; color: #64748b; line-height: 1.6; max-width: 480px; }
     .start-run-btn {
       background: #2563eb;
       color: white;
@@ -116,6 +106,35 @@
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
     .start-run-btn:active { transform: scale(0.98); }
+
+    .action-btn-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-secondary {
+      background: #0284c7;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 24px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
 
     .quiz-active-area {
       display: none;
@@ -248,6 +267,46 @@
       padding: 2px 6px;
       border-radius: 4px;
     }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      width: 100%;
+      margin: 10px 0;
+    }
+    .stat-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .stat-number { font-size: 24px; font-weight: bold; color: #ef4444; }
+    .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
+    
+    .mistake-list {
+      width: 100%;
+      max-height: 380px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 10px;
+      padding-right: 4px;
+    }
+    .mistake-item {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 14px;
+    }
+    .mistake-q { font-weight: bold; color: #1e293b; margin-bottom: 6px; }
+    .mistake-ans { color: #15803d; font-weight: 600; }
+    .mistake-wrong-tag { color: #dc2626; font-size: 13px; }
+    .mistake-tip { background: #fefce8; padding: 6px 8px; border-radius: 4px; color: #713f12; font-size: 12px; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -259,11 +318,11 @@
       <button class="main-tab-btn active" onclick="selectMainModule('vocab')">📝 核心單字測驗</button>
       <button class="main-tab-btn" onclick="selectMainModule('grammar')">📖 重點文法測驗</button>
       <button class="main-tab-btn" onclick="selectMainModule('listening')">🎧 官方聽力練習</button>
+      <button class="main-tab-btn" onclick="selectMainModule('analysis')">📊 錯題弱點分析</button>
     </div>
 
     <div class="sub-nav" id="vocab-subnav">
-      <button class="sub-btn active" onclick="switchVocabStage('high_freq')">🔥 快速隨機抽測 (15題)</button>
-      <button class="sub-btn" onclick="switchVocabStage('b_level')">⭐ B級綜合測驗 (50題)</button>
+      <button class="sub-btn active" onclick="switchVocabStage('b_level')">⭐ B級綜合測驗 (25題)</button>
     </div>
 
     <div class="sub-nav" id="listening-subnav" style="display: none;">
@@ -272,24 +331,54 @@
       <button class="sub-btn" onclick="switchListeningStage('p2')">Practice 2 模擬測驗</button>
     </div>
 
-    <!-- 開始畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
       <div class="start-desc" id="start-desc">說明內容載入中...</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
-    <!-- 測驗完成結果獨立畫面 -->
     <div class="result-screen" id="result-screen">
       <div class="start-title">🎉 本單元測驗完成！</div>
       <p style="font-size: 22px; color: #1e293b; margin: 10px 0;">最終成績：<b id="final-score">0</b> / 100</p>
-      <button class="start-run-btn" onclick="unlockAudioAndStart()">🔄 重新隨機測驗</button>
+      <div class="action-btn-group">
+        <button class="start-run-btn" onclick="unlockAudioAndStart()">🔄 重新隨機測驗</button>
+        <button class="btn-secondary" onclick="selectMainModule('analysis')">📊 查看本次錯題分析</button>
+      </div>
     </div>
 
-    <!-- 測驗主畫面 -->
+    <div class="analysis-screen" id="analysis-screen">
+      <div class="start-title">📊 個人錯題弱點分析庫</div>
+      <div class="start-desc">系統會自動保存作答錯誤的題型，並即時同步至 Google 試算表。</div>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-number" id="stat-total">0</div>
+          <div class="stat-label">累積錯題總數</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-vocab">0</div>
+          <div class="stat-label">單字弱點</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-grammar">0</div>
+          <div class="stat-label">文法弱點</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="stat-listening">0</div>
+          <div class="stat-label">聽力弱點</div>
+        </div>
+      </div>
+
+      <div class="action-btn-group">
+        <button class="btn-secondary" onclick="startMistakeReviewQuiz()">🎯 錯題專項重測 (最多20題)</button>
+        <button class="btn-danger" onclick="clearMistakeHistory()">🗑️ 清空所有錯題</button>
+      </div>
+
+      <div class="mistake-list" id="mistake-list-container"></div>
+    </div>
+
     <div class="quiz-active-area" id="quiz-active-area">
       <div class="score-board">
-        <span class="part-tag" id="part-tag">單元</span><br>
         進度: <span id="q-index">1</span> / <span id="total-q">0</span> | 目前得分: <span id="score">0</span>
       </div>
 
@@ -329,14 +418,92 @@
     </div>
   </div>
 
-  <!-- 引入題庫資料檔 -->
   <script src="questions.js"></script>
 
   <script>
+    // ==========================================
+    // Google 表單雲端同步設定 (已優化：公開發布路徑 + 原生表單背景傳送)
+    // ==========================================
+    const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScPPuAAn9a-WxVNiYT2AvZIr2nNXgLKc7lQQJH8d582Bnsmww/formResponse";
+
+    const ENTRY_NAME      = "entry.1497266437"; // 學生姓名/裝置
+    const ENTRY_MODULE    = "entry.1362970063"; // 單元分類
+    const ENTRY_PROMPT    = "entry.762033637";  // 題目內容
+    const ENTRY_WRONG     = "entry.588673430";  // 學生選錯選項
+    const ENTRY_CORRECT   = "entry.1140385408"; // 正確答案
+    const STUDENT_NAME    = "林小朋友";         // 裝置或學生辨識名稱
+
+    // 優化 2：單輪測驗防重複發送快取集合
+    let sessionSentMistakes = new Set();
+
+    function submitToGoogleForm(payload) {
+      let hiddenIframe = document.getElementById("hidden_iframe");
+      if (!hiddenIframe) {
+        hiddenIframe = document.createElement("iframe");
+        hiddenIframe.id = "hidden_iframe";
+        hiddenIframe.name = "hidden_iframe";
+        hiddenIframe.style.display = "none";
+        document.body.appendChild(hiddenIframe);
+      }
+
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = GOOGLE_FORM_URL;
+      form.target = "hidden_iframe";
+      form.style.display = "none";
+
+      const fields = {
+        [ENTRY_NAME]: payload.name || STUDENT_NAME,
+        [ENTRY_MODULE]: payload.module,
+        [ENTRY_PROMPT]: payload.prompt,
+        [ENTRY_WRONG]: payload.wrong,
+        [ENTRY_CORRECT]: payload.correct
+      };
+
+      for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value;
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+      setTimeout(() => {
+        form.remove();
+      }, 1000);
+    }
+
+    function sendMistakeToGoogleForm(data) {
+      // 防重複送出校驗
+      const mistakeKey = `${data.promptText}_${data.selectedWord}`;
+      if (sessionSentMistakes.has(mistakeKey)) return;
+      sessionSentMistakes.add(mistakeKey);
+
+      submitToGoogleForm({
+        module: data.moduleName,
+        prompt: data.promptText,
+        wrong: data.selectedWord,
+        correct: `${data.correctWord} ${data.correctMeaning ? '(' + data.correctMeaning + ')' : ''}`
+      });
+    }
+
+    // 優化 3：自動同步測驗結算與總分摘要
+    function sendSessionSummaryToGoogleForm(moduleName, score, totalCount, correctCount) {
+      const wrongCount = totalCount - correctCount;
+      submitToGoogleForm({
+        module: "🏁 測驗結算摘要",
+        prompt: `【${moduleName}】測驗共 ${totalCount} 題`,
+        wrong: `答錯 ${wrongCount} 題 / 答對 ${correctCount} 題`,
+        correct: `最終得分: ${score} 分`
+      });
+    }
+
     let speechRate = 0.85;
     let speechVolume = 1.0;
     let currentModule = "vocab";
-    let currentVocabStage = "high_freq";
+    let currentVocabStage = "b_level";
     let currentListeningStage = "review";
     let audioTimer = null;
 
@@ -344,8 +511,39 @@
     let currentIdx = 0;
     let correctCount = 0;
     let cachedVoices = [];
+    let isMistakeMode = false;
 
-    // 初始化載入可用語音
+    const STORAGE_KEY = "gram_b_quiz_mistakes";
+    function getMistakes() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch (e) {
+        return [];
+      }
+    }
+    function saveMistake(item) {
+      const list = getMistakes();
+      const existsIndex = list.findIndex(m => m.promptText === item.promptText && m.correctWord === item.correctWord);
+      if (existsIndex >= 0) {
+        list[existsIndex] = item;
+      } else {
+        list.unshift(item);
+      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+
+      sendMistakeToGoogleForm(item);
+    }
+    function removeMistake(promptText, correctWord) {
+      const list = getMistakes().filter(m => !(m.promptText === promptText && m.correctWord === correctWord));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    }
+    function clearMistakeHistory() {
+      if (confirm("確定要清空所有累積的錯題記錄嗎？")) {
+        localStorage.removeItem(STORAGE_KEY);
+        renderAnalysisScreen();
+      }
+    }
+
     function initVoices() {
       if ('speechSynthesis' in window) {
         cachedVoices = window.speechSynthesis.getVoices();
@@ -384,7 +582,6 @@
       return arr;
     }
 
-    // Android/iOS 關鍵：點擊按鈕主動喚醒音訊授權
     function unlockAudioAndStart() {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
@@ -400,23 +597,19 @@
       stopAllAudio();
       document.getElementById("start-screen").style.display = "flex";
       document.getElementById("result-screen").style.display = "none";
+      document.getElementById("analysis-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "none";
 
       const titleElem = document.getElementById("start-title");
       const descElem = document.getElementById("start-desc");
 
       if (currentModule === "vocab") {
-        if (currentVocabStage === "high_freq") {
-          titleElem.textContent = "🔥 核心單字：快速隨機抽測 (15題)";
-          descElem.textContent = "從 120+ 題庫隨機抽取 15 題，進入題目後會自動朗讀英語發音，作答後揭曉中文！";
-        } else {
-          titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (50題)";
-          descElem.textContent = "大題量隨機測驗，全面檢驗生活用品、飲食與動作單字！";
-        }
+        titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (25題)";
+        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題，進入題目後會自動朗讀英語發音，作答後揭曉中文！每題 4 分，滿分 100 分。";
       } else if (currentModule === "grammar") {
         titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
-        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，隨機抽樣練習！";
-      } else {
+        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，隨機抽樣 25 題練習！";
+      } else if (currentModule === "listening") {
         if (currentListeningStage === "review") {
           titleElem.textContent = "🎧 官方聽力：考點觀念精選複習";
           descElem.textContent = "共 8 題，重點提煉八大聽力陷阱。";
@@ -430,16 +623,78 @@
       }
     }
 
-    function startCurrentQuiz() {
+    function renderAnalysisScreen() {
+      stopAllAudio();
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
+      document.getElementById("quiz-active-area").style.display = "none";
+      document.getElementById("analysis-screen").style.display = "flex";
+
+      const list = getMistakes();
+      document.getElementById("stat-total").textContent = list.length;
+      document.getElementById("stat-vocab").textContent = list.filter(m => m.module === "vocab").length;
+      document.getElementById("stat-grammar").textContent = list.filter(m => m.module === "grammar").length;
+      document.getElementById("stat-listening").textContent = list.filter(m => m.module === "listening").length;
+
+      const container = document.getElementById("mistake-list-container");
+      container.innerHTML = "";
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="color: #64748b; padding: 20px;">太棒了！目前沒有任何錯題紀錄 🎉</div>`;
+        return;
+      }
+
+      list.forEach((m, idx) => {
+        const item = document.createElement("div");
+        item.className = "mistake-item";
+        item.innerHTML = `
+          <div class="mistake-q">#${idx + 1} [${m.moduleName}] ${m.promptText}</div>
+          <div class="mistake-wrong-tag">❌ 曾選錯誤：${m.selectedWord}</div>
+          <div class="mistake-ans">✅ 正確答案：${m.correctWord} ${m.correctMeaning ? `(${m.correctMeaning})` : ''}</div>
+          ${m.tip ? `<div class="mistake-tip">${m.tip}</div>` : ''}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function startMistakeReviewQuiz() {
+      const list = getMistakes();
+      if (list.length === 0) {
+        alert("目前沒有任何錯題可進行重測！");
+        return;
+      }
+
+      isMistakeMode = true;
+      sessionSentMistakes.clear(); // 重置單輪送出快取
+      document.getElementById("analysis-screen").style.display = "none";
+      document.getElementById("quiz-active-area").style.display = "block";
+
+      const reviewTargets = shuffleArray(list).slice(0, 20);
+      currentQuestions = reviewTargets.map(m => m.rawQuestion);
+
+      currentIdx = 0;
+      correctCount = 0;
+      document.getElementById("score").textContent = "0";
+      loadQuestion();
+    }
+
+    function startCurrentQuiz() {
+      isMistakeMode = false;
+      sessionSentMistakes.clear(); // 重置單輪送出快取
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("result-screen").style.display = "none";
+      document.getElementById("analysis-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "block";
 
       let source = [];
       if (currentModule === "vocab") {
-        source = currentVocabStage === "high_freq" ? rawVocabHighFreq : rawVocabBLevel;
+        if (typeof buildDynamicVocabQuiz === 'function') {
+          source = buildDynamicVocabQuiz(25, "⭐ B級綜合測驗 (25題)");
+        } else {
+          source = rawVocabBLevel.slice(0, 25);
+        }
       } else if (currentModule === "grammar") {
-        source = rawGrammarQuestions.slice(0, 30);
+        source = rawGrammarQuestions.slice(0, 25);
       } else {
         if (currentListeningStage === "review") source = rawReviewQuestions;
         else if (currentListeningStage === "p1") source = rawMockP1;
@@ -490,34 +745,32 @@
         listenNav.style.display = "none";
         audioControls.style.display = "flex";
         listenHint.textContent = "🔊 進入題目自動發音，也可手動點擊：";
+        setupStartScreen();
       } else if (mod === "grammar") {
         tabBtns[1].classList.add("active");
         vocabNav.style.display = "none";
         listenNav.style.display = "none";
         audioControls.style.display = "none";
         listenHint.textContent = "✏️ 請閱讀題目，選出最適當的答案：";
-      } else {
+        setupStartScreen();
+      } else if (mod === "listening") {
         tabBtns[2].classList.add("active");
         vocabNav.style.display = "none";
         listenNav.style.display = "flex";
         audioControls.style.display = "flex";
         listenHint.textContent = "🎧 聽力播放中，請注意聆聽：";
         switchListeningStage('review');
-        return;
+      } else if (mod === "analysis") {
+        tabBtns[3].classList.add("active");
+        vocabNav.style.display = "none";
+        listenNav.style.display = "none";
+        renderAnalysisScreen();
       }
-
-      setupStartScreen();
     }
 
     function switchVocabStage(stage) {
       stopAllAudio();
       currentVocabStage = stage;
-      const subBtns = document.querySelectorAll("#vocab-subnav .sub-btn");
-      subBtns.forEach(b => b.classList.remove("active"));
-
-      if (stage === 'high_freq') subBtns[0].classList.add("active");
-      else if (stage === 'b_level') subBtns[1].classList.add("active");
-
       setupStartScreen();
     }
 
@@ -534,7 +787,6 @@
       setupStartScreen();
     }
 
-    // Android/iOS 強化發音函式
     function playSpeech(text, callback) {
       if (!('speechSynthesis' in window)) return;
 
@@ -547,7 +799,6 @@
       utter.volume = speechVolume;
       utter.pitch = 1.0;
 
-      // 若有快取的英文聲音則優先指派
       if (cachedVoices.length === 0) {
         cachedVoices = window.speechSynthesis.getVoices();
       }
@@ -565,7 +816,6 @@
     }
 
     function playCurrentAudioUser() {
-      // 使用者主動手動點擊
       playCurrentAudio();
     }
 
@@ -588,7 +838,6 @@
       stopAllAudio();
 
       const q = currentQuestions[currentIdx];
-      document.getElementById("part-tag").textContent = q.part;
       document.getElementById("q-index").textContent = currentIdx + 1;
       document.getElementById("total-q").textContent = currentQuestions.length;
       document.getElementById("display-prompt").textContent = q.prompt;
@@ -615,8 +864,7 @@
         container.appendChild(btn);
       });
 
-      // 聽力題或單字題進入後延遲播放，確保 Android 渲染完畢
-      if (currentModule === "listening" || currentModule === "vocab") {
+      if (currentModule === "listening" || currentModule === "vocab" || (isMistakeMode && q.audioText)) {
         audioTimer = setTimeout(() => {
           playCurrentAudio();
         }, 300);
@@ -656,6 +904,10 @@
           feedback.textContent = "答對了！Very Good! 🎉";
         }
         feedback.style.color = "#15803d";
+
+        if (isMistakeMode) {
+          removeMistake(q.prompt, correctWord);
+        }
       } else {
         targetBtn.classList.add("wrong");
         if (currentModule === "vocab") {
@@ -665,6 +917,22 @@
         }
         feedback.style.color = "#b91c1c";
         if (buttons[correctIdx]) buttons[correctIdx].classList.add("correct");
+
+        let moduleCategory = currentModule;
+        let moduleTitle = "核心單字";
+        if (currentModule === "grammar") moduleTitle = "重點文法";
+        if (currentModule === "listening") moduleTitle = "官方聽力";
+
+        saveMistake({
+          module: moduleCategory,
+          moduleName: moduleTitle,
+          promptText: q.prompt,
+          selectedWord: q.options[selectedIdx],
+          correctWord: correctWord,
+          correctMeaning: correctMeaning,
+          tip: q.tip || "",
+          rawQuestion: q
+        });
       }
 
       const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
@@ -676,7 +944,7 @@
         tipBox.style.display = "block";
       }
 
-      if (currentModule === "vocab" && q.audioText) {
+      if ((currentModule === "vocab" || isMistakeMode) && q.audioText) {
         playSpeech(q.audioText);
       }
 
@@ -693,6 +961,14 @@
         const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
         document.getElementById("final-score").textContent = finalScore;
         document.getElementById("result-screen").style.display = "flex";
+
+        // 優化 3：測驗完成自動送出整輪摘要成績
+        let moduleName = "核心單字 (B級綜合測驗)";
+        if (currentModule === "grammar") moduleName = "重點文法測驗";
+        if (currentModule === "listening") moduleName = `官方聽力 (${currentListeningStage})`;
+        if (isMistakeMode) moduleName = "錯題專項重測";
+
+        sendSessionSummaryToGoogleForm(moduleName, finalScore, currentQuestions.length, correctCount);
       }
     }
 
