@@ -14,7 +14,7 @@
       justify-content: center;
       min-height: 100vh;
       margin: 0;
-      padding: 20px;
+      padding: 15px;
     }
     .card {
       background: #ffffff;
@@ -22,26 +22,27 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 680px;
-      padding: 30px;
+      padding: 24px;
       text-align: center;
     }
-    h1 { color: #2c3e50; font-size: 24px; margin-bottom: 8px; }
+    h1 { color: #2c3e50; font-size: 22px; margin-bottom: 8px; }
     
     .main-tabs {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      margin-bottom: 14px;
+      gap: 6px;
+      margin-bottom: 12px;
       border-bottom: 2px solid #e2e8f0;
-      padding-bottom: 12px;
+      padding-bottom: 10px;
+      flex-wrap: wrap;
     }
     .main-tab-btn {
-      padding: 8px 18px;
+      padding: 8px 14px;
       border: none;
       background: #f1f5f9;
       border-radius: 8px;
       font-weight: bold;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
       color: #475569;
       transition: all 0.2s;
@@ -54,12 +55,12 @@
     .sub-nav {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 6px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
     }
     .sub-btn {
-      padding: 5px 14px;
+      padding: 5px 12px;
       border: 1px solid #cbd5e1;
       background: white;
       border-radius: 16px;
@@ -75,47 +76,46 @@
       color: white;
     }
 
-    .score-board { font-size: 15px; color: #64748b; margin-bottom: 14px; }
+    .score-board { font-size: 14px; color: #64748b; margin-bottom: 12px; }
     .part-tag {
       display: inline-block;
       background: #e2e8f0;
       color: #334155;
-      padding: 4px 14px;
+      padding: 4px 12px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .start-screen, .result-screen {
       background: #f8fafc;
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
-      padding: 35px 20px;
+      padding: 30px 16px;
       margin-bottom: 10px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 15px;
+      gap: 14px;
     }
     .result-screen {
       display: none;
     }
-    .start-title { font-size: 22px; font-weight: bold; color: #1e293b; }
-    .start-desc { font-size: 15px; color: #64748b; line-height: 1.6; max-width: 480px; }
+    .start-title { font-size: 20px; font-weight: bold; color: #1e293b; }
+    .start-desc { font-size: 14px; color: #64748b; line-height: 1.6; max-width: 460px; }
     .start-run-btn {
       background: #2563eb;
       color: white;
       border: none;
       border-radius: 50px;
-      padding: 12px 36px;
-      font-size: 18px;
+      padding: 12px 32px;
+      font-size: 17px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
-    .start-run-btn:hover { background: #1d4ed8; transform: translateY(-2px); }
+    .start-run-btn:active { transform: scale(0.98); }
 
     .quiz-active-area {
       display: none;
@@ -125,21 +125,21 @@
       background: #f8fafc;
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 12px;
     }
-    .prompt-text { font-size: 19px; font-weight: bold; color: #1e293b; line-height: 1.5; }
-    .listen-hint { font-size: 14px; color: #475569; }
+    .prompt-text { font-size: 18px; font-weight: bold; color: #1e293b; line-height: 1.5; }
+    .listen-hint { font-size: 13px; color: #475569; }
 
     .audio-controls {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       flex-wrap: wrap;
     }
     .ctrl-badge {
@@ -147,9 +147,9 @@
       align-items: center;
       gap: 6px;
       background: #e2e8f0;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       color: #334155;
       font-weight: bold;
     }
@@ -157,47 +157,44 @@
       border: 1px solid #cbd5e1;
       border-radius: 6px;
       padding: 3px 6px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: bold;
       color: #1e293b;
       background: white;
-      cursor: pointer;
     }
     .volume-slider {
+      width: 70px;
       cursor: pointer;
-      vertical-align: middle;
-      width: 80px;
     }
     .sound-btn {
       background: #ff9f43;
       color: white;
       border: none;
       border-radius: 50px;
-      padding: 8px 20px;
-      font-size: 15px;
+      padding: 8px 18px;
+      font-size: 14px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
-      transition: background 0.2s;
     }
-    .sound-btn:hover { background: #ee5253; }
+    .sound-btn:active { background: #ee5253; }
 
     .top-feedback-area {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
-    #feedback { font-size: 17px; font-weight: bold; min-height: 24px; line-height: 1.5; }
+    #feedback { font-size: 16px; font-weight: bold; min-height: 24px; line-height: 1.5; }
     .tip-box {
       background: #fefce8;
       border-left: 4px solid #facc15;
-      padding: 10px 14px;
+      padding: 10px 12px;
       text-align: left;
-      font-size: 14px;
+      font-size: 13px;
       color: #713f12;
       border-radius: 4px;
       width: 100%;
@@ -208,18 +205,16 @@
       color: white;
       border: none;
       border-radius: 8px;
-      padding: 10px 26px;
+      padding: 10px 24px;
       font-size: 15px;
       cursor: pointer;
       display: none;
-      transition: background 0.2s;
     }
-    .next-btn:hover { background: #334155; }
 
     .options-container {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 10px;
     }
     button.opt-btn {
@@ -227,30 +222,28 @@
       color: #1e293b;
       border: 2px solid #e2e8f0;
       border-radius: 10px;
-      padding: 13px 18px;
-      font-size: 16px;
+      padding: 12px 16px;
+      font-size: 15px;
       text-align: left;
       cursor: pointer;
       line-height: 1.4;
-      transition: all 0.2s;
     }
-    button.opt-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
-    button.opt-btn:disabled { cursor: not-allowed; opacity: 0.9; }
+    button.opt-btn:disabled { opacity: 0.95; }
     button.correct { background: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; font-weight: bold; }
     button.wrong { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
     
     .kk-badge {
       color: #6366f1;
       font-weight: 600;
-      font-size: 14px;
-      margin-left: 8px;
+      font-size: 13px;
+      margin-left: 6px;
       font-family: "Lucida Sans Unicode", "Segoe UI", sans-serif;
     }
     .meaning-badge {
       color: #0369a1;
       font-weight: 600;
-      font-size: 14px;
-      margin-left: 8px;
+      font-size: 13px;
+      margin-left: 6px;
       background: #e0f2fe;
       padding: 2px 6px;
       border-radius: 4px;
@@ -262,41 +255,38 @@
   <div class="card">
     <h1>格蘭英語 B 級全方位學習測驗</h1>
     
-    <!-- 主類別選單 -->
     <div class="main-tabs">
       <button class="main-tab-btn active" onclick="selectMainModule('vocab')">📝 核心單字測驗</button>
       <button class="main-tab-btn" onclick="selectMainModule('grammar')">📖 重點文法測驗</button>
       <button class="main-tab-btn" onclick="selectMainModule('listening')">🎧 官方聽力練習</button>
     </div>
 
-    <!-- 單字子階段選單 -->
     <div class="sub-nav" id="vocab-subnav">
-      <button class="sub-btn active" onclick="switchVocabStage('high_freq')">🔥 高頻核心單字 (15題)</button>
-      <button class="sub-btn" onclick="switchVocabStage('b_level')">⭐ B級擴充必考單字 (25題)</button>
+      <button class="sub-btn active" onclick="switchVocabStage('high_freq')">🔥 快速隨機抽測 (15題)</button>
+      <button class="sub-btn" onclick="switchVocabStage('b_level')">⭐ B級綜合測驗 (50題)</button>
     </div>
 
-    <!-- 聽力子階段選單 -->
     <div class="sub-nav" id="listening-subnav" style="display: none;">
       <button class="sub-btn active" onclick="switchListeningStage('review')">考點觀念精選複習</button>
       <button class="sub-btn" onclick="switchListeningStage('p1')">Practice 1 模擬測驗</button>
       <button class="sub-btn" onclick="switchListeningStage('p2')">Practice 2 模擬測驗</button>
     </div>
 
-    <!-- 開始測驗準備畫面 -->
+    <!-- 開始畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
       <div class="start-desc" id="start-desc">說明內容載入中...</div>
-      <button class="start-run-btn" onclick="startCurrentQuiz()">🚀 開始測驗</button>
+      <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
     <!-- 測驗完成結果獨立畫面 -->
     <div class="result-screen" id="result-screen">
       <div class="start-title">🎉 本單元測驗完成！</div>
-      <p style="font-size: 24px; color: #1e293b; margin: 10px 0;">最終成績：<b id="final-score">0</b> / 100</p>
-      <button class="start-run-btn" onclick="startCurrentQuiz()">🔄 重新隨機測驗</button>
+      <p style="font-size: 22px; color: #1e293b; margin: 10px 0;">最終成績：<b id="final-score">0</b> / 100</p>
+      <button class="start-run-btn" onclick="unlockAudioAndStart()">🔄 重新隨機測驗</button>
     </div>
 
-    <!-- 測驗進行區塊 -->
+    <!-- 測驗主畫面 -->
     <div class="quiz-active-area" id="quiz-active-area">
       <div class="score-board">
         <span class="part-tag" id="part-tag">單元</span><br>
@@ -308,8 +298,8 @@
         <div class="prompt-text" id="display-prompt">載入中...</div>
         
         <div class="audio-controls" id="audio-ctrl-group">
-          <button class="sound-btn" onclick="playCurrentAudio()">
-            🔊 再次播放音訊
+          <button class="sound-btn" onclick="playCurrentAudioUser()">
+            🔊 播放音訊
           </button>
 
           <div class="ctrl-badge">
@@ -324,7 +314,7 @@
           <div class="ctrl-badge">
             <label for="volume-range">📢 音量：</label>
             <input type="range" id="volume-range" class="volume-slider" min="0" max="1" step="0.05" value="1" oninput="changeVolume()">
-            <span id="volume-val" style="min-width: 32px; text-align: right;">100%</span>
+            <span id="volume-val" style="min-width: 28px; text-align: right;">100%</span>
           </div>
         </div>
       </div>
@@ -342,7 +332,6 @@
   <!-- 引入題庫資料檔 -->
   <script src="questions.js"></script>
 
-  <!-- 應用程式主邏輯 -->
   <script>
     let speechRate = 0.85;
     let speechVolume = 1.0;
@@ -354,6 +343,18 @@
     let currentQuestions = [];
     let currentIdx = 0;
     let correctCount = 0;
+    let cachedVoices = [];
+
+    // 初始化載入可用語音
+    function initVoices() {
+      if ('speechSynthesis' in window) {
+        cachedVoices = window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          cachedVoices = window.speechSynthesis.getVoices();
+        };
+      }
+    }
+    initVoices();
 
     function stopAllAudio() {
       if (audioTimer) {
@@ -383,6 +384,18 @@
       return arr;
     }
 
+    // Android/iOS 關鍵：點擊按鈕主動喚醒音訊授權
+    function unlockAudioAndStart() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.resume();
+        const silentUtter = new SpeechSynthesisUtterance(" ");
+        silentUtter.volume = 0.01;
+        window.speechSynthesis.speak(silentUtter);
+      }
+      startCurrentQuiz();
+    }
+
     function setupStartScreen() {
       stopAllAudio();
       document.getElementById("start-screen").style.display = "flex";
@@ -394,25 +407,25 @@
 
       if (currentModule === "vocab") {
         if (currentVocabStage === "high_freq") {
-          titleElem.textContent = "🔥 核心單字：高頻考點精選";
-          descElem.textContent = `共 ${rawVocabHighFreq.length} 題。直接取材自全真題庫之高頻重點單字，作答後揭曉中文！`;
+          titleElem.textContent = "🔥 核心單字：快速隨機抽測 (15題)";
+          descElem.textContent = "從 120+ 題庫隨機抽取 15 題，進入題目後會自動朗讀英語發音，作答後揭曉中文！";
         } else {
-          titleElem.textContent = "⭐ 核心單字：B 級必考擴充庫";
-          descElem.textContent = `共 ${rawVocabBLevel.length} 題。包含生活用品、場所地點、飲食與動作，全面擴充 B 級實力！`;
+          titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (50題)";
+          descElem.textContent = "大題量隨機測驗，全面檢驗生活用品、飲食與動作單字！";
         }
       } else if (currentModule === "grammar") {
-        titleElem.textContent = "📖 重點文法測驗 (B級情境版)";
-        descElem.textContent = `共 ${rawGrammarQuestions.length} 題。題目完全採用 B 級累積字彙（居家、飲食、學校、休閒），點擊「開始測驗」將隨機出題！`;
+        titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
+        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，隨機抽樣練習！";
       } else {
         if (currentListeningStage === "review") {
           titleElem.textContent = "🎧 官方聽力：考點觀念精選複習";
-          descElem.textContent = `共 ${rawReviewQuestions.length} 題，重點提煉八大聽力陷阱。點擊「開始測驗」將隨機出題！`;
+          descElem.textContent = "共 8 題，重點提煉八大聽力陷阱。";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗";
-          descElem.textContent = `共 ${rawMockP1.length} 題，包含 Part 1-4 完整檢定結構。點擊「開始測驗」將隨機出題！`;
+          descElem.textContent = "共 40 題，包含 Part 1-4 完整檢定結構。";
         } else if (currentListeningStage === "p2") {
           titleElem.textContent = "🎯 Practice 2 全真模擬測驗";
-          descElem.textContent = `共 ${rawMockP2.length} 題，包含長篇短文與對話。點擊「開始測驗」將隨機出題！`;
+          descElem.textContent = "共 50 題，包含長篇短文與對話。";
         }
       }
     }
@@ -426,7 +439,7 @@
       if (currentModule === "vocab") {
         source = currentVocabStage === "high_freq" ? rawVocabHighFreq : rawVocabBLevel;
       } else if (currentModule === "grammar") {
-        source = rawGrammarQuestions;
+        source = rawGrammarQuestions.slice(0, 30);
       } else {
         if (currentListeningStage === "review") source = rawReviewQuestions;
         else if (currentListeningStage === "p1") source = rawMockP1;
@@ -476,7 +489,7 @@
         vocabNav.style.display = "flex";
         listenNav.style.display = "none";
         audioControls.style.display = "flex";
-        listenHint.textContent = "🔊 題目載入後自動發音，可點擊重播：";
+        listenHint.textContent = "🔊 進入題目自動發音，也可手動點擊：";
       } else if (mod === "grammar") {
         tabBtns[1].classList.add("active");
         vocabNav.style.display = "none";
@@ -521,27 +534,50 @@
       setupStartScreen();
     }
 
+    // Android/iOS 強化發音函式
     function playSpeech(text, callback) {
-      if ('speechSynthesis' in window) {
-        stopAllAudio();
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.lang = 'en-US';
-        utter.rate = speechRate;
-        utter.volume = speechVolume;
-        utter.pitch = 1.0;
-        if (callback) utter.onend = callback;
-        window.speechSynthesis.speak(utter);
+      if (!('speechSynthesis' in window)) return;
+
+      stopAllAudio();
+      window.speechSynthesis.resume();
+
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-US';
+      utter.rate = speechRate;
+      utter.volume = speechVolume;
+      utter.pitch = 1.0;
+
+      // 若有快取的英文聲音則優先指派
+      if (cachedVoices.length === 0) {
+        cachedVoices = window.speechSynthesis.getVoices();
       }
+      const englishVoice = cachedVoices.find(v => v.lang && (v.lang.startsWith('en-US') || v.lang.startsWith('en')));
+      if (englishVoice) {
+        utter.voice = englishVoice;
+      }
+
+      if (callback) {
+        utter.onend = callback;
+        utter.onerror = callback;
+      }
+
+      window.speechSynthesis.speak(utter);
+    }
+
+    function playCurrentAudioUser() {
+      // 使用者主動手動點擊
+      playCurrentAudio();
     }
 
     function playCurrentAudio() {
       const q = currentQuestions[currentIdx];
       if (!q || !q.audioText) return;
+
       if (q.repeat) {
         playSpeech(q.audioText, () => {
           audioTimer = setTimeout(() => {
             playSpeech(q.audioText);
-          }, 1200);
+          }, 1000);
         });
       } else {
         playSpeech(q.audioText);
@@ -579,10 +615,11 @@
         container.appendChild(btn);
       });
 
+      // 聽力題或單字題進入後延遲播放，確保 Android 渲染完畢
       if (currentModule === "listening" || currentModule === "vocab") {
         audioTimer = setTimeout(() => {
           playCurrentAudio();
-        }, 350);
+        }, 300);
       }
     }
 
@@ -630,7 +667,6 @@
         if (buttons[correctIdx]) buttons[correctIdx].classList.add("correct");
       }
 
-      // 精確計分，最高 100 分
       const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
       document.getElementById("score").textContent = currentScore;
 
@@ -653,7 +689,6 @@
       if (currentIdx < currentQuestions.length) {
         loadQuestion();
       } else {
-        // 切換顯示獨立結算區塊，絕不破壞原答題元件
         document.getElementById("quiz-active-area").style.display = "none";
         const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
         document.getElementById("final-score").textContent = finalScore;
