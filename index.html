@@ -433,7 +433,6 @@
     const ENTRY_CORRECT   = "entry.1140385408"; // 正確答案
     const STUDENT_NAME    = "林小朋友";         // 裝置或學生辨識名稱
 
-    // 優化 2：單輪測驗防重複發送快取集合
     let sessionSentMistakes = new Set();
 
     function submitToGoogleForm(payload) {
@@ -476,7 +475,6 @@
     }
 
     function sendMistakeToGoogleForm(data) {
-      // 防重複送出校驗
       const mistakeKey = `${data.promptText}_${data.selectedWord}`;
       if (sessionSentMistakes.has(mistakeKey)) return;
       sessionSentMistakes.add(mistakeKey);
@@ -489,7 +487,6 @@
       });
     }
 
-    // 優化 3：自動同步測驗結算與總分摘要
     function sendSessionSummaryToGoogleForm(moduleName, score, totalCount, correctCount) {
       const wrongCount = totalCount - correctCount;
       submitToGoogleForm({
@@ -530,7 +527,6 @@
         list.unshift(item);
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-
       sendMistakeToGoogleForm(item);
     }
     function removeMistake(promptText, correctWord) {
@@ -583,8 +579,8 @@
     }
 
     function unlockAudioAndStart() {
+      stopAllAudio();
       if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
         window.speechSynthesis.resume();
         const silentUtter = new SpeechSynthesisUtterance(" ");
         silentUtter.volume = 0.01;
@@ -665,7 +661,7 @@
       }
 
       isMistakeMode = true;
-      sessionSentMistakes.clear(); // 重置單輪送出快取
+      sessionSentMistakes.clear();
       document.getElementById("analysis-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "block";
 
@@ -680,7 +676,7 @@
 
     function startCurrentQuiz() {
       isMistakeMode = false;
-      sessionSentMistakes.clear(); // 重置單輪送出快取
+      sessionSentMistakes.clear();
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
       document.getElementById("analysis-screen").style.display = "none";
@@ -867,7 +863,7 @@
       if (currentModule === "listening" || currentModule === "vocab" || (isMistakeMode && q.audioText)) {
         audioTimer = setTimeout(() => {
           playCurrentAudio();
-        }, 300);
+        }, 350);
       }
     }
 
@@ -962,7 +958,6 @@
         document.getElementById("final-score").textContent = finalScore;
         document.getElementById("result-screen").style.display = "flex";
 
-        // 優化 3：測驗完成自動送出整輪摘要成績
         let moduleName = "核心單字 (B級綜合測驗)";
         if (currentModule === "grammar") moduleName = "重點文法測驗";
         if (currentModule === "listening") moduleName = `官方聽力 (${currentListeningStage})`;
