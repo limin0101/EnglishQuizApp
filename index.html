@@ -1,3 +1,27 @@
+<!--
+===================================================================
+格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
+最後更新日期：2026-09-28
+版本號：v2.1.0
+
+【核心功能修改清單】：
+1. 題庫校正：
+   - questions.js：P1 校正第 2, 3, 7, 8, 11, 36 題；P2 校正第 15, 26, 35, 40 題。
+   - 新增 500 題聽力八大考點隨機題庫生成引擎。
+2. 測驗節奏：
+   - 啟用每題 6 秒倒數計時與紅條進度條，逾時判定為錯題並同步至 Google 表單。
+3. 音效合成 (Web Audio API)：
+   - 答對播放 880Hz->1318Hz 雙鈴聲；答錯播放頓音；高分播放勝利琶音。
+   - 答題後錯開 350ms 朗讀單字，徹底解決快答疊音問題。
+4. 學習激勵與複習機制：
+   - 錯題需累積答對 2 次才正式除名 (masteryCount)。
+   - 錯題庫支援 8 類標籤篩選 (全部/單字/文法/超時/時間/介系詞/頻率/數量)。
+   - 連續打卡天數計算 (Streak) 與 4 款成就徽章。
+   - 原生 SVG 動態繪製最近 5 次測驗進步軌跡折線圖。
+5. 語音調整：
+   - 語速選單新增「超慢（0.5x）」選項，方便初學者清晰辨音。
+===================================================================
+-->
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -830,6 +854,7 @@
           <div class="ctrl-badge">
             <label for="speed-select">⚡ 語速：</label>
             <select id="speed-select" onchange="changeSpeechRate()">
+              <option value="0.5">超慢（0.5x）</option>
               <option value="0.6">稍慢（0.6x）</option>
               <option value="0.7">慢（0.7x）</option>
               <option value="0.85" selected>正常（0.85x）</option>
@@ -1551,6 +1576,7 @@
 
     function selectMainModule(mod) {
       stopAllAudio();
+      stopQuestionTimer();
       currentModule = mod;
 
       const tabBtns = document.querySelectorAll(".main-tab-btn");
@@ -1592,12 +1618,14 @@
 
     function switchVocabStage(stage) {
       stopAllAudio();
+      stopQuestionTimer();
       currentVocabStage = stage;
       setupStartScreen();
     }
 
     function switchListeningStage(stage) {
       stopAllAudio();
+      stopQuestionTimer();
       currentListeningStage = stage;
       const subBtns = document.querySelectorAll("#listening-subnav .sub-btn");
       subBtns.forEach(b => b.classList.remove("active"));
