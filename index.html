@@ -78,7 +78,7 @@
 
     .score-board { font-size: 15px; font-weight: 600; color: #475569; margin-bottom: 14px; }
 
-    .start-screen, .result-screen, .analysis-screen {
+    .start-screen, .result-screen, .analysis-screen, .guide-screen {
       background: #f8fafc;
       border: 2px dashed #cbd5e1;
       border-radius: 12px;
@@ -89,7 +89,7 @@
       align-items: center;
       gap: 14px;
     }
-    .result-screen, .analysis-screen {
+    .result-screen, .analysis-screen, .guide-screen {
       display: none;
     }
     .start-title { font-size: 20px; font-weight: bold; color: #1e293b; }
@@ -307,6 +307,73 @@
     .mistake-ans { color: #15803d; font-weight: 600; }
     .mistake-wrong-tag { color: #dc2626; font-size: 13px; }
     .mistake-tip { background: #fefce8; padding: 6px 8px; border-radius: 4px; color: #713f12; font-size: 12px; margin-top: 6px; }
+
+    /* 考點精華卡片樣式 */
+    .guide-card-list {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-top: 8px;
+      text-align: left;
+    }
+    .guide-item {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-left: 5px solid #2563eb;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+    .guide-item-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+    .guide-item-desc {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .guide-samples-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .guide-item-sample {
+      background: #f1f5f9;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .play-sample-btn {
+      background: #ff9f43;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .guide-trap-box {
+      background: #fef2f2;
+      border: 1px dashed #f87171;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #991b1b;
+      line-height: 1.5;
+    }
   </style>
 </head>
 <body>
@@ -325,18 +392,214 @@
       <button class="sub-btn active" onclick="switchVocabStage('b_level')">⭐ B級綜合測驗 (25題)</button>
     </div>
 
+    <!-- 聽力子導覽列 -->
     <div class="sub-nav" id="listening-subnav" style="display: none;">
-      <button class="sub-btn active" onclick="switchListeningStage('review')">考點觀念精選複習</button>
-      <button class="sub-btn" onclick="switchListeningStage('p1')">Practice 1 模擬測驗</button>
-      <button class="sub-btn" onclick="switchListeningStage('p2')">Practice 2 模擬測驗</button>
+      <button class="sub-btn active" onclick="switchListeningStage('guide')">💡 考點精華卡片 (純複習)</button>
+      <button class="sub-btn" onclick="switchListeningStage('review_quiz')">🎯 考點核心專練 (500題隨機抽25)</button>
+      <button class="sub-btn" onclick="switchListeningStage('p1')">Practice 1 模擬測驗 (40題)</button>
+      <button class="sub-btn" onclick="switchListeningStage('p2')">Practice 2 模擬測驗 (50題)</button>
     </div>
 
+    <!-- 測驗準備畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
       <div class="start-desc" id="start-desc">說明內容載入中...</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
+    <!-- 聽力八大核心考點說明畫面 (純複習不計分，每考點 3 句 + 陷阱警示) -->
+    <div class="guide-screen" id="guide-screen">
+      <div class="start-title">🎧 聽力檢定：八大核心考點精華</div>
+      <div class="start-desc">涵蓋 B 級官方檢定最常見的 8 大聽力陷阱。每點提供 3 句實戰示範與易錯提示，點擊喇叭即可聆聽純正發音！</div>
+      
+      <div class="guide-card-list">
+        <!-- 考點 1 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 1：時間讀法 (Quarter past / to)</div>
+          <div class="guide-item-desc">時間介系詞辨析：<b>past</b> 代表「過」，<b>to</b> 代表「差幾分到下一個鐘頭」。15 分鐘為 a quarter，30 分鐘為 half past。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "It's a quarter past 10." (10點15分)</span>
+              <button class="play-sample-btn" onclick="playSpeech('It is a quarter past 10.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "It's a quarter to 11." (差一刻到11點 / 10點45分)</span>
+              <button class="play-sample-btn" onclick="playSpeech('It is a quarter to 11.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "The baseball game starts at half past 9:00." (9點30分)</span>
+              <button class="play-sample-btn" onclick="playSpeech('The baseball game starts at half past nine.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：小朋友常將 <b>a quarter to 11</b> 誤聽為 11:15（把 to 聽成 past）或以為是 11:45。請叮嚀：「聽到 to 是指還沒到那個鐘頭」！
+          </div>
+        </div>
+
+        <!-- 考點 2 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 2：空間相對介系詞 (Between / Next to / Beside)</div>
+          <div class="guide-item-desc">聽清三者地標相對位置，尤其 <b>between A and B</b> 永遠指被包夾在中間的建築物。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "The supermarket is between the hospital and the restaurant."</span>
+              <button class="play-sample-btn" onclick="playSpeech('The supermarket is between the hospital and the restaurant.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "The post office is next to the bakery." (在旁邊)</span>
+              <button class="play-sample-btn" onclick="playSpeech('The post office is next to the bakery.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "There is a park behind our school." (在學校後面)</span>
+              <button class="play-sample-btn" onclick="playSpeech('There is a park behind our school.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：看圖選句時，題目會把主角和兩旁的地標顛倒（例如圖中超市在中間，選項卻唸 The hospital is between...），需聽清句首主詞是誰！
+          </div>
+        </div>
+
+        <!-- 考點 3 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 3：頻率副詞高低層次 (Rarely / Never / Always)</div>
+          <div class="guide-item-desc">頻率副詞掌握程度：<b>always (100%) > usually (80%) > often (60%) > sometimes (40%) > rarely (10%) > never (0%)</b>。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Andy rarely plays the guitar. He only does it once a year."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Andy rarely plays the guitar. He only does it once a year.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "I always do my homework before dinner. I never eat first."</span>
+              <button class="play-sample-btn" onclick="playSpeech('I always do my homework before dinner. I never eat first.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "My father usually goes to work by train."</span>
+              <button class="play-sample-btn" onclick="playSpeech('My father usually goes to work by train.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：<b>rarely</b> 本身具有「極低頻率/幾乎不」的半否定含義，常考「一年才做一次」的情境，常被誤以為是有經常在做。
+          </div>
+        </div>
+
+        <!-- 考點 4 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 4：Where 疑問詞與地點回答</div>
+          <div class="guide-item-desc">聽到 <b>Where</b> 開頭的第二大題簡短問答，核心必須回答「<b>具體空間介系詞片語</b>」。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Where do you cook? — I cook in the kitchen."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Where do you cook? I cook in the kitchen.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "Where are you doing your homework? — At my desk in the bedroom."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Where are you doing your homework? At my desk in the bedroom.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "What floor do your parents live on? — They live on the 2nd floor."</span>
+              <button class="play-sample-btn" onclick="playSpeech('What floor do your parents live on? They live on the second floor.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：干擾選項常出現字詞重複但文不對題的答案（例如問 Where do you cook? 干擾項卻是 I have a big kitchen 或 Yes, I cook every day）。切記找準「具體位置」！
+          </div>
+        </div>
+
+        <!-- 考點 5 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 5：現在進行式問答 (What is ... doing?)</div>
+          <div class="guide-item-desc">問句若帶有 <b>is / are + V-ing</b>，回答一定要包含 <b>be動詞 + V-ing</b>，不可用一般現在式或過去式回答。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "What is she doing? — She is playing the guitar."</span>
+              <button class="play-sample-btn" onclick="playSpeech('What is she doing? She is playing the guitar.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "Are Mike and Jason washing their cars? — No, they aren't."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Are Mike and Jason washing their cars? No, they are not.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "People are trembling in their seats. They are watching a horror movie."</span>
+              <button class="play-sample-btn" onclick="playSpeech('People are trembling in their seats. They are watching a horror movie.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：聽簡答時注意<b>人稱代名詞與單複數</b>。Mike and Jason 是兩個人（they），簡答必須用 they aren't，不能誤選 he isn't！
+          </div>
+        </div>
+
+        <!-- 考點 6 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 6：數量疑問詞 (How many vs How much)</div>
+          <div class="guide-item-desc">可數名詞複數用 <b>How many</b>，不可數名詞用 <b>How much</b>。注意兩者的回答搭配詞完全不同。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "How much sugar do you want? — Just a little."</span>
+              <button class="play-sample-btn" onclick="playSpeech('How much sugar do you want? Just a little.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "May I borrow some money? — Sure, how much do you need?"</span>
+              <button class="play-sample-btn" onclick="playSpeech('May I borrow some money? Sure, how much do you need?')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "How many seconds are there in a minute? — There are 60 seconds."</span>
+              <button class="play-sample-btn" onclick="playSpeech('How many seconds are there in a minute? There are 60 seconds in a minute.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：<b>money（錢）、sugar（糖）、shampoo（洗髮精）、water（水）</b> 皆為不可數！回答時不可用 Not many 或明確的阿拉伯數字，要用 a little 或 much 回答。
+          </div>
+        </div>
+
+        <!-- 考點 7 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 7：對話因果與原因辨識 (Why 問句)</div>
+          <div class="guide-item-desc">聽對話與短文時，特別留意 <b>Why, because, have to, about to</b> 之後的理由關鍵句。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Why does Helen have to run? — The movie is about to start."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Why does Helen have to run? The movie is about to start.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "Why is Sally sad? — Because her parents will not come to her party."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Why is Sally sad? Because her parents will not come to her birthday party.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "Why is Kathy thin? — Because she runs every day and doesn't eat too much."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Why is Kathy thin? Because she runs every day and does not eat too much.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：對話常在開頭提到藉口，結尾才說出真正原因；或是選項只重複文章的一個單字（如 She likes to run）來混淆，一定要抓住真正的因果連結。
+          </div>
+        </div>
+
+        <!-- 考點 8 -->
+        <div class="guide-item">
+          <div class="guide-item-title">考點 8：能力與轉折辨析 (Can vs Can't)</div>
+          <div class="guide-item-desc">抓取人物「會做」與「不會做」的事情。否定詞 <b>can't</b> [kænt] 常出現在連接詞 <b>but</b> 之後。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Frank can ride a bicycle, but he can't drive a car."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Frank can ride a bicycle, but he can not drive a car.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "Henry can play the piano and guitar, but he can't play the violin."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Henry can play the piano and guitar, but he can not play the violin.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 3. "She can stand on one leg and touch the floor."</span>
+              <button class="play-sample-btn" onclick="playSpeech('She can stand on one leg and touch the floor.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">
+            ⚠️ <b>常見陷阱</b>：題目問「What <b>can't</b> Frank do?（不能做什麼）」，小朋友容易因為文章前半段聽到 piano、guitar 就急著選，漏聽了後面 but 轉折帶出的 can't drive a car！
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 測驗完成結果畫面 -->
     <div class="result-screen" id="result-screen">
       <div class="start-title">🎉 本單元測驗完成！</div>
       <p style="font-size: 22px; color: #1e293b; margin: 10px 0;">最終成績：<b id="final-score">0</b> / 100</p>
@@ -346,6 +609,7 @@
       </div>
     </div>
 
+    <!-- 錯題弱點分析庫畫面 -->
     <div class="analysis-screen" id="analysis-screen">
       <div class="start-title">📊 個人錯題弱點分析庫</div>
       <div class="start-desc">系統會自動保存作答錯誤的題型，並即時同步至 Google 試算表。</div>
@@ -377,6 +641,7 @@
       <div class="mistake-list" id="mistake-list-container"></div>
     </div>
 
+    <!-- 測驗進行區塊 -->
     <div class="quiz-active-area" id="quiz-active-area">
       <div class="score-board">
         進度: <span id="q-index">1</span> / <span id="total-q">0</span> | 目前得分: <span id="score">0</span>
@@ -422,7 +687,7 @@
 
   <script>
     // ==========================================
-    // Google 表單雲端同步設定 (已優化：公開發布路徑 + 原生表單背景傳送)
+    // Google 表單雲端同步設定
     // ==========================================
     const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScPPuAAn9a-WxVNiYT2AvZIr2nNXgLKc7lQQJH8d582Bnsmww/formResponse";
 
@@ -501,7 +766,7 @@
     let speechVolume = 1.0;
     let currentModule = "vocab";
     let currentVocabStage = "b_level";
-    let currentListeningStage = "review";
+    let currentListeningStage = "guide"; 
     let audioTimer = null;
 
     let currentQuestions = [];
@@ -527,6 +792,7 @@
         list.unshift(item);
       }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+
       sendMistakeToGoogleForm(item);
     }
     function removeMistake(promptText, correctWord) {
@@ -579,8 +845,8 @@
     }
 
     function unlockAudioAndStart() {
-      stopAllAudio();
       if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
         window.speechSynthesis.resume();
         const silentUtter = new SpeechSynthesisUtterance(" ");
         silentUtter.volume = 0.01;
@@ -594,6 +860,7 @@
       document.getElementById("start-screen").style.display = "flex";
       document.getElementById("result-screen").style.display = "none";
       document.getElementById("analysis-screen").style.display = "none";
+      document.getElementById("guide-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "none";
 
       const titleElem = document.getElementById("start-title");
@@ -606,9 +873,9 @@
         titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
         descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，隨機抽樣 25 題練習！";
       } else if (currentModule === "listening") {
-        if (currentListeningStage === "review") {
-          titleElem.textContent = "🎧 官方聽力：考點觀念精選複習";
-          descElem.textContent = "共 8 題，重點提煉八大聽力陷阱。";
+        if (currentListeningStage === "review_quiz") {
+          titleElem.textContent = "🎯 聽力八大考點專練 (500題題庫)";
+          descElem.textContent = "從 500 題 B 級考點題庫隨機抽樣 25 題！涵蓋時間讀法、介系詞、頻率副詞與長篇因果對話。";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗";
           descElem.textContent = "共 40 題，包含 Part 1-4 完整檢定結構。";
@@ -619,10 +886,20 @@
       }
     }
 
+    function renderGuideScreen() {
+      stopAllAudio();
+      document.getElementById("start-screen").style.display = "none";
+      document.getElementById("result-screen").style.display = "none";
+      document.getElementById("analysis-screen").style.display = "none";
+      document.getElementById("quiz-active-area").style.display = "none";
+      document.getElementById("guide-screen").style.display = "flex";
+    }
+
     function renderAnalysisScreen() {
       stopAllAudio();
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
+      document.getElementById("guide-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "none";
       document.getElementById("analysis-screen").style.display = "flex";
 
@@ -680,6 +957,7 @@
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
       document.getElementById("analysis-screen").style.display = "none";
+      document.getElementById("guide-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "block";
 
       let source = [];
@@ -692,9 +970,13 @@
       } else if (currentModule === "grammar") {
         source = rawGrammarQuestions.slice(0, 25);
       } else {
-        if (currentListeningStage === "review") source = rawReviewQuestions;
-        else if (currentListeningStage === "p1") source = rawMockP1;
-        else if (currentListeningStage === "p2") source = rawMockP2;
+        if (currentListeningStage === "review_quiz") {
+          source = rawReviewQuestions.slice(0, 25);
+        } else if (currentListeningStage === "p1") {
+          source = rawMockP1;
+        } else if (currentListeningStage === "p2") {
+          source = rawMockP2;
+        }
       }
 
       currentQuestions = shuffleArray(source).map(q => {
@@ -755,7 +1037,7 @@
         listenNav.style.display = "flex";
         audioControls.style.display = "flex";
         listenHint.textContent = "🎧 聽力播放中，請注意聆聽：";
-        switchListeningStage('review');
+        switchListeningStage('guide');
       } else if (mod === "analysis") {
         tabBtns[3].classList.add("active");
         vocabNav.style.display = "none";
@@ -776,11 +1058,19 @@
       const subBtns = document.querySelectorAll("#listening-subnav .sub-btn");
       subBtns.forEach(b => b.classList.remove("active"));
 
-      if (stage === 'review') subBtns[0].classList.add("active");
-      else if (stage === 'p1') subBtns[1].classList.add("active");
-      else if (stage === 'p2') subBtns[2].classList.add("active");
-
-      setupStartScreen();
+      if (stage === 'guide') {
+        subBtns[0].classList.add("active");
+        renderGuideScreen();
+      } else if (stage === 'review_quiz') {
+        subBtns[1].classList.add("active");
+        setupStartScreen();
+      } else if (stage === 'p1') {
+        subBtns[2].classList.add("active");
+        setupStartScreen();
+      } else if (stage === 'p2') {
+        subBtns[3].classList.add("active");
+        setupStartScreen();
+      }
     }
 
     function playSpeech(text, callback) {
@@ -863,7 +1153,7 @@
       if (currentModule === "listening" || currentModule === "vocab" || (isMistakeMode && q.audioText)) {
         audioTimer = setTimeout(() => {
           playCurrentAudio();
-        }, 350);
+        }, 300);
       }
     }
 
@@ -917,7 +1207,10 @@
         let moduleCategory = currentModule;
         let moduleTitle = "核心單字";
         if (currentModule === "grammar") moduleTitle = "重點文法";
-        if (currentModule === "listening") moduleTitle = "官方聽力";
+        if (currentModule === "listening") {
+          if (currentListeningStage === "review_quiz") moduleTitle = "聽力考點專練";
+          else moduleTitle = "官方聽力";
+        }
 
         saveMistake({
           module: moduleCategory,
@@ -960,7 +1253,10 @@
 
         let moduleName = "核心單字 (B級綜合測驗)";
         if (currentModule === "grammar") moduleName = "重點文法測驗";
-        if (currentModule === "listening") moduleName = `官方聽力 (${currentListeningStage})`;
+        if (currentModule === "listening") {
+          if (currentListeningStage === "review_quiz") moduleName = "官方聽力 (考點核心專練)";
+          else moduleName = `官方聽力 (${currentListeningStage})`;
+        }
         if (isMistakeMode) moduleName = "錯題專項重測";
 
         sendSessionSummaryToGoogleForm(moduleName, finalScore, currentQuestions.length, correctCount);

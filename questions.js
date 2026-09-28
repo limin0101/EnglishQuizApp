@@ -254,7 +254,7 @@ const bLevelVocabMasterPool = [
 ];
 
 // ==========================================
-// 2. 單字題目動態組合器 (隨機抽取題目與動態生成干擾項)
+// 2. 單字題目動態組合器
 // ==========================================
 function buildDynamicVocabQuiz(count, stageTitle) {
   const poolShuffled = [...bLevelVocabMasterPool].sort(() => Math.random() - 0.5);
@@ -284,12 +284,11 @@ function buildDynamicVocabQuiz(count, stageTitle) {
   });
 }
 
-// 產生單字測驗兩大子階段題庫
 const rawVocabHighFreq = buildDynamicVocabQuiz(15, "🔥 快速隨機抽測 (15題)");
 const rawVocabBLevel = buildDynamicVocabQuiz(50, "⭐ B級全範圍綜合測驗 (50題)");
 
 // ==========================================
-// 3. 語法參數化生成器 (500 題多元情境題庫，無破折號)
+// 3. 語法參數化生成器 (500 題多元情境題庫)
 // ==========================================
 function generate500GrammarQuestions() {
   const names = ["Andy", "Julia", "Janice", "Henry", "Susan", "Tina", "Frank", "Stephen", "Lucy", "Jerry", "Maggie", "Kathy", "Jason", "Mike", "Peter", "Sandy", "Helen", "Paul", "David", "Emma"];
@@ -496,34 +495,209 @@ function generate500GrammarQuestions() {
 const rawGrammarQuestions = generate500GrammarQuestions();
 
 // ==========================================
-// 4. 官方聽力考點題庫 (8 題)
+// 4. 官方聽力：八大核心考點 500 題隨機生成引擎 (B級標準大綱)
 // ==========================================
-const rawReviewQuestions = [
-  { part: "【考點複習 1】時間辨析 (Quarter past / to)", prompt: "Focus: 聽懂 15 分的表達法", audioText: "Statement A: It's a quarter to 11. Statement B: It's a quarter past 10. Statement C: It's half past 10.", options: ["It's a quarter to 11. (10點45分)", "It's a quarter past 10. (10點15分)", "It's half past 10. (10點30分)"], ans: 1, tip: "💡 複習技巧：past 表示「過」，a quarter past 10 是 10:15；to 表示「差」，a quarter to 11 是差一刻 11 點（10:45）。" },
-  { part: "【考點複習 2】位置介系詞 (Between / Next to / Beside)", prompt: "Focus: 聽懂三者空間相對位置", audioText: "Statement A: The hospital is beside the restaurant. Statement B: The supermarket is next to the post office. Statement C: The supermarket is between the hospital and the restaurant.", options: ["The hospital is beside the restaurant.", "The supermarket is next to the post office.", "The supermarket is between the hospital and the restaurant."], ans: 2, tip: "💡 複習技巧：between A and B 代表「在 A 與 B 之間」；beside / next to 代表「在…旁邊」。" },
-  { part: "【考點複習 3】頻率副詞 (Rarely / Never / Always)", prompt: "Focus: 掌握發生的頻率程度", audioText: "Statement A: Andy rarely plays the guitar. Statement B: Andy never goes to science class. Statement C: Andy always goes to English class.", options: ["Andy rarely plays the guitar.", "Andy never goes to science class.", "Andy always goes to English class."], ans: 0, tip: "💡 複習技巧：always (總是 100%) > often (常常) > rarely (很少/幾乎不) > never (從未 0%)。" },
-  { part: "【考點複習 4】疑問詞問答 (Where / 地點回答)", prompt: "Question: Where do you cook?", audioText: "Where do you cook? A: I have a big kitchen. B: I cook in the kitchen. C: I take a bath in the bathroom.", options: ["I have a big kitchen.", "I cook in the kitchen.", "I take a bath in the bathroom."], ans: 1, tip: "💡 複習技巧：聽到 Where 開頭問句，核心要回答「具體地點介系詞片語」（in the kitchen）。" },
-  { part: "【考點複習 5】現在進行式問答 (What is she doing?)", prompt: "Question: What is she doing?", audioText: "What is she doing? A: She is playing the guitar. B: You are cooking in the kitchen. C: She does her homework every evening.", options: ["She is playing the guitar.", "You are cooking in the kitchen.", "She does her homework every evening."], ans: 0, tip: "💡 複習技巧：問句是現在進行式 (is she doing)，回答也必須對應用「She is + V-ing」。" },
-  { part: "【考點複習 6】數量疑問詞 (How many vs How much)", prompt: "Question: How much sugar do you want?", audioText: "How much sugar do you want? A: Just a little. B: Too much. C: Not many.", options: ["Just a little.", "Too much.", "Not many."], ans: 0, tip: "💡 複習技巧：sugar（糖）是不可數名詞，因此要用 a little / much 回答，不能用 many。" },
-  { part: "【考點複習 7】對話理解 (Why 問句與原因辨識)", prompt: "Question: Why does Helen have to run?", audioText: "Hi Helen, where are you going? I want to see a science fiction movie. I have to run now, the movie is about to start. Question: Why does Helen have to run?", options: ["She likes to run.", "She likes science fiction movies.", "The movie is about to start."], ans: 2, tip: "💡 複習技巧：聽對話時注意轉折與原因字眼，Helen 說 'the movie is about to start'，故答案為電影要開演了。" },
-  { part: "【考點複習 8】短文資訊抓取 (Can vs Can't 辨識)", prompt: "Question: What can't Frank do?", audioText: "Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Question: What can't Frank do?", options: ["Play the guitar.", "Ride a bicycle.", "Drive a car."], ans: 2, tip: "💡 複習技巧：注意聽清否定詞 can't（不能做什麼），文章中提及 'he can't drive a car'。" }
-];
+function generate500ListeningReviewQuestions() {
+  const names = ["Andy", "Julia", "Janice", "Henry", "Susan", "Tina", "Frank", "Stephen", "Lucy", "Jerry", "Maggie", "Kathy", "Jason", "Mike", "Peter", "Sandy", "Helen", "Paul", "David", "Emma"];
+  const locations = [
+    { place: "in the kitchen", act: "cooks dinner", label: "廚房" },
+    { place: "in the living room", act: "watches television", label: "客廳" },
+    { place: "in the bedroom", act: "does homework at the desk", label: "臥室" },
+    { place: "in the dining room", act: "has breakfast", label: "飯廳" },
+    { place: "in the garage", act: "washes the car", label: "車庫" },
+    { place: "at the library", act: "reads English books", label: "圖書館" },
+    { place: "at the supermarket", act: "buys vegetables and fruit", label: "超市" },
+    { place: "in the bathroom", act: "takes a shower", label: "浴室" }
+  ];
+  const uncountables = [
+    { word: "sugar", hint: "糖" },
+    { word: "milk", hint: "牛奶" },
+    { word: "shampoo", hint: "洗髮精" },
+    { word: "water", hint: "水" },
+    { word: "soup", hint: "湯" },
+    { word: "juice", hint: "果汁" },
+    { word: "money", hint: "錢" }
+  ];
+  const countables = [
+    { word: "cookies", hint: "餅乾" },
+    { word: "sandwiches", hint: "三明治" },
+    { word: "apples", hint: "蘋果" },
+    { word: "pillows", hint: "枕頭" },
+    { word: "hangers", hint: "衣架" },
+    { word: "lamps", hint: "檯燈" },
+    { word: "desks", hint: "書桌" }
+  ];
+  const activities = [
+    { base: "play the guitar", ing: "playing the guitar", third: "plays the guitar", label: "彈吉他" },
+    { base: "play the piano", ing: "playing the piano", third: "plays the piano", label: "彈鋼琴" },
+    { base: "play badminton", ing: "playing badminton", third: "plays badminton", label: "打羽毛球" },
+    { base: "swim in the pool", ing: "swimming in the pool", third: "swims in the pool", label: "游泳" },
+    { base: "ride a bicycle", ing: "riding a bicycle", third: "rides a bicycle", label: "騎腳踏車" },
+    { base: "clean the room", ing: "cleaning the room", third: "cleans the room", label: "打掃房間" },
+    { base: "brush teeth", ing: "brushing teeth", third: "brushes teeth", label: "刷牙" }
+  ];
+
+  const generated = [];
+
+  for (let i = 0; i < 500; i++) {
+    const type = i % 8; // 八大核心考點輪循
+    const name1 = names[i % names.length];
+    const name2 = names[(i + 3) % names.length];
+    const loc = locations[i % locations.length];
+    const uncnt = uncountables[i % uncountables.length];
+    const cnt = countables[i % countables.length];
+    const act = activities[i % activities.length];
+    const hour = (i % 11) + 1;
+    const nextHour = hour + 1;
+
+    let qObj = {};
+
+    switch (type) {
+      // 考點 1: 時間辨析 (Quarter past / to / half past)
+      case 0:
+        if (i % 2 === 0) {
+          qObj = {
+            part: "【考點 1】時間辨析 (Quarter past)",
+            prompt: `Statement: Listen to the time statement.`,
+            audioText: `Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${hour}. Statement C: It's half past ${hour}.`,
+            options: [`It's a quarter past ${hour}. (${hour}:15)`, `It's a quarter to ${hour}. (${hour - 1}:45)`, `It's half past ${hour}. (${hour}:30)`],
+            ans: 0,
+            tip: `💡【時間讀法】a quarter past ${hour} 代表『過了一刻鐘』，即 ${hour}:15。`
+          };
+        } else {
+          qObj = {
+            part: "【考點 1】時間辨析 (Quarter to)",
+            prompt: `Statement: Listen to the time statement.`,
+            audioText: `Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${nextHour}. Statement C: It's half past ${hour}.`,
+            options: [`It's a quarter past ${hour}. (${hour}:15)`, `It's a quarter to ${nextHour}. (${hour}:45)`, `It's half past ${hour}. (${hour}:30)`],
+            ans: 1,
+            tip: `💡【時間讀法】a quarter to ${nextHour} 代表『差一刻鐘到 ${nextHour} 點』，即 ${hour}:45。`
+          };
+        }
+        break;
+
+      // 考點 2: 相對空間介系詞 (Between / Next to / Beside)
+      case 1:
+        qObj = {
+          part: "【考點 2】位置介系詞 (Between)",
+          prompt: `Statement: Where is the place?`,
+          audioText: `Statement A: The supermarket is beside the library. Statement B: The supermarket is between the hospital and the restaurant. Statement C: The supermarket is behind the school.`,
+          options: ["The supermarket is beside the library.", "The supermarket is between the hospital and the restaurant.", "The supermarket is behind the school."],
+          ans: 1,
+          tip: "💡【空間介系詞】between A and B 代表『在兩者之間』；beside 代表在旁邊。"
+        };
+        break;
+
+      // 考點 3: 頻率副詞階梯 (Rarely / Never / Always)
+      case 2:
+        qObj = {
+          part: "【考點 3】頻率副詞 (Rarely / Never)",
+          prompt: `Statement: How often does ${name1} do this?`,
+          audioText: `Statement A: ${name1} rarely ${act.third}. Statement B: ${name1} always goes to English class. Statement C: ${name1} never does homework.`,
+          options: [`${name1} rarely ${act.third}.`, `${name1} always goes to English class.`, `${name1} never does homework.`],
+          ans: 0,
+          tip: `💡【頻率副詞】rarely 代表『很少、幾乎不（10%）』，頻率低於 often，高於 never。`
+        };
+        break;
+
+      // 考點 4: Where 疑問詞與具體地點
+      case 3:
+        qObj = {
+          part: "【考點 4】疑問詞問答 (Where / 地點介系詞)",
+          prompt: `Question: Where does ${name1} ${act.base}?`,
+          audioText: `Where does ${name1} ${act.base}? A: He has a big bag. B: In the ${loc.label}. C: Yes, he does it every day.`,
+          options: ["He has a big bag.", `He does it ${loc.place}.`, "Yes, he does it every day."],
+          ans: 1,
+          tip: `💡【地點問答】聽到 Where 提問，核心回答為具體空間介系詞片語（${loc.place}）。`
+        };
+        break;
+
+      // 考點 5: 現在進行式問答 (What is ... doing?)
+      case 4:
+        qObj = {
+          part: "【考點 5】現在進行式 (What is ... doing?)",
+          prompt: `Question: What is ${name1} doing right now?`,
+          audioText: `What is ${name1} doing right now? A: She is ${act.ing}. B: She ${act.third} every Sunday. C: She can ${act.base}.`,
+          options: [`She is ${act.ing}.`, `She ${act.third} every Sunday.`, `She can ${act.base}.`],
+          ans: 0,
+          tip: `💡【現在進行式】問句包含 is ... doing，回答必須使用主詞 + be動詞 + V-ing（is ${act.ing}）。`
+        };
+        break;
+
+      // 考點 6: 數量疑問詞辨析 (How many vs How much)
+      case 5:
+        if (i % 2 === 0) {
+          qObj = {
+            part: "【考點 6】數量疑問詞 (How much 不可數)",
+            prompt: `Question: How much ${uncnt.word} do you need?`,
+            audioText: `How much ${uncnt.word} do you need? A: Just a little. B: There are five. C: Not many.`,
+            options: ["Just a little.", "There are five.", "Not many."],
+            ans: 0,
+            tip: `💡【不可數名詞數量】${uncnt.word}（${uncnt.hint}）為不可數名詞，使用 How much 提問，回答用 a little 或 much。`
+          };
+        } else {
+          qObj = {
+            part: "【考點 6】數量疑問詞 (How many 可數)",
+            prompt: `Question: How many ${cnt.word} can you see?`,
+            audioText: `How many ${cnt.word} can you see? A: Just a little. B: I can see three ${cnt.word}. C: Yes, I do.`,
+            options: ["Just a little.", `I can see three ${cnt.word}.`, "Yes, I do."],
+            ans: 1,
+            tip: `💡【可數複數名詞數量】${cnt.word}（${cnt.hint}）為可數複數，使用 How many 提問，回答需給出確切數字。`
+          };
+        }
+        break;
+
+      // 考點 7: 對話原因辨識 (Why 問句)
+      case 6:
+        qObj = {
+          part: "【考點 7】對話理解 (Why 問句)",
+          prompt: `Question: Why does ${name1} have to leave now?`,
+          audioText: `Hi ${name1}, where are you going? I have to go to the station now because the train is coming. Question: Why does ${name1} have to leave now?`,
+          options: ["Because the train is coming.", "Because he likes to run.", "Because he wants to eat lunch."],
+          ans: 0,
+          tip: "💡【因果判斷】聽對話時注意 because 之後的具體原因（the train is coming）。",
+          repeat: true
+        };
+        break;
+
+      // 考點 8: 能力與否定轉折 (Can vs Can't)
+      case 7:
+      default:
+        qObj = {
+          part: "【考點 8】短文資訊抓取 (Can vs Can't 轉折)",
+          prompt: `Question: What can't ${name1} do?`,
+          audioText: `${name1} is very talented. He can ${act.base} and swim, but he can't drive a car. Question: What can't ${name1} do?`,
+          options: [`${act.base}.`, "Swim in the pool.", "Drive a car."],
+          ans: 2,
+          tip: "💡【否定轉折】注意聽清 but 後面的否定情態動詞 can't（不能駕駛汽車）。",
+          repeat: true
+        };
+        break;
+    }
+
+    generated.push(qObj);
+  }
+
+  return generated;
+}
+
+const rawReviewQuestions = generate500ListeningReviewQuestions();
 
 // ==========================================
-// 5. Practice 1 題庫 (40 題)
+// 5. Practice 1 題庫 (40 題) - 100% 對齊原文與官方解答
 // ==========================================
 const rawMockP1 = [
   { part: "Part 1: Photographs", prompt: "Question 1", audioText: "Look at the picture and choose the best answer. Statement A: Julia brushes her teeth. Statement B: Julia washes her face. Statement C: Julia's mother brushes her teeth.", options: ["Julia brushes her teeth.", "Julia washes her face.", "Julia's mother brushes her teeth."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 2", audioText: "Look at the picture and choose the best answer. Statement A: Janice drinks milk for breakfast. Statement B: Janice has lunch at noon. Statement C: Janice eats fruit for breakfast.", options: ["Janice drinks milk for breakfast.", "Janice has lunch at noon.", "Janice eats fruit for breakfast."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 3", audioText: "Look at the picture and choose the best answer. Statement A: It's a quarter to 11. Statement B: It's a quarter past 10. Statement C: It's half past 10.", options: ["It's a quarter to 11.", "It's a quarter past 10.", "It's half past 10."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 2", audioText: "Look at the picture and choose the best answer. Statement A: Janice drinks milk for breakfast. Statement B: Janice has lunch at noon. Statement C: Janice eats fruit for breakfast.", options: ["Janice drinks milk for breakfast.", "Janice has lunch at noon.", "Janice eats fruit for breakfast."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 3", audioText: "Look at the picture and choose the best answer. Statement A: It's a quarter to 11. Statement B: It's a quarter past 10. Statement C: It's half past 10.", options: ["It's a quarter to 11.", "It's a quarter past 10.", "It's half past 10."], ans: 0 },
   { part: "Part 1: Photographs", prompt: "Question 4", audioText: "Look at the picture and choose the best answer. Statement A: The basketball game starts at 9:30. Statement B: The baseball game starts at 9:30. Statement C: There is no baseball game today.", options: ["The basketball game starts at 9:30.", "The baseball game starts at 9:30.", "There is no baseball game today."], ans: 1 },
   { part: "Part 1: Photographs", prompt: "Question 5", audioText: "Look at the picture and choose the best answer. Statement A: There is a television on the table. Statement B: There are some flowers on the TV. Statement C: There is a vase on the floor.", options: ["There is a television on the table.", "There are some flowers on the TV.", "There is a vase on the floor."], ans: 0 },
   { part: "Part 1: Photographs", prompt: "Question 6", audioText: "Look at the picture and choose the best answer. Statement A: Andy rarely plays the guitar. Statement B: Andy never goes to science class. Statement C: Andy always goes to English class.", options: ["Andy rarely plays the guitar.", "Andy never goes to science class.", "Andy always goes to English class."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 7", audioText: "Look at the picture and choose the best answer. Statement A: Susan has sausages, sandwiches and French fries for her picnic. Statement B: Susan has hot dogs, French fries, and cookies for her picnic. Statement C: Susan has noodles, milk, and hot dogs for her picnic.", options: ["Susan has sausages, sandwiches and French fries for her picnic.", "Susan has hot dogs, French fries, and cookies for her picnic.", "Susan has noodles, milk, and hot dogs for her picnic."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 8", audioText: "Look at the picture and choose the best answer. Statement A: Henry's hobby is swimming. Statement B: Henry's father's hobby is drawing. Statement C: Henry's mother's hobby is drawing.", options: ["Henry's hobby is swimming.", "Henry's father's hobby is drawing.", "Henry's mother's hobby is drawing."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 7", audioText: "Look at the picture and choose the best answer. Statement A: Susan has sausages, sandwiches and French fries for her picnic. Statement B: Susan has hot dogs, French fries, and cookies for her picnic. Statement C: Susan has noodles, milk, and hot dogs for her picnic.", options: ["Susan has sausages, sandwiches and French fries for her picnic.", "Susan has hot dogs, French fries, and cookies for her picnic.", "Susan has noodles, milk, and hot dogs for her picnic."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 8", audioText: "Look at the picture and choose the best answer. Statement A: Henry's hobby is swimming. Statement B: Henry's father's hobby is drawing. Statement C: Henry's mother's hobby is drawing.", options: ["Henry's hobby is swimming.", "Henry's father's hobby is drawing.", "Henry's mother's hobby is drawing."], ans: 2 },
   { part: "Part 1: Photographs", prompt: "Question 9", audioText: "Look at the picture and choose the best answer. Statement A: Please don't smoke outside. Statement B: Please don't speak too loud here. Statement C: Please don't smoke in the restaurant.", options: ["Please don't smoke outside.", "Please don't speak too loud here.", "Please don't smoke in the restaurant."], ans: 2 },
   { part: "Part 1: Photographs", prompt: "Question 10", audioText: "Look at the picture and choose the best answer. Statement A: There is not anything on the plate. Statement B: There is some corn on the plate. Statement C: There are no sausages on the plate.", options: ["There is not anything on the plate.", "There is some corn on the plate.", "There are no sausages on the plate."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 11", audioText: "Look at the picture and choose the best answer. Statement A: She can touch her head with her foot. Statement B: She can stand on one leg and touch the floor. Statement C: She can stand on her head.", options: ["She can touch her head with her foot.", "She can stand on one leg and touch the floor.", "She can stand on her head."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 11", audioText: "Look at the picture and choose the best answer. Statement A: She can touch her head with her foot. Statement B: She can stand on one leg and touch the floor. Statement C: She can stand on her head.", options: ["She can touch her head with her foot.", "She can stand on one leg and touch the floor.", "She can stand on her head."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 12: Are there many students in the classroom?", audioText: "Are there many students in the classroom? A: Yes, there are 30 students in the classroom. B: No, the classroom is very big. C: I like to study in the classroom.", options: ["Yes, there are 30 students in the classroom.", "No. The classroom is very big.", "I like to study in the classroom."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 13: Where do you cook?", audioText: "Where do you cook? A: I have a big kitchen. B: I cook in the kitchen. C: I take a bath in the bathroom.", options: ["I have a big kitchen.", "I cook in the kitchen.", "I take a bath in the bathroom."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 14: What does Tina have?", audioText: "What does Tina have? A: She has a new car. B: She needs a bike. C: The books on her desk are mine.", options: ["She has a new car.", "She needs a bike.", "The books on her desk are mine."], ans: 0 },
@@ -548,7 +722,7 @@ const rawMockP1 = [
   { part: "Part 4: Talks (33-35)", prompt: "Question 33: Who lives with Jerry?", audioText: "I live in a small apartment with my classmate. We share the kitchen and bathroom. It is very difficult in the morning. I like to take a shower in the morning, but my classmate often uses the bathroom for a long time. Question 33: Who lives with Jerry?", options: ["Jerry lives with his parents.", "Jerry lives with his classmate.", "Jerry lives with his teammate."], ans: 1, repeat: true },
   { part: "Part 4: Talks (33-35)", prompt: "Question 34: How many bathrooms are there in Jerry's house?", audioText: "How many bathrooms are there in Jerry's house?", options: ["2", "1", "0"], ans: 1 },
   { part: "Part 4: Talks (33-35)", prompt: "Question 35: Why does Jerry feel the morning is difficult?", audioText: "Why does Jerry feel the morning is difficult?", options: ["Because he can't use the bathroom.", "Because the bathroom is dirty.", "Because he does not want to go to school."], ans: 0 },
-  { part: "Part 3/4: Conversation (36-37)", prompt: "Question 36: Whose birthday is coming?", audioText: "Hello. This is Stephen. May I talk to Tina? Hold on, please. Hello, Stephen. This is Tina speaking. I am just calling to tell you that I can't go to your birthday party. I am really sorry. Why can't you come? My parents will go to Singapore for work. They want me to go there with them, but I don't want to live in another country. Question 36: Whose birthday is coming?", options: ["Tina's birthday is coming.", "Steven's birthday is coming.", "Steven's father's birthday is coming."], ans: 1, repeat: true },
+  { part: "Part 3/4: Conversation (36-37)", prompt: "Question 36: Whose birthday is coming?", audioText: "Hello. This is Stephen. May I talk to Tina? Hold on, please. Hello, Stephen. This is Tina speaking. I am just calling to tell you that I can't go to your birthday party. I am really sorry. Why can't you come? My parents will go to Singapore for work. They want me to go there with them, but I don't want to live in another country. Question 36: Whose birthday is coming?", options: ["Stephen's birthday is coming.", "Tina's birthday is coming.", "Steven's father's birthday is coming."], ans: 0, repeat: true },
   { part: "Part 3/4: Conversation (36-37)", prompt: "Question 37: Why do Stephen's parents need to go to Singapore?", audioText: "Why do Stephen's parents need to go to Singapore?", options: ["Because they want to celebrate Stephen's birthday.", "Because they have to work in Singapore.", "Because they study in Singapore."], ans: 1 },
   { part: "Part 3/4: Conversation (38-40)", prompt: "Question 38: What does Stephen think of his parents?", audioText: "Did you tell your parents that you don't want to go? I feel they never listen to me. I am afraid if I tell them, they will still want me to go to Singapore with them. If you stay here, who is going to take care of you? My brother also lives here, but I don't want to live with him. My grandparents live near us. I can live with them. I think you should tell your parents about your plan. They love you. Going to live in another country may not be good for you. I will think about it. I am really sorry about the birthday party. Never mind. Question 38: What does Stephen think of his parents?", options: ["His parents usually listen to him.", "His parents sometimes listen to him.", "His parents never listen to him."], ans: 2, repeat: true },
   { part: "Part 3/4: Conversation (38-40)", prompt: "Question 39: Who does Stephen want to live with?", audioText: "Who does Stephen want to live with?", options: ["His parents.", "His brother.", "His grandparents."], ans: 2 },
@@ -556,16 +730,16 @@ const rawMockP1 = [
 ];
 
 // ==========================================
-// 6. Practice 2 題庫 (50 題)
+// 6. Practice 2 題庫 (50 題) - 100% 對齊原文與官方解答
 // ==========================================
 const rawMockP2 = [
-  { part: "Part 1: Photographs", prompt: "Question 1", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 1", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 1 },
   { part: "Part 1: Photographs", prompt: "Question 2", audioText: "Look at the picture and choose the best answer. Statement A: They are waiting in line. Statement B: They are in the movie theater. Statement C: They are shutting their eyes.", options: ["They are waiting in line.", "They are in the movie theater.", "They are shutting their eyes."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 3", audioText: "Look at the picture and choose the best answer. Statement A: The hospital is beside the restaurant. Statement B: The supermarket is next to the post office. Statement C: The supermarket is between the hospital and the restaurant.", options: ["The hospital is beside the restaurant.", "The supermarket is next to the post office.", "The supermarket is between the hospital and the restaurant."], ans: 2 },
-  { part: "Part 1: Photographs", prompt: "Question 4", audioText: "Look at the picture and choose the best answer. Statement A: She doesn't know how to use the computer. Statement B: She can use the computer very well. Statement C: She is playing computer games happily.", options: ["She doesn't know how to use the computer.", "She can use the computer very well.", "She is playing the computer games happily."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 3", audioText: "Look at the picture and choose the best answer. Statement A: The hospital is beside the restaurant. Statement B: The supermarket is next to the post office. Statement C: The supermarket is between the hospital and the restaurant.", options: ["The hospital is beside the restaurant.", "The supermarket is next to the post office.", "The supermarket is between the hospital and the restaurant."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 4", audioText: "Look at the picture and choose the best answer. Statement A: She doesn't know how to use the computer. Statement B: She can use the computer very well. Statement C: She is playing the computer games happily.", options: ["She doesn't know how to use the computer.", "She can use the computer very well.", "She is playing the computer games happily."], ans: 0 },
   { part: "Part 1: Photographs", prompt: "Question 5", audioText: "Look at the picture and choose the best answer. Statement A: Tina yawns. Statement B: Jennifer yawns. Statement C: Tina stretches.", options: ["Tina yawns.", "Jennifer yawns.", "Tina stretches."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 6", audioText: "Look at the picture and choose the best answer. Statement A: It's 10 past 5. Statement B: It's a quarter past 5. Statement C: It's a quarter to 5.", options: ["It's 10 past 5.", "It's a quarter past five.", "It's a quarter to five."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 7", audioText: "Look at the picture and choose the best answer. Statement A: There is a radio on the table. Statement B: There is a hanger on the coffee table. Statement C: There is a sofa in the bedroom.", options: ["There is a radio on the table.", "There is a hanger on the coffee table.", "There is a sofa in the bedroom."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 6", audioText: "Look at the picture and choose the best answer. Statement A: It's 10 past 5. Statement B: It's a quarter past 5. Statement C: It's a quarter to 5.", options: ["It's 10 past 5.", "It's a quarter past five.", "It's a quarter to five."], ans: 2 },
+  { part: "Part 1: Photographs", prompt: "Question 7", audioText: "Look at the picture and choose the best answer. Statement A: There is a radio on the table. Statement B: There is a hanger on the coffee table. Statement C: There is a sofa in the bedroom.", options: ["There is a radio on the table.", "There is a hanger on the coffee table.", "There is a sofa in the bedroom."], ans: 2 },
   { part: "Part 1: Photographs", prompt: "Question 8", audioText: "Look at the picture and choose the best answer. Statement A: Please don't speak too loud here. Statement B: Please don't smoke in the restaurant. Statement C: Please don't smoke outside.", options: ["Please don't speak too loud here.", "Please don't smoke in the restaurant.", "Please don't smoke outside."], ans: 1 },
   { part: "Part 1: Photographs", prompt: "Question 9", audioText: "Look at the picture and choose the best answer. Statement A: The girl is watching television. Statement B: The boy is drawing. Statement C: The man is flying a kite.", options: ["The girl is watching television.", "The boy is drawing.", "The man is flying a kite."], ans: 1 },
   { part: "Part 1: Photographs", prompt: "Question 10", audioText: "Look at the picture and choose the best answer. Statement A: My favorite food is noodles. Statement B: My father's favorite food is hamburgers. Statement C: My mother's favorite food is sandwiches.", options: ["My favorite food is noodles.", "My father's favorite food is hamburgers.", "My mother's favorite food is sandwiches."], ans: 0 },
@@ -573,10 +747,10 @@ const rawMockP2 = [
   { part: "Part 2: Question Response", prompt: "Question 12: What time do you usually go to school?", audioText: "What time do you usually go to school? A: You usually go to school at 7:00. B: I usually go to school at half past 7:00. C: I usually go to school on time.", options: ["You usually go to school at 7:00.", "I usually go to school at half past 7:00.", "I usually go to school on time."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 13: What is Sandy's favorite sport?", audioText: "What is Sandy's favorite sport? A: Her favorite food is vegetables. B: Her favorite sport is bowling. C: Her favorite fruit is strawberries.", options: ["Her favorite food is vegetables.", "Her favorite sport is bowling.", "Her favorite fruit is strawberries."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 14: How many lamps can you see?", audioText: "How many lamps can you see? A: Yes, I do. B: I can see three bags. C: I can see five lamps.", options: ["Yes, I do.", "I can see three bags.", "I can see five lamps."], ans: 2 },
-  { part: "Part 2: Question Response", prompt: "Question 15: Where are you doing your homework?", audioText: "Where are you doing your homework? A: You are doing your homework in front of the television. B: I am playing the piano in the dining room. C: I am doing it at my desk in the bedroom.", options: ["You are doing your homework in front of the television.", "I am playing the piano in the dining room.", "I am doing it at my desk in the bedroom."], ans: 1 },
+  { part: "Part 2: Question Response", prompt: "Question 15: Where are you doing your homework?", audioText: "Where are you doing your homework? A: You are doing your homework in front of the television. B: I am doing it at my desk in the bedroom. C: I am playing the piano in the dining room.", options: ["You are doing your homework in front of the television.", "I am doing it at my desk in the bedroom.", "I am playing the piano in the dining room."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 16: Are there any pictures on the wall?", audioText: "Are there any pictures on the wall? A: No, there are not any pictures. B: He is looking for his pictures. C: He is painting a picture.", options: ["No, there are not any pictures.", "He is looking for his pictures.", "He is painting a picture."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 17: Are you listening to me?", audioText: "Are you listening to me? A: Yes, you are listening to me. B: Yes, I am listening to you. C: No, he is not listening to us.", options: ["Yes, you are listening to me.", "Yes, I am listening to you.", "No, he is not listening to us."], ans: 1 },
-  { part: "Part 2: Question Response", prompt: "Question 18: What is she doing?", audioText: "What is she doing? A: She is playing the guitar. B: You are cooking in the kitchen. C: She does compulsory homework every evening.", options: ["She is playing the guitar.", "You are cooking in the kitchen.", "She does her homework every evening."], ans: 0 },
+  { part: "Part 2: Question Response", prompt: "Question 18: What is she doing?", audioText: "What is she doing? A: She is playing the guitar. B: You are cooking in the kitchen. C: She does her homework every evening.", options: ["She is playing the guitar.", "You are cooking in the kitchen.", "She does her homework every evening."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 19: Do you have to go to school on time?", audioText: "Do you have to go to school on time? A: Yes, I have. B: Yes, I can. C: No, I don't.", options: ["Yes, I have.", "Yes, I can.", "No, I don't."], ans: 2 },
   { part: "Part 2: Question Response", prompt: "Question 20: Thank you very much.", audioText: "Thank you very much. A: No thanks. B: You're welcome. C: I think so.", options: ["No thanks.", "You're welcome.", "I think so."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 21: May I borrow some money?", audioText: "May I borrow some money? A: Sure, how many do you want? B: Sure, how much do you need? C: No, I don't need money.", options: ["Sure, how many do you want?", "Sure, how much do you need?", "No, I don't need money."], ans: 1 },
@@ -589,24 +763,24 @@ const rawMockP2 = [
   { part: "Part 2: Question Response", prompt: "Question 28: What is Timmy doing?", audioText: "What is Timmy doing? A: He doesn't shut his eyes because the movie is scary. B: He is shutting his eyes because of the scary movie. C: He shuts his eyes at scary movies.", options: ["He doesn't shut his eyes because the movie is scary.", "He is shutting his eyes because of the scary movie.", "He shuts his eyes at scary movies."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 29: Do you always do your homework before dinner?", audioText: "Do you always do your homework before dinner? A: Yes, I never eat first. B: Yes, it is always late when I do it. C: Yes, always do my homework.", options: ["Yes, I never eat first.", "Yes, it is always late when I do it.", "Yes, always do my homework."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 30: What is the girl doing?", audioText: "What is the girl doing? A: The girl is sick. B: The girl is painting. C: Her favorite sport is soccer.", options: ["The girl is sick.", "The girl is painting.", "Her favorite sport is soccer."], ans: 1 },
-  { part: "Part 3: Conversations (31-33)", prompt: "Question 31: What does Kevin's mom want him to do now?", audioText: "Kevin, what are you doing? I'm playing a video game, Mom. Is your homework done? I can't do my homework now because I can't stop this game before I win. Then I can stop the game for you. Now do your homework before dinner. Question 31: What does Kevin's mom want him to do now?", options: ["Stop playing games and do homework.", "Win the game.", "Eat dinner first."], ans: 0, repeat: true },
+  { part: "Part 3: Conversations (31-33)", prompt: "Question 31: What does Kevin's mom want him to do now?", audioText: "Kevin, what are you doing? I'm playing a video game, Mom. Is your homework done? I can't do my homework now because I can't stop this game before I win. Then I can stop the game for you. Now do your homework before dinner. Question 31. What does Kevin's mom want him to do now?", options: ["Do his homework.", "Win the game.", "Eat dinner first."], ans: 0, repeat: true },
   { part: "Part 3: Conversations (31-33)", prompt: "Question 32: What does Kevin want to do?", audioText: "What does Kevin want to do?", options: ["Do his homework.", "Win the game before stopping.", "Help his mom cook dinner."], ans: 1 },
-  { part: "Part 3: Conversations (33-35)", prompt: "Question 33: Does Kevin finish his homework?", audioText: "Does Kevin finish his homework?", options: ["Yes, he does.", "No, he hasn't done it yet.", "He did it at school."], ans: 1 },
-  { part: "Part 3: Conversations (34-35)", prompt: "Question 34: How is Lucy?", audioText: "How are you, Lucy? Not bad. What about you? Great. I haven't seen you for a week. You know, I lived with my parents, but they moved to London. So I live in a big house alone. Question 34: How is Lucy?", options: ["Not bad.", "Very sick.", "Terrible."], ans: 0, repeat: true },
-  { part: "Part 3: Conversations (34-35)", prompt: "Question 35: Who lives with Lucy?", audioText: "Who lives with Lucy?", options: ["Her parents.", "She lives alone.", "Her classmates."], ans: 1 },
-  { part: "Part 3: Conversations (36-38)", prompt: "Question 36: What does Lucy want?", audioText: "Hi, Lucy, your birthday is coming. Do you want to have a birthday party? Sure. We can invite some friends. Who do you want to invite? Jerry, Susan, and Henry. Okay. Sounds good. I will help you prepare your birthday party. Thanks. I need the help. Question 36: What does Lucy want?", options: ["To have a birthday party.", "To go to London.", "To study alone."], ans: 0, repeat: true },
+  { part: "Part 3: Conversations (31-33)", prompt: "Question 33: Does Kevin finish his homework?", audioText: "Does Kevin finish his homework?", options: ["Yes, he does.", "No, he hasn't done it yet.", "He did it at school."], ans: 1 },
+  { part: "Part 3: Conversations (34-35)", prompt: "Question 34: How is Lucy?", audioText: "How are you, Lucy? Not bad. What about you? Great. I haven't seen you for a week. You know, I lived with my parents, but they moved to London. So I live in a big house alone. Question 34. How is Lucy?", options: ["Very sick.", "Not bad.", "Terrible."], ans: 1, repeat: true },
+  { part: "Part 3: Conversations (34-35)", prompt: "Question 35: Who lives with Lucy?", audioText: "Who lives with Lucy?", options: ["Her parents.", "Her classmates.", "She lives alone."], ans: 2 },
+  { part: "Part 3: Conversations (36-38)", prompt: "Question 36: What does Lucy want?", audioText: "Hi, Lucy, your birthday is coming. Do you want to have a birthday party? Sure. We can invite some friends. Who do you want to invite? Jerry, Susan, and Henry. Okay. Sounds good. I will help you prepare your birthday party. Thanks. I need the help. Question 36. What does Lucy want?", options: ["To have a birthday party.", "To go to London.", "To study alone."], ans: 0, repeat: true },
   { part: "Part 3: Conversations (36-38)", prompt: "Question 37: Whose birthday is coming?", audioText: "Whose birthday is coming?", options: ["Jack's birthday.", "Lucy's birthday.", "Susan's birthday."], ans: 1 },
-  { part: "Part 3: Conversations (36-38)", prompt: "Question 38: How many friends may go to the party with Lucy and Jack?", audioText: "How many friends may go to the birthday party with Lucy and Jack?", options: ["2 friends.", "3 friends (Jerry, Susan, and Henry).", "5 friends."], ans: 1 },
-  { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: "Hi Helen. Where are you going? I am going to watch a movie. Really? What kind of movie are you going to watch? I want to see a science fiction movie. I have to run now. The movie is about to start. Okay, and I have to be home before lunch. See you. Question 39: What kind of movies does Helen like?", options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, repeat: true },
-  { part: "Part 3: Conversations (39-40)", prompt: "Question 40: Why does Helen have to run?", audioText: "Why does Helen have to run?", options: ["She wants to exercise.", "The movie is about to start.", "She needs to catch a bus."], ans: 1 },
-  { part: "Part 4: Talks (41-42)", prompt: "Question 41: Where does Henry come from?", audioText: "Hello everyone, today I'd like to tell you something about my English studies. My name is Henry. I am from Japan. I am a student at Gram English. I like to study English very much, but my spoken English is not good. When I say R, I find it difficult to say it right. Question 41: Where does Henry come from?", options: ["Japan.", "Singapore.", "America."], ans: 0, repeat: true },
-  { part: "Part 4: Talks (41-42)", prompt: "Question 42: Where does he learn English?", audioText: "Where does he learn English?", options: ["At school in Japan.", "At Gram English.", "At home by himself."], ans: 1 },
-  { part: "Part 4: Talks (43-45)", prompt: "Question 43: What can't Frank do?", audioText: "Frank and Maggie are my good friends. They can do many things. Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Maggie is very talented. She can sing and dance very well. She likes to practice Kung Fu on Mondays. We can all speak English very well. We often do our homework together before dinner. Then, after dinner, we play video games and practice our English because these are all things we can do together. Question 43: What can't Frank do?", options: ["Play the guitar.", "Ride a bicycle.", "Drive a car."], ans: 2, repeat: true },
-  { part: "Part 4: Talks (43-45)", prompt: "Question 44: What do the three friends do together?", audioText: "What do the three friends do together?", options: ["Practice kung fu on Mondays.", "Do homework before dinner and play video games after dinner.", "Drive cars together."], ans: 1 },
-  { part: "Part 4: Talks (43-45)", prompt: "Question 45: What are they very good at?", audioText: "What are they very good at?", options: ["They can all speak English very well.", "They can all play violin.", "They can all drive."], ans: 0 },
-  { part: "Part 4: Talks (46-47)", prompt: "Question 46: Where does the speaker like to watch movies?", audioText: "People like to watch movies in different places. For example, some people like to watch movies in the theater, library, or restaurant. But I like to watch movies at home. People who like to watch movies in the theater like to be around many people. Question 46: Where does the speaker like to watch movies?", options: ["In the theater.", "At home.", "In the library."], ans: 1, repeat: true },
-  { part: "Part 4: Talks (46-47)", prompt: "Question 47: Why do some people prefer to watch movies in the theater?", audioText: "Why do some people prefer to watch movies in the theater?", options: ["Because they like to be around many people.", "Because tickets are free.", "Because the food is delicious."], ans: 0 },
-  { part: "Part 4: Talks (48-50)", prompt: "Question 48: Why does she have to study?", audioText: "Hi Jane, it's Sandy. I have to study for my English test and I need your help. Can you come to my house today? We can have dinner together at 6:00, and we can study at 6:30 until 8:00. Then we can watch TV. Thanks. Question 48: Why does she have to study?", options: ["For her English test.", "For her math contest.", "For fun."], ans: 0, repeat: true },
-  { part: "Part 4: Talks (48-50)", prompt: "Question 49: What does Sandy want from Jane?", audioText: "What does Sandy want from Jane?", options: ["To buy her dinner.", "To help her study for the English test.", "To lend her a TV."], ans: 1 },
-  { part: "Part 4: Talks (48-50)", prompt: "Question 50: Where does Sandy want to study?", audioText: "Where does Sandy want to study?", options: ["At Jane's house.", "At Sandy's house.", "At school."], ans: 1 }
+  { part: "Part 3: Conversations (36-38)", prompt: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", audioText: "How many friends may go to the birthday party with Lucy and Jack?", options: ["2 friends.", "3 friends (Jerry, Susan, and Henry).", "5 friends."], ans: 1 },
+  { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: "Hi Helen. Where are you going? I am going to watch a movie. Really? What kind of movie are you going to watch? I want to see a science fiction movie. I have to run now. The movie is about to start. Okay, and I have to be home before lunch. See you. Question 39. What kind of movies does Helen like?", options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, repeat: true },
+  { part: "Part 3: Conversations (39-40)", prompt: "Question 40: Why does Helen have to run?", audioText: "Why does Helen have to run?", options: ["She wants to exercise.", "She needs to catch a bus.", "The movie is about to start."], ans: 2 },
+  { part: "Part 4: Talks (41-42)", prompt: "Question 41: Where does Henry come from?", audioText: "Hello everyone, today I'd like to tell you something about my English studies. My name is Henry. I am from Japan. I am a student at Gram English. I like to study English very much, but my spoken English is not good. When I say R, I find it difficult to say it right. Question 41. Where does Henry come from?", options: ["America.", "Singapore.", "Japan."], ans: 2, repeat: true },
+  { part: "Part 4: Talks (41-42)", prompt: "Question 42: Where does he learn English?", audioText: "Where does he learn English?", options: ["At Gram English.", "At school in Japan.", "At home by himself."], ans: 0 },
+  { part: "Part 4: Talks (43-45)", prompt: "Question 43: What can't Frank do?", audioText: "Frank and Maggie are my good friends. They can do many things. Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Maggie is very talented. She can sing and dance very well. She likes to practice Kung Fu on Mondays. We can all speak English very well. We often do our homework together before dinner. Then, after dinner, we play video games and practice our English because these are all things we can do together. Question 43. What can't Frank do?", options: ["Drive a car.", "Play the guitar.", "Ride a bicycle."], ans: 0, repeat: true },
+  { part: "Part 4: Talks (43-45)", prompt: "Question 44: What do the three friends do together?", audioText: "What do the three friends do together?", options: ["Practice kung fu on Mondays.", "Drive cars together.", "Do homework before dinner and play video games after dinner."], ans: 2 },
+  { part: "Part 4: Talks (43-45)", prompt: "Question 45: What are they very good at?", audioText: "What are they very good at?", options: ["They can all play violin.", "They can all speak English very well.", "They can all drive."], ans: 1 },
+  { part: "Part 4: Talks (46-47)", prompt: "Question 46: Where does the speaker like to watch movies?", audioText: "People like to watch movies in different places. For example, some people like to watch movies in the theater, library, or restaurant. But I like to watch movies at home. People who like to watch movies in the theater like to be around many people. Question 46. Where does the speaker like to watch movies?", options: ["In the theater.", "In the library.", "At home."], ans: 2, repeat: true },
+  { part: "Part 4: Talks (46-47)", prompt: "Question 47: Why do some people prefer to watch movies in the theater?", audioText: "Why do some people prefer to watch movies in the theater?", options: ["Because tickets are free.", "Because the food is delicious.", "Because they like to be around many people."], ans: 2 },
+  { part: "Part 4: Talks (48-50)", prompt: "Question 48: Why does she have to study?", audioText: "Hi Jane, it's Sandy. I have to study for my English test and I need your help. Can you come to my house today? We can have dinner together at 6:00, and we can study at 6:30 until 8:00. Then we can watch TV. Thanks. Question 48. Why does she have to study?", options: ["For her English test.", "For her math contest.", "For fun."], ans: 0, repeat: true },
+  { part: "Part 4: Talks (48-50)", prompt: "Question 49: What does Sandy want from Jane?", audioText: "What does Sandy want from Jane?", options: ["To help her study for the English test.", "To buy her dinner.", "To lend her a TV."], ans: 0 },
+  { part: "Part 4: Talks (50): Where does Sandy want to study?", prompt: "Question 50: Where does Sandy want to study?", audioText: "Where does Sandy want to study?", options: ["At Jane's house.", "At school.", "At Sandy's house."], ans: 2 }
 ];
