@@ -2,11 +2,20 @@
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
 最後更新日期：2026-09-29
-版本號：v2.4.1
+版本號：v2.5.0
 
-【修復記錄】：
-- 修正答對「自動跳題」計時器被 playSpeech() 內部 stopAllAudio() 誤砍取消的 Bug。
-- 完善語音朗讀與自動跳題的時序銜接，答對聽完發音後 100% 穩定自動換題。
+【核心功能修改清單】：
+1. 測驗中途離開確認 (Unload & 導覽防呆)：
+   - 瀏覽器關閉/重整時觸發 beforeunload 警告。
+   - 測驗作答中點擊頂部主標籤或子選單時，彈窗防誤觸確認，避免作答進度遺失。
+2. 測驗暫停/繼續功能 (Pause & Resume)：
+   - 新增「⏸️ 暫停」按鈕，立即凍結 6 秒作答倒數與 3 秒審題倒數，遮蔽選項避免作弊。
+   - 點擊「▶️ 繼續作答」解除遮罩，自暫停剩餘秒數繼續計時，並重播當前音訊。
+3. 答對自動跳題心流機制：
+   - 答對自動延遲載入下一題；答錯/超時保留手動「下一題」檢視解析。
+4. 英檢「3 秒審題預覽」與「音訊/選項語意對齊」：
+   - 聽力題 3 秒審題倒數；選項洗牌後 Statement A/B/C 語音與按鈕字母 100% 同步。
+5. 6 秒顏色漸變倒數 (綠->黃->紅閃爍)、每題重聽限 1 次、錯題精熟 2 次除名、打卡 Streak、原生 SVG 折線圖。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -129,6 +138,29 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
+    }
+    .timer-action-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pause-btn {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #475569;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .pause-btn:hover {
+      background: #e2e8f0;
+      color: #1e293b;
     }
     .timer-badge {
       background: #dcfce7;
@@ -203,6 +235,39 @@
       0% { transform: scale(0.6); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
+
+    /* 測驗暫停全屏遮罩 */
+    .pause-overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: white;
+      border-radius: 16px;
+    }
+    .pause-overlay-title { font-size: 24px; font-weight: bold; }
+    .pause-overlay-desc { font-size: 14px; color: #cbd5e1; max-width: 360px; line-height: 1.5; }
+    .resume-btn {
+      background: #22c55e;
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+    .resume-btn:active { transform: scale(0.98); }
 
     .start-screen, .result-screen, .analysis-screen, .guide-screen {
       background: #f8fafc;
@@ -591,6 +656,13 @@
 <body>
 
   <div class="card">
+    <!-- 測驗暫停全屏遮罩 -->
+    <div class="pause-overlay" id="pause-overlay">
+      <div class="pause-overlay-title">⏸️ 測驗暫停中</div>
+      <div class="pause-overlay-desc">題目倒數與音訊已全面暫停，稍微休息喝口水。準備好隨時點擊下方按鈕繼續！</div>
+      <button class="resume-btn" onclick="togglePauseQuiz()">▶️ 繼續作答</button>
+    </div>
+
     <!-- 頂部打卡天數與徽章欄 -->
     <div class="top-gamify-bar">
       <span>🔥 連續打卡：<b id="streak-days">1</b> 天</span>
@@ -605,28 +677,28 @@
     <h1>格蘭英語 B 級全方位學習測驗</h1>
     
     <div class="main-tabs">
-      <button class="main-tab-btn active" onclick="selectMainModule('vocab')">📝 核心單字測驗</button>
-      <button class="main-tab-btn" onclick="selectMainModule('grammar')">📖 重點文法測驗</button>
-      <button class="main-tab-btn" onclick="selectMainModule('listening')">🎧 官方聽力練習</button>
-      <button class="main-tab-btn" onclick="selectMainModule('analysis')">📊 錯題弱點分析</button>
+      <button class="main-tab-btn active" onclick="selectMainModuleSafe('vocab')">📝 核心單字測驗</button>
+      <button class="main-tab-btn" onclick="selectMainModuleSafe('grammar')">📖 重點文法測驗</button>
+      <button class="main-tab-btn" onclick="selectMainModuleSafe('listening')">🎧 官方聽力練習</button>
+      <button class="main-tab-btn" onclick="selectMainModuleSafe('analysis')">📊 錯題弱點分析</button>
     </div>
 
     <div class="sub-nav" id="vocab-subnav">
-      <button class="sub-btn active" onclick="switchVocabStage('b_level')">⭐ B級綜合測驗 (25題)</button>
+      <button class="sub-btn active" onclick="switchVocabStageSafe('b_level')">⭐ B級綜合測驗 (25題)</button>
     </div>
 
     <!-- 聽力子導覽列 -->
     <div class="sub-nav" id="listening-subnav" style="display: none;">
-      <button class="sub-btn active" onclick="switchListeningStage('guide')">💡 考點精華卡片 (純複習)</button>
-      <button class="sub-btn" onclick="switchListeningStage('review_quiz')">🎯 考點核心專練 (500題隨機抽25)</button>
-      <button class="sub-btn" onclick="switchListeningStage('p1')">Practice 1 模擬測驗 (40題)</button>
-      <button class="sub-btn" onclick="switchListeningStage('p2')">Practice 2 模擬測驗 (50題)</button>
+      <button class="sub-btn active" onclick="switchListeningStageSafe('guide')">💡 考點精華卡片 (純複習)</button>
+      <button class="sub-btn" onclick="switchListeningStageSafe('review_quiz')">🎯 考點核心專練 (500題隨機抽25)</button>
+      <button class="sub-btn" onclick="switchListeningStageSafe('p1')">Practice 1 模擬測驗 (40題)</button>
+      <button class="sub-btn" onclick="switchListeningStageSafe('p2')">Practice 2 模擬測驗 (50題)</button>
     </div>
 
     <!-- 測驗準備畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
-      <div class="start-desc" id="start-desc">聽力題將先給予 3 秒審題預覽，音訊結束後展開 6 秒倒數。答對將自動跳題，答錯保留複習！</div>
+      <div class="start-desc" id="start-desc">聽力題將先給予 3 秒審題預覽，音訊結束後展開 6 秒倒數。答對將自動跳題，支援中途暫停！</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
@@ -829,7 +901,7 @@
       
       <div class="action-btn-group">
         <button class="start-run-btn" onclick="unlockAudioAndStart()">🔄 重新隨機測驗</button>
-        <button class="btn-secondary" onclick="selectMainModule('analysis')">📊 查看本次錯題分析</button>
+        <button class="btn-secondary" onclick="selectMainModuleSafe('analysis')">📊 查看本次錯題分析</button>
       </div>
 
       <!-- 測驗進步軌跡折線圖 -->
@@ -893,7 +965,10 @@
 
       <div class="score-board">
         <span>進度: <span id="q-index">1</span> / <span id="total-q">0</span> | 目前得分: <span id="score">0</span></span>
-        <span class="timer-badge waiting" id="timer-badge">👀 審題預覽中...</span>
+        <div class="timer-action-group">
+          <button class="pause-btn" id="pause-btn" onclick="togglePauseQuiz()">⏸️ 暫停</button>
+          <span class="timer-badge waiting" id="timer-badge">👀 審題預覽中...</span>
+        </div>
       </div>
 
       <div class="timer-bar-container">
@@ -944,7 +1019,43 @@
 
   <script>
     // ==========================================
-    // 1. 原生 Web Audio API 音效合成引擎 (支援連對升調)
+    // 0. 中途離開確認防呆機制 (Unload 警告)
+    // ==========================================
+    let isQuizActive = false; // 是否處於測驗作答進行中
+
+    window.addEventListener("beforeunload", (e) => {
+      if (isQuizActive) {
+        e.preventDefault();
+        e.returnValue = "⚠️ 測驗正在進行中，重整或關閉將會遺失所有當前作答進度！確定要離開嗎？";
+        return e.returnValue;
+      }
+    });
+
+    function confirmLeaveCurrentQuiz() {
+      if (!isQuizActive) return true;
+      return confirm("⚠️ 目前測驗正在進行中，離開將會遺失當前作答進度，確定要中途退出嗎？");
+    }
+
+    function selectMainModuleSafe(mod) {
+      if (!confirmLeaveCurrentQuiz()) return;
+      isQuizActive = false;
+      selectMainModule(mod);
+    }
+
+    function switchVocabStageSafe(stage) {
+      if (!confirmLeaveCurrentQuiz()) return;
+      isQuizActive = false;
+      switchVocabStage(stage);
+    }
+
+    function switchListeningStageSafe(stage) {
+      if (!confirmLeaveCurrentQuiz()) return;
+      isQuizActive = false;
+      switchListeningStage(stage);
+    }
+
+    // ==========================================
+    // 1. 原生 Web Audio API 音效合成引擎
     // ==========================================
     let audioCtx = null;
     function getAudioContext() {
@@ -1232,7 +1343,7 @@
     }
 
     // ==========================================
-    // 5. 核心測驗變數、審題預覽與自動跳題修正
+    // 5. 核心測驗變數、暫停控制與自動跳題
     // ==========================================
     let speechRate = 0.85;
     let speechVolume = 1.0;
@@ -1240,7 +1351,7 @@
     let currentVocabStage = "b_level";
     let currentListeningStage = "guide"; 
     let audioTimer = null;
-    let autoNextTimer = null; // 答對自動跳題專用計時器
+    let autoNextTimer = null;
 
     let currentQuestions = [];
     let currentIdx = 0;
@@ -1252,6 +1363,13 @@
 
     let audioReplayRemaining = 1;
 
+    // 暫停控制變數
+    let isPaused = false;
+    let pausedTimeLeft = 6;
+    let pausedPreviewTimeLeft = 0;
+    let isPreviewPhase = false; // 是否正在 3 秒審題階段
+
+    // 倒數計時核心變數
     let questionTimer = null;
     let previewTimer = null;
     let timeLeft = 6;
@@ -1322,7 +1440,6 @@
     }
     initVoices();
 
-    // 關鍵修復：stopAllAudio() 只清除語音與播放定時器，不清除 autoNextTimer！
     function stopAllAudio() {
       if (audioTimer) {
         clearTimeout(audioTimer);
@@ -1333,7 +1450,6 @@
       }
     }
 
-    // 明確手動取消自動跳題計時器
     function cancelAutoNextTimer() {
       if (autoNextTimer) {
         clearTimeout(autoNextTimer);
@@ -1350,6 +1466,91 @@
         clearInterval(previewTimer);
         previewTimer = null;
       }
+    }
+
+    // 暫停 / 繼續控制核心
+    function togglePauseQuiz() {
+      if (!isQuizActive) return;
+
+      const overlay = document.getElementById("pause-overlay");
+      const pauseBtn = document.getElementById("pause-btn");
+
+      if (!isPaused) {
+        // --- 進入暫停 ---
+        isPaused = true;
+        stopAllAudio();
+        cancelAutoNextTimer();
+
+        // 記錄當前階段剩餘時間
+        pausedTimeLeft = timeLeft;
+        stopQuestionTimer();
+
+        overlay.style.display = "flex";
+        pauseBtn.textContent = "▶️ 繼續";
+      } else {
+        // --- 恢復繼續 ---
+        isPaused = false;
+        overlay.style.display = "none";
+        pauseBtn.textContent = "⏸️ 暫停";
+
+        if (isPreviewPhase) {
+          // 若在審題階段暫停，從剩餘審題秒數繼續
+          resumePreviewCountdown();
+        } else {
+          // 若在作答階段暫停，自剩餘秒數繼續並重播發音
+          resumeQuestionTimer();
+        }
+      }
+    }
+
+    function resumePreviewCountdown() {
+      let pTime = pausedPreviewTimeLeft > 0 ? pausedPreviewTimeLeft : PREVIEW_TIME;
+      const badgeElem = document.getElementById("timer-badge");
+      const barElem = document.getElementById("timer-bar");
+
+      if (badgeElem) {
+        badgeElem.classList.remove("warning", "danger", "waiting");
+        badgeElem.classList.add("preview");
+        badgeElem.innerHTML = `👀 審題預覽中: <b>${pTime}</b> 秒`;
+      }
+
+      previewTimer = setInterval(() => {
+        pTime--;
+        pausedPreviewTimeLeft = pTime;
+        if (barElem) barElem.style.width = `${(pTime / PREVIEW_TIME) * 100}%`;
+        if (badgeElem && pTime > 0) badgeElem.innerHTML = `👀 審題預覽中: <b>${pTime}</b> 秒`;
+
+        if (pTime <= 0) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+          isPreviewPhase = false;
+          
+          if (badgeElem) {
+            badgeElem.classList.remove("preview");
+            badgeElem.classList.add("waiting");
+            badgeElem.textContent = "🎧 聆聽中...";
+          }
+          playCurrentAudio(() => {
+            startQuestionTimer();
+          });
+        }
+      }, 1000);
+    }
+
+    function resumeQuestionTimer() {
+      timeLeft = pausedTimeLeft > 0 ? pausedTimeLeft : TOTAL_TIME;
+      updateTimerVisuals(timeLeft);
+
+      questionTimer = setInterval(() => {
+        timeLeft--;
+        pausedTimeLeft = timeLeft;
+        updateTimerVisuals(timeLeft);
+
+        if (timeLeft <= 0) {
+          stopQuestionTimer();
+          handleTimeOut();
+        }
+      }, 1000);
     }
 
     function updateTimerVisuals(sec) {
@@ -1377,7 +1578,9 @@
 
     function startPreviewCountdown(onPreviewEndCallback) {
       stopQuestionTimer();
+      isPreviewPhase = true;
       let pTime = PREVIEW_TIME;
+      pausedPreviewTimeLeft = pTime;
       const badgeElem = document.getElementById("timer-badge");
       const barElem = document.getElementById("timer-bar");
 
@@ -1397,12 +1600,14 @@
 
       previewTimer = setInterval(() => {
         pTime--;
+        pausedPreviewTimeLeft = pTime;
         if (barElem) barElem.style.width = `${(pTime / PREVIEW_TIME) * 100}%`;
         if (badgeElem && pTime > 0) badgeElem.innerHTML = `👀 審題預覽中: <b>${pTime}</b> 秒`;
 
         if (pTime <= 0) {
           clearInterval(previewTimer);
           previewTimer = null;
+          isPreviewPhase = false;
           if (onPreviewEndCallback) onPreviewEndCallback();
         }
       }, 1000);
@@ -1410,7 +1615,9 @@
 
     function startQuestionTimer() {
       stopQuestionTimer();
+      isPreviewPhase = false;
       timeLeft = TOTAL_TIME;
+      pausedTimeLeft = timeLeft;
       const barElem = document.getElementById("timer-bar");
       
       if (barElem) {
@@ -1425,6 +1632,7 @@
 
       questionTimer = setInterval(() => {
         timeLeft--;
+        pausedTimeLeft = timeLeft;
         updateTimerVisuals(timeLeft);
 
         if (timeLeft <= 0) {
@@ -1542,6 +1750,8 @@
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
+      isPaused = false;
+      document.getElementById("pause-overlay").style.display = "none";
       comboStreak = 0;
       updateComboBanner();
       getAudioContext();
@@ -1555,6 +1765,7 @@
     }
 
     function setupStartScreen() {
+      isQuizActive = false;
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -1571,7 +1782,7 @@
 
       if (currentModule === "vocab") {
         titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (25題)";
-        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題。單字發音結束後展開 6 秒倒數，答對將自動跳題！";
+        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題。單字發音結束後展開 6 秒倒數，答對將自動跳題，支援中途暫停！";
       } else if (currentModule === "grammar") {
         titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
         descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，進入每題限時 6 秒！隨機抽樣 25 題練習。";
@@ -1590,6 +1801,7 @@
     }
 
     function renderGuideScreen() {
+      isQuizActive = false;
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -1601,6 +1813,7 @@
     }
 
     function renderAnalysisScreen() {
+      isQuizActive = false;
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -1661,6 +1874,7 @@
       }
 
       isMistakeMode = true;
+      isQuizActive = true;
       comboStreak = 0;
       updateComboBanner();
       cancelAutoNextTimer();
@@ -1716,6 +1930,7 @@
 
     function startCurrentQuiz() {
       isMistakeMode = false;
+      isQuizActive = true;
       comboStreak = 0;
       updateComboBanner();
       cancelAutoNextTimer();
@@ -1861,9 +2076,8 @@
       window.speechSynthesis.speak(utter);
     }
 
-    // 手動重聽音訊
     function playCurrentAudioUser() {
-      if (audioReplayRemaining <= 0) return;
+      if (audioReplayRemaining <= 0 || isPaused) return;
 
       audioReplayRemaining--;
       updateAudioReplayButton();
@@ -1989,8 +2203,10 @@
     }
 
     function checkAnswer(selectedIdx, targetBtn, correctIdx) {
+      if (isPaused) return;
+
       stopAllAudio();
-      cancelAutoNextTimer(); // 先確保之前的跳題定時器清除
+      cancelAutoNextTimer();
       stopQuestionTimer();
 
       const buttons = document.querySelectorAll(".opt-btn");
@@ -2035,7 +2251,7 @@
           recordMistakeCorrectMastery(q.prompt, correctWord);
         }
 
-        // 答對時：延遲自動換下一題 (若有朗讀單字保留 1.8 秒聽完發音，否則 1.2 秒)
+        // 答對時：延遲自動換下一題 (若有單字朗讀留 1.8 秒，其餘 1.2 秒)
         const delayTime = ((currentModule === "vocab" || isMistakeMode) && q.audioText) ? 1800 : 1200;
         autoNextTimer = setTimeout(() => {
           nextQuestion();
@@ -2073,7 +2289,7 @@
           rawQuestion: q
         });
 
-        // 答錯時：不自動跳題，顯示「下一題」按鈕讓學生細看解析
+        // 答錯時：不自動換題，顯示按鈕供學生檢視
         document.getElementById("next-btn").style.display = "inline-block";
       }
 
@@ -2101,6 +2317,7 @@
       if (currentIdx < currentQuestions.length) {
         loadQuestion();
       } else {
+        isQuizActive = false; // 測驗完成解除離開防護
         document.getElementById("quiz-active-area").style.display = "none";
         const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
         document.getElementById("final-score").textContent = finalScore;
