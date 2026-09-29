@@ -1,3 +1,22 @@
+/**
+ * ===================================================================
+ * @file questions.js
+ * @description 格蘭英語 B 級全方位題庫與動態題目產生器
+ * @version 2.3.0
+ * @last_updated 2026-09-29
+ * 
+ * 【更新記錄 (Changelog)】：
+ * 1. 官方題庫校驗 (對齊 2025 官方解答 PDF)：
+ *    - Practice 1：校正第 2, 3, 7, 8, 11, 36 題之 ans 索引與選項順序。
+ *    - Practice 2：校正第 15, 26, 33, 35, 40 題之 ans 索引與選項順序。
+ * 2. 看圖題視覺情境輔助：
+ *    - Practice 1 (Q1~Q11) 與 Practice 2 (Q1~Q10) 全面加入 sceneHint 欄位，提供清晰的畫面描述。
+ * 3. 500 題生成引擎：
+ *    - generate500GrammarQuestions()：參數化產生 500 題文法題庫。
+ *    - generate500ListeningReviewQuestions()：參數化產生 500 題聽力八大核心考點題庫。
+ * ===================================================================
+ */
+
 // ==========================================
 // 1. 格蘭英語 B 級官方全範圍字彙母庫 (450+ 核心生活與檢定字彙)
 // ==========================================
@@ -540,7 +559,7 @@ function generate500ListeningReviewQuestions() {
   const generated = [];
 
   for (let i = 0; i < 500; i++) {
-    const type = i % 8; // 八大核心考點輪循
+    const type = i % 8;
     const name1 = names[i % names.length];
     const name2 = names[(i + 3) % names.length];
     const loc = locations[i % locations.length];
@@ -553,12 +572,11 @@ function generate500ListeningReviewQuestions() {
     let qObj = {};
 
     switch (type) {
-      // 考點 1: 時間辨析 (Quarter past / to / half past)
       case 0:
         if (i % 2 === 0) {
           qObj = {
             part: "【考點 1】時間辨析 (Quarter past)",
-            prompt: `Statement: Listen to the time statement.`,
+            prompt: "Statement: Listen to the time statement.",
             audioText: `Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${hour}. Statement C: It's half past ${hour}.`,
             options: [`It's a quarter past ${hour}. (${hour}:15)`, `It's a quarter to ${hour}. (${hour - 1}:45)`, `It's half past ${hour}. (${hour}:30)`],
             ans: 0,
@@ -567,7 +585,7 @@ function generate500ListeningReviewQuestions() {
         } else {
           qObj = {
             part: "【考點 1】時間辨析 (Quarter to)",
-            prompt: `Statement: Listen to the time statement.`,
+            prompt: "Statement: Listen to the time statement.",
             audioText: `Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${nextHour}. Statement C: It's half past ${hour}.`,
             options: [`It's a quarter past ${hour}. (${hour}:15)`, `It's a quarter to ${nextHour}. (${hour}:45)`, `It's half past ${hour}. (${hour}:30)`],
             ans: 1,
@@ -576,19 +594,17 @@ function generate500ListeningReviewQuestions() {
         }
         break;
 
-      // 考點 2: 相對空間介系詞 (Between / Next to / Beside)
       case 1:
         qObj = {
           part: "【考點 2】位置介系詞 (Between)",
-          prompt: `Statement: Where is the place?`,
-          audioText: `Statement A: The supermarket is beside the library. Statement B: The supermarket is between the hospital and the restaurant. Statement C: The supermarket is behind the school.`,
+          prompt: "Statement: Where is the place?",
+          audioText: "Statement A: The supermarket is beside the library. Statement B: The supermarket is between the hospital and the restaurant. Statement C: The supermarket is behind the school.",
           options: ["The supermarket is beside the library.", "The supermarket is between the hospital and the restaurant.", "The supermarket is behind the school."],
           ans: 1,
           tip: "💡【空間介系詞】between A and B 代表『在兩者之間』；beside 代表在旁邊。"
         };
         break;
 
-      // 考點 3: 頻率副詞階梯 (Rarely / Never / Always)
       case 2:
         qObj = {
           part: "【考點 3】頻率副詞 (Rarely / Never)",
@@ -596,11 +612,10 @@ function generate500ListeningReviewQuestions() {
           audioText: `Statement A: ${name1} rarely ${act.third}. Statement B: ${name1} always goes to English class. Statement C: ${name1} never does homework.`,
           options: [`${name1} rarely ${act.third}.`, `${name1} always goes to English class.`, `${name1} never does homework.`],
           ans: 0,
-          tip: `💡【頻率副詞】rarely 代表『很少、幾乎不（10%）』，頻率低於 often，高於 never。`
+          tip: "💡【頻率副詞】rarely 代表『很少、幾乎不（10%）』，頻率低於 often，高於 never。"
         };
         break;
 
-      // 考點 4: Where 疑問詞與具體地點
       case 3:
         qObj = {
           part: "【考點 4】疑問詞問答 (Where / 地點介系詞)",
@@ -612,7 +627,6 @@ function generate500ListeningReviewQuestions() {
         };
         break;
 
-      // 考點 5: 現在進行式問答 (What is ... doing?)
       case 4:
         qObj = {
           part: "【考點 5】現在進行式 (What is ... doing?)",
@@ -624,7 +638,6 @@ function generate500ListeningReviewQuestions() {
         };
         break;
 
-      // 考點 6: 數量疑問詞辨析 (How many vs How much)
       case 5:
         if (i % 2 === 0) {
           qObj = {
@@ -647,7 +660,6 @@ function generate500ListeningReviewQuestions() {
         }
         break;
 
-      // 考點 7: 對話原因辨識 (Why 問句)
       case 6:
         qObj = {
           part: "【考點 7】對話理解 (Why 問句)",
@@ -660,7 +672,6 @@ function generate500ListeningReviewQuestions() {
         };
         break;
 
-      // 考點 8: 能力與否定轉折 (Can vs Can't)
       case 7:
       default:
         qObj = {
@@ -684,20 +695,20 @@ function generate500ListeningReviewQuestions() {
 const rawReviewQuestions = generate500ListeningReviewQuestions();
 
 // ==========================================
-// 5. Practice 1 題庫 (40 題) - 100% 對齊原文與官方解答
+// 5. Practice 1 題庫 (40 題) - 附 Part 1 情境畫面輔助
 // ==========================================
 const rawMockP1 = [
-  { part: "Part 1: Photographs", prompt: "Question 1", audioText: "Look at the picture and choose the best answer. Statement A: Julia brushes her teeth. Statement B: Julia washes her face. Statement C: Julia's mother brushes her teeth.", options: ["Julia brushes her teeth.", "Julia washes her face.", "Julia's mother brushes her teeth."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 2", audioText: "Look at the picture and choose the best answer. Statement A: Janice drinks milk for breakfast. Statement B: Janice has lunch at noon. Statement C: Janice eats fruit for breakfast.", options: ["Janice drinks milk for breakfast.", "Janice has lunch at noon.", "Janice eats fruit for breakfast."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 3", audioText: "Look at the picture and choose the best answer. Statement A: It's a quarter to 11. Statement B: It's a quarter past 10. Statement C: It's half past 10.", options: ["It's a quarter to 11.", "It's a quarter past 10.", "It's half past 10."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 4", audioText: "Look at the picture and choose the best answer. Statement A: The basketball game starts at 9:30. Statement B: The baseball game starts at 9:30. Statement C: There is no baseball game today.", options: ["The basketball game starts at 9:30.", "The baseball game starts at 9:30.", "There is no baseball game today."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 5", audioText: "Look at the picture and choose the best answer. Statement A: There is a television on the table. Statement B: There are some flowers on the TV. Statement C: There is a vase on the floor.", options: ["There is a television on the table.", "There are some flowers on the TV.", "There is a vase on the floor."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 6", audioText: "Look at the picture and choose the best answer. Statement A: Andy rarely plays the guitar. Statement B: Andy never goes to science class. Statement C: Andy always goes to English class.", options: ["Andy rarely plays the guitar.", "Andy never goes to science class.", "Andy always goes to English class."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 7", audioText: "Look at the picture and choose the best answer. Statement A: Susan has sausages, sandwiches and French fries for her picnic. Statement B: Susan has hot dogs, French fries, and cookies for her picnic. Statement C: Susan has noodles, milk, and hot dogs for her picnic.", options: ["Susan has sausages, sandwiches and French fries for her picnic.", "Susan has hot dogs, French fries, and cookies for her picnic.", "Susan has noodles, milk, and hot dogs for her picnic."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 8", audioText: "Look at the picture and choose the best answer. Statement A: Henry's hobby is swimming. Statement B: Henry's father's hobby is drawing. Statement C: Henry's mother's hobby is drawing.", options: ["Henry's hobby is swimming.", "Henry's father's hobby is drawing.", "Henry's mother's hobby is drawing."], ans: 2 },
-  { part: "Part 1: Photographs", prompt: "Question 9", audioText: "Look at the picture and choose the best answer. Statement A: Please don't smoke outside. Statement B: Please don't speak too loud here. Statement C: Please don't smoke in the restaurant.", options: ["Please don't smoke outside.", "Please don't speak too loud here.", "Please don't smoke in the restaurant."], ans: 2 },
-  { part: "Part 1: Photographs", prompt: "Question 10", audioText: "Look at the picture and choose the best answer. Statement A: There is not anything on the plate. Statement B: There is some corn on the plate. Statement C: There are no sausages on the plate.", options: ["There is not anything on the plate.", "There is some corn on the plate.", "There are no sausages on the plate."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 11", audioText: "Look at the picture and choose the best answer. Statement A: She can touch her head with her foot. Statement B: She can stand on one leg and touch the floor. Statement C: She can stand on her head.", options: ["She can touch her head with her foot.", "She can stand on one leg and touch the floor.", "She can stand on her head."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 1", sceneHint: "一位名叫 Julia 的小女孩正在洗手台前拿起牙刷刷牙。", audioText: "Look at the picture and choose the best answer. Statement A: Julia brushes her teeth. Statement B: Julia washes her face. Statement C: Julia's mother brushes her teeth.", options: ["Julia brushes her teeth.", "Julia washes her face.", "Julia's mother brushes her teeth."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 2", sceneHint: "時鐘指向中午 12:00，Janice 正在餐桌享用午餐。", audioText: "Look at the picture and choose the best answer. Statement A: Janice drinks milk for breakfast. Statement B: Janice has lunch at noon. Statement C: Janice eats fruit for breakfast.", options: ["Janice drinks milk for breakfast.", "Janice has lunch at noon.", "Janice eats fruit for breakfast."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 3", sceneHint: "時鐘上的短針指向 11 前方，長針指向 9（即 10 點 45 分，差一刻到 11 點）。", audioText: "Look at the picture and choose the best answer. Statement A: It's a quarter to 11. Statement B: It's a quarter past 10. Statement C: It's half past 10.", options: ["It's a quarter to 11.", "It's a quarter past 10.", "It's half past 10."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 4", sceneHint: "告示看板上寫著棒球比賽（Baseball Game），下方的時間顯示 9:30。", audioText: "Look at the picture and choose the best answer. Statement A: The basketball game starts at 9:30. Statement B: The baseball game starts at 9:30. Statement C: There is no baseball game today.", options: ["The basketball game starts at 9:30.", "The baseball game starts at 9:30.", "There is no baseball game today."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 5", sceneHint: "客廳桌子上放著一台電視機，電視上面沒有其他雜物。", audioText: "Look at the picture and choose the best answer. Statement A: There is a television on the table. Statement B: There are some flowers on the TV. Statement C: There is a vase on the floor.", options: ["There is a television on the table.", "There are some flowers on the TV.", "There is a vase on the floor."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 6", sceneHint: "Andy 的行事曆上吉他練習旁標註著很少出現的記號（極低頻率）。", audioText: "Look at the picture and choose the best answer. Statement A: Andy rarely plays the guitar. Statement B: Andy never goes to science class. Statement C: Andy always goes to English class.", options: ["Andy rarely plays the guitar.", "Andy never goes to science class.", "Andy always goes to English class."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 7", sceneHint: "Susan 野餐墊上的食物籃裝著熱狗、薯條和餅乾（Hot dogs, French fries, cookies）。", audioText: "Look at the picture and choose the best answer. Statement A: Susan has sausages, sandwiches and French fries for her picnic. Statement B: Susan has hot dogs, French fries, and cookies for her picnic. Statement C: Susan has noodles, milk, and hot dogs for her picnic.", options: ["Susan has sausages, sandwiches and French fries for her picnic.", "Susan has hot dogs, French fries, and cookies for her picnic.", "Susan has noodles, milk, and hot dogs for her picnic."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 8", sceneHint: "客廳裡，Henry 的媽媽正拿著畫筆在畫布上畫畫（Henry's mother is drawing）。", audioText: "Look at the picture and choose the best answer. Statement A: Henry's hobby is swimming. Statement B: Henry's father's hobby is drawing. Statement C: Henry's mother's hobby is drawing.", options: ["Henry's hobby is swimming.", "Henry's father's hobby is drawing.", "Henry's mother's hobby is drawing."], ans: 2 },
+  { part: "Part 1: Photographs", prompt: "Question 9", sceneHint: "餐廳門口牆上貼著顯眼的『禁止吸煙（No Smoking）』標誌。", audioText: "Look at the picture and choose the best answer. Statement A: Please don't smoke outside. Statement B: Please don't speak too loud here. Statement C: Please don't smoke in the restaurant.", options: ["Please don't smoke outside.", "Please don't speak too loud here.", "Please don't smoke in the restaurant."], ans: 2 },
+  { part: "Part 1: Photographs", prompt: "Question 10", sceneHint: "餐盤上放著金黃色的玉米粒（Corn）。", audioText: "Look at the picture and choose the best answer. Statement A: There is not anything on the plate. Statement B: There is some corn on the plate. Statement C: There are no sausages on the plate.", options: ["There is not anything on the plate.", "There is some corn on the plate.", "There are no sausages on the plate."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 11", sceneHint: "體操女孩展現特技動作：一隻腳著地，另一隻腳高高舉起彎曲碰到自己的頭頂。", audioText: "Look at the picture and choose the best answer. Statement A: She can touch her head with her foot. Statement B: She can stand on one leg and touch the floor. Statement C: She can stand on her head.", options: ["She can touch her head with her foot.", "She can stand on one leg and touch the floor.", "She can stand on her head."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 12: Are there many students in the classroom?", audioText: "Are there many students in the classroom? A: Yes, there are 30 students in the classroom. B: No, the classroom is very big. C: I like to study in the classroom.", options: ["Yes, there are 30 students in the classroom.", "No. The classroom is very big.", "I like to study in the classroom."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 13: Where do you cook?", audioText: "Where do you cook? A: I have a big kitchen. B: I cook in the kitchen. C: I take a bath in the bathroom.", options: ["I have a big kitchen.", "I cook in the kitchen.", "I take a bath in the bathroom."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 14: What does Tina have?", audioText: "What does Tina have? A: She has a new car. B: She needs a bike. C: The books on her desk are mine.", options: ["She has a new car.", "She needs a bike.", "The books on her desk are mine."], ans: 0 },
@@ -723,26 +734,26 @@ const rawMockP1 = [
   { part: "Part 4: Talks (33-35)", prompt: "Question 34: How many bathrooms are there in Jerry's house?", audioText: "How many bathrooms are there in Jerry's house?", options: ["2", "1", "0"], ans: 1 },
   { part: "Part 4: Talks (33-35)", prompt: "Question 35: Why does Jerry feel the morning is difficult?", audioText: "Why does Jerry feel the morning is difficult?", options: ["Because he can't use the bathroom.", "Because the bathroom is dirty.", "Because he does not want to go to school."], ans: 0 },
   { part: "Part 3/4: Conversation (36-37)", prompt: "Question 36: Whose birthday is coming?", audioText: "Hello. This is Stephen. May I talk to Tina? Hold on, please. Hello, Stephen. This is Tina speaking. I am just calling to tell you that I can't go to your birthday party. I am really sorry. Why can't you come? My parents will go to Singapore for work. They want me to go there with them, but I don't want to live in another country. Question 36: Whose birthday is coming?", options: ["Stephen's birthday is coming.", "Tina's birthday is coming.", "Steven's father's birthday is coming."], ans: 0, repeat: true },
-  { part: "Part 3/4: Conversation (36-37)", prompt: "Question 37: Why do Stephen's parents need to go to Singapore?", audioText: "Why do Stephen's parents need to go to Singapore?", options: ["Because they want to celebrate Stephen's birthday.", "Because they have to work in Singapore.", "Because they study in Singapore."], ans: 1 },
+  { part: "Part 3/4: Conversation (37): Why do Stephen's parents need to go to Singapore?", prompt: "Question 37: Why do Stephen's parents need to go to Singapore?", audioText: "Why do Stephen's parents need to go to Singapore?", options: ["Because they want to celebrate Stephen's birthday.", "Because they have to work in Singapore.", "Because they study in Singapore."], ans: 1 },
   { part: "Part 3/4: Conversation (38-40)", prompt: "Question 38: What does Stephen think of his parents?", audioText: "Did you tell your parents that you don't want to go? I feel they never listen to me. I am afraid if I tell them, they will still want me to go to Singapore with them. If you stay here, who is going to take care of you? My brother also lives here, but I don't want to live with him. My grandparents live near us. I can live with them. I think you should tell your parents about your plan. They love you. Going to live in another country may not be good for you. I will think about it. I am really sorry about the birthday party. Never mind. Question 38: What does Stephen think of his parents?", options: ["His parents usually listen to him.", "His parents sometimes listen to him.", "His parents never listen to him."], ans: 2, repeat: true },
   { part: "Part 3/4: Conversation (38-40)", prompt: "Question 39: Who does Stephen want to live with?", audioText: "Who does Stephen want to live with?", options: ["His parents.", "His brother.", "His grandparents."], ans: 2 },
   { part: "Part 3/4: Conversation (38-40)", prompt: "Question 40: What does Tina tell Stephen to do?", audioText: "What does Tina tell Stephen to do?", options: ["She tells Stephen to tell his parents about his plan.", "She tells Stephen not to tell his parents about his plan.", "She tells Stephen to tell his brother about his plan."], ans: 0 }
 ];
 
 // ==========================================
-// 6. Practice 2 題庫 (50 題) - 100% 對齊原文與官方解答
+// 6. Practice 2 題庫 (50 題) - 附 Part 1 情境畫面輔助
 // ==========================================
 const rawMockP2 = [
-  { part: "Part 1: Photographs", prompt: "Question 1", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 2", audioText: "Look at the picture and choose the best answer. Statement A: They are waiting in line. Statement B: They are in the movie theater. Statement C: They are shutting their eyes.", options: ["They are waiting in line.", "They are in the movie theater.", "They are shutting their eyes."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 3", audioText: "Look at the picture and choose the best answer. Statement A: The hospital is beside the restaurant. Statement B: The supermarket is next to the post office. Statement C: The supermarket is between the hospital and the restaurant.", options: ["The hospital is beside the restaurant.", "The supermarket is next to the post office.", "The supermarket is between the hospital and the restaurant."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 4", audioText: "Look at the picture and choose the best answer. Statement A: She doesn't know how to use the computer. Statement B: She can use the computer very well. Statement C: She is playing the computer games happily.", options: ["She doesn't know how to use the computer.", "She can use the computer very well.", "She is playing the computer games happily."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 5", audioText: "Look at the picture and choose the best answer. Statement A: Tina yawns. Statement B: Jennifer yawns. Statement C: Tina stretches.", options: ["Tina yawns.", "Jennifer yawns.", "Tina stretches."], ans: 0 },
-  { part: "Part 1: Photographs", prompt: "Question 6", audioText: "Look at the picture and choose the best answer. Statement A: It's 10 past 5. Statement B: It's a quarter past 5. Statement C: It's a quarter to 5.", options: ["It's 10 past 5.", "It's a quarter past five.", "It's a quarter to five."], ans: 2 },
-  { part: "Part 1: Photographs", prompt: "Question 7", audioText: "Look at the picture and choose the best answer. Statement A: There is a radio on the table. Statement B: There is a hanger on the coffee table. Statement C: There is a sofa in the bedroom.", options: ["There is a radio on the table.", "There is a hanger on the coffee table.", "There is a sofa in the bedroom."], ans: 2 },
-  { part: "Part 1: Photographs", prompt: "Question 8", audioText: "Look at the picture and choose the best answer. Statement A: Please don't speak too loud here. Statement B: Please don't smoke in the restaurant. Statement C: Please don't smoke outside.", options: ["Please don't speak too loud here.", "Please don't smoke in the restaurant.", "Please don't smoke outside."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 9", audioText: "Look at the picture and choose the best answer. Statement A: The girl is watching television. Statement B: The boy is drawing. Statement C: The man is flying a kite.", options: ["The girl is watching television.", "The boy is drawing.", "The man is flying a kite."], ans: 1 },
-  { part: "Part 1: Photographs", prompt: "Question 10", audioText: "Look at the picture and choose the best answer. Statement A: My favorite food is noodles. Statement B: My father's favorite food is hamburgers. Statement C: My mother's favorite food is sandwiches.", options: ["My favorite food is noodles.", "My father's favorite food is hamburgers.", "My mother's favorite food is sandwiches."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 1", sceneHint: "房間裡的床上整齊擺放著兩顆枕頭（Two pillows on the bed）。", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 2", sceneHint: "一群人在櫃檯前依序排隊等待（Waiting in line）。", audioText: "Look at the picture and choose the best answer. Statement A: They are waiting in line. Statement B: They are in the movie theater. Statement C: They are shutting their eyes.", options: ["They are waiting in line.", "They are in the movie theater.", "They are shutting their eyes."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 3", sceneHint: "街道地圖上，超級市場（Supermarket）緊鄰在郵局（Post office）的隔壁旁邊。", audioText: "Look at the picture and choose the best answer. Statement A: The hospital is beside the restaurant. Statement B: The supermarket is next to the post office. Statement C: The supermarket is between the hospital and the restaurant.", options: ["The hospital is beside the restaurant.", "The supermarket is next to the post office.", "The supermarket is between the hospital and the restaurant."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 4", sceneHint: "小女孩坐在電腦螢幕前抓著頭，一臉困惑完全不會操作電腦（Doesn't know how to use it）。", audioText: "Look at the picture and choose the best answer. Statement A: She doesn't know how to use the computer. Statement B: She can use the computer very well. Statement C: She is playing the computer games happily.", options: ["She doesn't know how to use the computer.", "She can use the computer very well.", "She is playing the computer games happily."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 5", sceneHint: "名叫 Tina 的女孩張開嘴巴打了一個大哈欠（Tina yawns）。", audioText: "Look at the picture and choose the best answer. Statement A: Tina yawns. Statement B: Jennifer yawns. Statement C: Tina stretches.", options: ["Tina yawns.", "Jennifer yawns.", "Tina stretches."], ans: 0 },
+  { part: "Part 1: Photographs", prompt: "Question 6", sceneHint: "時鐘指在 4 點 45 分（即差一刻鐘到 5 點：a quarter to 5）。", audioText: "Look at the picture and choose the best answer. Statement A: It's 10 past 5. Statement B: It's a quarter past 5. Statement C: It's a quarter to 5.", options: ["It's 10 past 5.", "It's a quarter past five.", "It's a quarter to five."], ans: 2 },
+  { part: "Part 1: Photographs", prompt: "Question 7", sceneHint: "臥室的床邊擺放著一張舒適的沙發椅（Sofa in the bedroom）。", audioText: "Look at the picture and choose the best answer. Statement A: There is a radio on the table. Statement B: There is a hanger on the coffee table. Statement C: There is a sofa in the bedroom.", options: ["There is a radio on the table.", "There is a hanger on the coffee table.", "There is a sofa in the bedroom."], ans: 2 },
+  { part: "Part 1: Photographs", prompt: "Question 8", sceneHint: "餐廳室內牆面上標記著醒目的紅色『禁止吸煙』告示牌。", audioText: "Look at the picture and choose the best answer. Statement A: Please don't speak too loud here. Statement B: Please don't smoke in the restaurant. Statement C: Please don't smoke outside.", options: ["Please don't speak too loud here.", "Please don't smoke in the restaurant.", "Please don't smoke outside."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 9", sceneHint: "小男孩坐在桌子前拿著色筆專注地在紙上畫圖（The boy is drawing）。", audioText: "Look at the picture and choose the best answer. Statement A: The girl is watching television. Statement B: The boy is drawing. Statement C: The man is flying a kite.", options: ["The girl is watching television.", "The boy is drawing.", "The man is flying a kite."], ans: 1 },
+  { part: "Part 1: Photographs", prompt: "Question 10", sceneHint: "餐桌上端著一碗熱騰騰冒煙的麵條，正是主角最愛的食物（Noodles）。", audioText: "Look at the picture and choose the best answer. Statement A: My favorite food is noodles. Statement B: My father's favorite food is hamburgers. Statement C: My mother's favorite food is sandwiches.", options: ["My favorite food is noodles.", "My father's favorite food is hamburgers.", "My mother's favorite food is sandwiches."], ans: 0 },
   { part: "Part 2: Question Response", prompt: "Question 11: Do you have many friends here?", audioText: "Do you have many friends here? A: I often go swimming with my friends. B: I am friendly. C: No, I don't have many friends here.", options: ["I often go swimming with my friends.", "I am friendly.", "No, I don't have many friends here."], ans: 2 },
   { part: "Part 2: Question Response", prompt: "Question 12: What time do you usually go to school?", audioText: "What time do you usually go to school? A: You usually go to school at 7:00. B: I usually go to school at half past 7:00. C: I usually go to school on time.", options: ["You usually go to school at 7:00.", "I usually go to school at half past 7:00.", "I usually go to school on time."], ans: 1 },
   { part: "Part 2: Question Response", prompt: "Question 13: What is Sandy's favorite sport?", audioText: "What is Sandy's favorite sport? A: Her favorite food is vegetables. B: Her favorite sport is bowling. C: Her favorite fruit is strawberries.", options: ["Her favorite food is vegetables.", "Her favorite sport is bowling.", "Her favorite fruit is strawberries."], ans: 1 },

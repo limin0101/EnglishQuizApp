@@ -2,26 +2,11 @@
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
 最後更新日期：2026-09-29
-版本號：v2.2.0
+版本號：v2.4.1
 
-【核心功能修改清單】：
-1. 題庫校正：
-   - questions.js：P1 校正第 2, 3, 7, 8, 11, 36 題；P2 校正第 15, 26, 35, 40 題。
-   - 新增 500 題聽力八大考點隨機題庫生成引擎。
-2. 測驗節奏與計時精確控制：
-   - 聽力/單字題改為「發音完全結束後」才啟動 6 秒倒數；播音期間顯示「🎧 聆聽中...」，避免搶秒焦慮。
-   - 文法題進入即刻啟動 6 秒倒數。
-   - 逾時自動鎖定判定為錯題並即時回傳 Google 表單。
-3. 音效合成 (Web Audio API)：
-   - 答對播放 880Hz->1318Hz 雙鈴聲；答錯播放頓音；高分播放勝利琶音。
-   - 答題後錯開 350ms 朗讀單字，徹底解決快答疊音問題。
-4. 學習激勵與複習機制：
-   - 錯題需累積答對 2 次才正式除名 (masteryCount)。
-   - 錯題庫支援 8 類標籤篩選 (全部/單字/文法/超時/時間/介系詞/頻率/數量)。
-   - 連續打卡天數計算 (Streak) 與 4 款成就徽章。
-   - 原生 SVG 動態繪製最近 5 次測驗進步軌跡折線圖。
-5. 語音調整：
-   - 語速選單支援 0.5x（超慢）、0.6x、0.7x、0.85x（正常）。
+【修復記錄】：
+- 修正答對「自動跳題」計時器被 playSpeech() 內部 stopAllAudio() 誤砍取消的 Bug。
+- 完善語音朗讀與自動跳題的時序銜接，答對聽完發音後 100% 穩定自動換題。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -50,6 +35,8 @@
       max-width: 680px;
       padding: 24px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
     }
     h1 { color: #2c3e50; font-size: 22px; margin-bottom: 6px; }
 
@@ -144,9 +131,9 @@
       align-items: center;
     }
     .timer-badge {
-      background: #fee2e2;
-      color: #dc2626;
-      border: 1px solid #f87171;
+      background: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
       padding: 3px 12px;
       border-radius: 20px;
       font-weight: bold;
@@ -156,14 +143,37 @@
       gap: 4px;
       transition: all 0.3s;
     }
+    .timer-badge.preview {
+      background: #e0e7ff;
+      color: #4338ca;
+      border-color: #a5b4fc;
+    }
+    .timer-badge.warning {
+      background: #fef9c3;
+      color: #a16207;
+      border-color: #fde047;
+    }
+    .timer-badge.danger {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #f87171;
+      animation: heartBeat 0.6s infinite alternate;
+    }
     .timer-badge.waiting {
       background: #e0f2fe;
       color: #0369a1;
       border-color: #7dd3fc;
+      animation: none;
     }
+
+    @keyframes heartBeat {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.08); }
+    }
+
     .timer-bar-container {
       width: 100%;
-      height: 6px;
+      height: 7px;
       background: #e2e8f0;
       border-radius: 4px;
       overflow: hidden;
@@ -172,8 +182,26 @@
     .timer-bar {
       width: 100%;
       height: 100%;
-      background: #ef4444;
-      transition: width 1s linear;
+      background: #22c55e;
+      transition: width 1s linear, background-color 0.4s;
+    }
+
+    /* Combo 連對激勵飄浮橫條 */
+    .combo-banner {
+      display: none;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      color: white;
+      font-weight: bold;
+      font-size: 13px;
+      padding: 4px 14px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+      margin-bottom: 10px;
+      animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
     }
 
     .start-screen, .result-screen, .analysis-screen, .guide-screen {
@@ -247,10 +275,24 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
     .prompt-text { font-size: 18px; font-weight: bold; color: #1e293b; line-height: 1.5; }
     .listen-hint { font-size: 13px; color: #475569; }
+
+    /* Part 1 看圖題情境畫面提示框 */
+    .scene-hint-box {
+      display: none;
+      background: #ecfdf5;
+      border: 1px solid #6ee7b7;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #065f46;
+      line-height: 1.5;
+      text-align: left;
+      width: 100%;
+    }
 
     .audio-controls {
       display: flex;
@@ -288,15 +330,20 @@
       color: white;
       border: none;
       border-radius: 50px;
-      padding: 8px 18px;
-      font-size: 14px;
+      padding: 8px 16px;
+      font-size: 13px;
       font-weight: bold;
       cursor: pointer;
       display: flex;
       align-items: center;
       gap: 6px;
     }
-    .sound-btn:active { background: #ee5253; }
+    .sound-btn:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    .sound-btn:not(:disabled):active { background: #ee5253; }
 
     .top-feedback-area {
       display: flex;
@@ -579,7 +626,7 @@
     <!-- 測驗準備畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
-      <div class="start-desc" id="start-desc">聽力題將在音訊完全播放完畢後才開始 6 秒倒數，請專注聆聽！</div>
+      <div class="start-desc" id="start-desc">聽力題將先給予 3 秒審題預覽，音訊結束後展開 6 秒倒數。答對將自動跳題，答錯保留複習！</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
@@ -841,9 +888,12 @@
 
     <!-- 測驗進行區塊 -->
     <div class="quiz-active-area" id="quiz-active-area">
+      <!-- Combo 連對浮動橫條 -->
+      <div class="combo-banner" id="combo-banner">🔥 2 連對！太棒了！</div>
+
       <div class="score-board">
         <span>進度: <span id="q-index">1</span> / <span id="total-q">0</span> | 目前得分: <span id="score">0</span></span>
-        <span class="timer-badge waiting" id="timer-badge">🎧 聆聽中...</span>
+        <span class="timer-badge waiting" id="timer-badge">👀 審題預覽中...</span>
       </div>
 
       <div class="timer-bar-container">
@@ -854,9 +904,12 @@
         <span class="listen-hint" id="listen-hint">🎧 聽力播放中，請注意聆聽：</span>
         <div class="prompt-text" id="display-prompt">載入中...</div>
         
+        <!-- Part 1 看圖題情境畫面輔助框 -->
+        <div class="scene-hint-box" id="scene-hint-box"></div>
+
         <div class="audio-controls" id="audio-ctrl-group">
-          <button class="sound-btn" onclick="playCurrentAudioUser()">
-            🔊 播放音訊
+          <button class="sound-btn" id="play-audio-btn" onclick="playCurrentAudioUser()">
+            🔊 重聽音訊 (剩餘: 1次)
           </button>
 
           <div class="ctrl-badge">
@@ -891,7 +944,7 @@
 
   <script>
     // ==========================================
-    // 1. 原生 Web Audio API 音效合成引擎
+    // 1. 原生 Web Audio API 音效合成引擎 (支援連對升調)
     // ==========================================
     let audioCtx = null;
     function getAudioContext() {
@@ -904,15 +957,16 @@
       return audioCtx;
     }
 
-    function playSfxCorrect() {
+    function playSfxCorrect(combo = 0) {
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
+        const pitchMult = 1 + Math.min(combo * 0.05, 0.4);
 
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(880, now);
+        osc1.frequency.setValueAtTime(880 * pitchMult, now);
         gain1.gain.setValueAtTime(0.35, now);
         gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
         osc1.connect(gain1);
@@ -923,13 +977,13 @@
         const osc2 = ctx.createOscillator();
         const gain2 = ctx.createGain();
         osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1318.5, now + 0.1);
-        gain2.gain.setValueAtTime(0.38, now + 0.1);
-        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        osc2.frequency.setValueAtTime(1318.5 * pitchMult, now + 0.09);
+        gain2.gain.setValueAtTime(0.38, now + 0.09);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
         osc2.connect(gain2);
         gain2.connect(ctx.destination);
-        osc2.start(now + 0.1);
-        osc2.stop(now + 0.4);
+        osc2.start(now + 0.09);
+        osc2.stop(now + 0.38);
       } catch (e) {}
     }
 
@@ -1178,7 +1232,7 @@
     }
 
     // ==========================================
-    // 5. 核心測驗變數與精熟計時控制
+    // 5. 核心測驗變數、審題預覽與自動跳題修正
     // ==========================================
     let speechRate = 0.85;
     let speechVolume = 1.0;
@@ -1186,18 +1240,23 @@
     let currentVocabStage = "b_level";
     let currentListeningStage = "guide"; 
     let audioTimer = null;
+    let autoNextTimer = null; // 答對自動跳題專用計時器
 
     let currentQuestions = [];
     let currentIdx = 0;
     let correctCount = 0;
+    let comboStreak = 0;
     let cachedVoices = [];
     let isMistakeMode = false;
     let currentMistakeFilter = "all";
 
-    // 倒數計時核心變數
+    let audioReplayRemaining = 1;
+
     let questionTimer = null;
+    let previewTimer = null;
     let timeLeft = 6;
     const TOTAL_TIME = 6;
+    const PREVIEW_TIME = 3;
 
     const STORAGE_KEY = "gram_b_quiz_mistakes";
 
@@ -1263,6 +1322,7 @@
     }
     initVoices();
 
+    // 關鍵修復：stopAllAudio() 只清除語音與播放定時器，不清除 autoNextTimer！
     function stopAllAudio() {
       if (audioTimer) {
         clearTimeout(audioTimer);
@@ -1273,37 +1333,99 @@
       }
     }
 
+    // 明確手動取消自動跳題計時器
+    function cancelAutoNextTimer() {
+      if (autoNextTimer) {
+        clearTimeout(autoNextTimer);
+        autoNextTimer = null;
+      }
+    }
+
     function stopQuestionTimer() {
       if (questionTimer) {
         clearInterval(questionTimer);
         questionTimer = null;
       }
+      if (previewTimer) {
+        clearInterval(previewTimer);
+        previewTimer = null;
+      }
     }
 
-    // 啟動 6 秒倒數計時（發音結束或文法題直接呼叫）
-    function startQuestionTimer() {
-      stopQuestionTimer();
-      timeLeft = TOTAL_TIME;
+    function updateTimerVisuals(sec) {
       const badgeElem = document.getElementById("timer-badge");
       const barElem = document.getElementById("timer-bar");
-      
+
+      if (!badgeElem || !barElem) return;
+
+      badgeElem.classList.remove("waiting", "warning", "danger", "preview");
+      barElem.style.width = `${(sec / TOTAL_TIME) * 100}%`;
+
+      if (sec >= 4) {
+        barElem.style.backgroundColor = "#22c55e";
+        badgeElem.innerHTML = `⏳ 倒數: <b id="timer-sec" style="font-size: 16px;">${sec}</b> 秒`;
+      } else if (sec >= 2) {
+        barElem.style.backgroundColor = "#eab308";
+        badgeElem.classList.add("warning");
+        badgeElem.innerHTML = `⚠️ 剩餘: <b id="timer-sec" style="font-size: 16px;">${sec}</b> 秒`;
+      } else {
+        barElem.style.backgroundColor = "#ef4444";
+        badgeElem.classList.add("danger");
+        badgeElem.innerHTML = `🚨 快選: <b id="timer-sec" style="font-size: 16px;">${sec}</b> 秒`;
+      }
+    }
+
+    function startPreviewCountdown(onPreviewEndCallback) {
+      stopQuestionTimer();
+      let pTime = PREVIEW_TIME;
+      const badgeElem = document.getElementById("timer-badge");
+      const barElem = document.getElementById("timer-bar");
+
       if (badgeElem) {
-        badgeElem.classList.remove("waiting");
-        badgeElem.innerHTML = `⏳ 倒數: <b id="timer-sec" style="font-size: 16px;">${timeLeft}</b> 秒`;
+        badgeElem.classList.remove("warning", "danger", "waiting");
+        badgeElem.classList.add("preview");
+        badgeElem.innerHTML = `👀 審題預覽中: <b>${pTime}</b> 秒`;
       }
       if (barElem) {
         barElem.style.transition = "none";
         barElem.style.width = "100%";
+        barElem.style.backgroundColor = "#6366f1";
         setTimeout(() => {
           barElem.style.transition = "width 1s linear";
         }, 50);
       }
 
+      previewTimer = setInterval(() => {
+        pTime--;
+        if (barElem) barElem.style.width = `${(pTime / PREVIEW_TIME) * 100}%`;
+        if (badgeElem && pTime > 0) badgeElem.innerHTML = `👀 審題預覽中: <b>${pTime}</b> 秒`;
+
+        if (pTime <= 0) {
+          clearInterval(previewTimer);
+          previewTimer = null;
+          if (onPreviewEndCallback) onPreviewEndCallback();
+        }
+      }, 1000);
+    }
+
+    function startQuestionTimer() {
+      stopQuestionTimer();
+      timeLeft = TOTAL_TIME;
+      const barElem = document.getElementById("timer-bar");
+      
+      if (barElem) {
+        barElem.style.transition = "none";
+        barElem.style.width = "100%";
+        setTimeout(() => {
+          barElem.style.transition = "width 1s linear, background-color 0.4s";
+        }, 50);
+      }
+
+      updateTimerVisuals(timeLeft);
+
       questionTimer = setInterval(() => {
         timeLeft--;
-        const secElem = document.getElementById("timer-sec");
-        if (secElem) secElem.textContent = timeLeft;
-        if (barElem) barElem.style.width = `${(timeLeft / TOTAL_TIME) * 100}%`;
+        updateTimerVisuals(timeLeft);
 
         if (timeLeft <= 0) {
           stopQuestionTimer();
@@ -1312,9 +1434,11 @@
       }, 1000);
     }
 
-    // 逾時處理
     function handleTimeOut() {
       stopAllAudio();
+      cancelAutoNextTimer();
+      comboStreak = 0;
+      updateComboBanner();
       playSfxWrong();
 
       const buttons = document.querySelectorAll(".opt-btn");
@@ -1382,6 +1506,20 @@
       document.getElementById("next-btn").style.display = "inline-block";
     }
 
+    function updateComboBanner() {
+      const banner = document.getElementById("combo-banner");
+      if (!banner) return;
+      if (comboStreak >= 2) {
+        let msg = `🔥 ${comboStreak} 連對！太棒了！`;
+        if (comboStreak >= 5) msg = `🌟 ${comboStreak} 連對！勢如破竹！`;
+        if (comboStreak >= 10) msg = `👑 ${comboStreak} 連對！無懈可擊的神耳朵！`;
+        banner.textContent = msg;
+        banner.style.display = "inline-block";
+      } else {
+        banner.style.display = "none";
+      }
+    }
+
     function changeSpeechRate() {
       speechRate = parseFloat(document.getElementById("speed-select").value);
     }
@@ -1402,7 +1540,10 @@
 
     function unlockAudioAndStart() {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
+      comboStreak = 0;
+      updateComboBanner();
       getAudioContext();
       if ('speechSynthesis' in window) {
         window.speechSynthesis.resume();
@@ -1415,7 +1556,10 @@
 
     function setupStartScreen() {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
+      comboStreak = 0;
+      updateComboBanner();
       document.getElementById("start-screen").style.display = "flex";
       document.getElementById("result-screen").style.display = "none";
       document.getElementById("analysis-screen").style.display = "none";
@@ -1427,26 +1571,27 @@
 
       if (currentModule === "vocab") {
         titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (25題)";
-        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題。單字發音結束後立即展開 6 秒倒數！作答後揭曉中文。";
+        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題。單字發音結束後展開 6 秒倒數，答對將自動跳題！";
       } else if (currentModule === "grammar") {
         titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
         descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，進入每題限時 6 秒！隨機抽樣 25 題練習。";
       } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
           titleElem.textContent = "🎯 聽力八大考點專練 (500題題庫)";
-          descElem.textContent = "從 500 題 B 級考點題庫隨機抽樣 25 題。聽力發音完全結束後才開始 6 秒倒數，請安心專注聆聽！";
+          descElem.textContent = "先給予 3 秒審題預覽，音訊結束後才開始 6 秒倒數！選項與 Statement A/B/C 完全對齊。";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗";
-          descElem.textContent = "共 40 題，包含 Part 1-4 完整檢定結構。題目音訊播放完畢後倒數 6 秒。";
+          descElem.textContent = "共 40 題，Part 1 看圖題附情境畫面輔助，具備 3 秒審題時間與答對自動跳題。";
         } else if (currentListeningStage === "p2") {
           titleElem.textContent = "🎯 Practice 2 全真模擬測驗";
-          descElem.textContent = "共 50 題，包含長篇短文與對話。題目音訊播放完畢後倒數 6 秒。";
+          descElem.textContent = "共 50 題，Part 1 看圖題附情境畫面輔助，長篇對話朗讀兩次，審題 3 秒後開始播音。";
         }
       }
     }
 
     function renderGuideScreen() {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
@@ -1457,6 +1602,7 @@
 
     function renderAnalysisScreen() {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
@@ -1515,6 +1661,9 @@
       }
 
       isMistakeMode = true;
+      comboStreak = 0;
+      updateComboBanner();
+      cancelAutoNextTimer();
       sessionSentMistakes.clear();
       document.getElementById("analysis-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "block";
@@ -1528,8 +1677,48 @@
       loadQuestion();
     }
 
+    function buildSyncedQuestion(q) {
+      if (!q.options || q.options.length === 0) return { ...q };
+
+      const letters = ["A", "B", "C", "D"];
+      const combined = q.options.map((opt, idx) => ({
+        opt: opt,
+        meaning: q.meanings ? q.meanings[idx] : null,
+        kk: q.kkList ? q.kkList[idx] : null,
+        isCorrect: idx === q.ans
+      }));
+
+      const shuffled = shuffleArray(combined);
+      const newOptions = shuffled.map(c => c.opt);
+      const newAns = shuffled.findIndex(c => c.isCorrect);
+
+      let newAudioText = q.audioText;
+      if (q.audioText && q.audioText.includes("Statement A:")) {
+        const parts = [];
+        if (q.audioText.includes("Look at the picture")) {
+          parts.push("Look at the picture and choose the best answer.");
+        }
+        newOptions.forEach((opt, idx) => {
+          parts.push(`Statement ${letters[idx]}: ${opt}`);
+        });
+        newAudioText = parts.join(" ");
+      }
+
+      return {
+        ...q,
+        options: newOptions,
+        meanings: q.meanings ? shuffled.map(c => c.meaning) : null,
+        kkList: q.kkList ? shuffled.map(c => c.kk) : null,
+        ans: newAns,
+        audioText: newAudioText
+      };
+    }
+
     function startCurrentQuiz() {
       isMistakeMode = false;
+      comboStreak = 0;
+      updateComboBanner();
+      cancelAutoNextTimer();
       sessionSentMistakes.clear();
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
@@ -1556,25 +1745,7 @@
         }
       }
 
-      currentQuestions = shuffleArray(source).map(q => {
-        if (q.options && q.options.length > 0) {
-          const combined = q.options.map((opt, idx) => ({
-            opt: opt,
-            meaning: q.meanings ? q.meanings[idx] : null,
-            kk: q.kkList ? q.kkList[idx] : null,
-            isCorrect: idx === q.ans
-          }));
-          const shuffledCombined = shuffleArray(combined);
-          return {
-            ...q,
-            options: shuffledCombined.map(c => c.opt),
-            meanings: q.meanings ? shuffledCombined.map(c => c.meaning) : null,
-            kkList: q.kkList ? shuffledCombined.map(c => c.kk) : null,
-            ans: shuffledCombined.findIndex(c => c.isCorrect)
-          };
-        }
-        return { ...q };
-      });
+      currentQuestions = shuffleArray(source).map(q => buildSyncedQuestion(q));
 
       currentIdx = 0;
       correctCount = 0;
@@ -1584,7 +1755,10 @@
 
     function selectMainModule(mod) {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
+      comboStreak = 0;
+      updateComboBanner();
       currentModule = mod;
 
       const tabBtns = document.querySelectorAll(".main-tab-btn");
@@ -1626,6 +1800,7 @@
 
     function switchVocabStage(stage) {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
       currentVocabStage = stage;
       setupStartScreen();
@@ -1633,6 +1808,7 @@
 
     function switchListeningStage(stage) {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
       currentListeningStage = stage;
       const subBtns = document.querySelectorAll("#listening-subnav .sub-btn");
@@ -1653,14 +1829,14 @@
       }
     }
 
-    // TTS 發音引擎（支援音訊完全結束 callback）
+    // TTS 發音引擎
     function playSpeech(text, callback) {
       if (!('speechSynthesis' in window)) {
         if (callback) callback();
         return;
       }
 
-      stopAllAudio();
+      window.speechSynthesis.cancel();
       window.speechSynthesis.resume();
 
       const utter = new SpeechSynthesisUtterance(text);
@@ -1685,20 +1861,39 @@
       window.speechSynthesis.speak(utter);
     }
 
-    // 使用者點擊「🔊 播放音訊」：暫停倒數，音訊結束後重開 6 秒
+    // 手動重聽音訊
     function playCurrentAudioUser() {
+      if (audioReplayRemaining <= 0) return;
+
+      audioReplayRemaining--;
+      updateAudioReplayButton();
+
       stopQuestionTimer();
+      cancelAutoNextTimer();
       const badgeElem = document.getElementById("timer-badge");
       if (badgeElem) {
+        badgeElem.classList.remove("warning", "danger", "preview");
         badgeElem.classList.add("waiting");
         badgeElem.textContent = "🎧 聆聽中...";
       }
+
       playCurrentAudio(() => {
         startQuestionTimer();
       });
     }
 
-    // 播放當前題目音訊（支援對話朗讀兩次與完成 callback）
+    function updateAudioReplayButton() {
+      const btn = document.getElementById("play-audio-btn");
+      if (!btn) return;
+      if (audioReplayRemaining > 0) {
+        btn.disabled = false;
+        btn.textContent = `🔊 重聽音訊 (剩餘: ${audioReplayRemaining}次)`;
+      } else {
+        btn.disabled = true;
+        btn.textContent = "🔇 重聽次數已用完";
+      }
+    }
+
     function playCurrentAudio(onFinishedCallback) {
       const q = currentQuestions[currentIdx];
       if (!q || !q.audioText) {
@@ -1707,10 +1902,8 @@
       }
 
       if (q.repeat) {
-        // 第一遍
         playSpeech(q.audioText, () => {
           audioTimer = setTimeout(() => {
-            // 第二遍（兩遍播完才真正觸發 callback）
             playSpeech(q.audioText, () => {
               if (onFinishedCallback) onFinishedCallback();
             });
@@ -1725,7 +1918,11 @@
 
     function loadQuestion() {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
+
+      audioReplayRemaining = 1;
+      updateAudioReplayButton();
 
       const q = currentQuestions[currentIdx];
       document.getElementById("q-index").textContent = currentIdx + 1;
@@ -1734,6 +1931,14 @@
       document.getElementById("feedback").textContent = "";
       document.getElementById("tip-box").style.display = "none";
       document.getElementById("next-btn").style.display = "none";
+
+      const sceneBox = document.getElementById("scene-hint-box");
+      if (q.sceneHint) {
+        sceneBox.textContent = `🖼️ 畫面提示：${q.sceneHint}`;
+        sceneBox.style.display = "block";
+      } else {
+        sceneBox.style.display = "none";
+      }
 
       const container = document.getElementById("options-container");
       container.innerHTML = "";
@@ -1754,38 +1959,45 @@
         container.appendChild(btn);
       });
 
-      const badgeElem = document.getElementById("timer-badge");
-      const barElem = document.getElementById("timer-bar");
-
-      // 關鍵邏輯：如果是聽力或單字題，先顯示「🎧 聆聽中...」，等發音結束才開始倒數！
-      if (currentModule === "listening" || currentModule === "vocab" || (isMistakeMode && q.audioText)) {
+      // 聽力題流程：3 秒審題預覽 -> 播放音訊 -> 6 秒倒數計時
+      if (currentModule === "listening") {
+        startPreviewCountdown(() => {
+          const badgeElem = document.getElementById("timer-badge");
+          if (badgeElem) {
+            badgeElem.classList.remove("preview");
+            badgeElem.classList.add("waiting");
+            badgeElem.textContent = "🎧 聆聽中...";
+          }
+          playCurrentAudio(() => {
+            startQuestionTimer();
+          });
+        });
+      } else if (currentModule === "vocab" || (isMistakeMode && q.audioText)) {
+        const badgeElem = document.getElementById("timer-badge");
         if (badgeElem) {
           badgeElem.classList.add("waiting");
           badgeElem.textContent = "🎧 聆聽中...";
         }
-        if (barElem) {
-          barElem.style.transition = "none";
-          barElem.style.width = "100%";
-        }
-
         audioTimer = setTimeout(() => {
           playCurrentAudio(() => {
-            // 發音全部播完後，才正式啟動 6 秒倒數計時！
             startQuestionTimer();
           });
         }, 300);
       } else {
-        // 文法題無播音，直接啟動倒數
         startQuestionTimer();
       }
     }
 
     function checkAnswer(selectedIdx, targetBtn, correctIdx) {
       stopAllAudio();
+      cancelAutoNextTimer(); // 先確保之前的跳題定時器清除
       stopQuestionTimer();
 
       const buttons = document.querySelectorAll(".opt-btn");
       buttons.forEach(b => b.disabled = true);
+
+      const playBtn = document.getElementById("play-audio-btn");
+      if (playBtn) playBtn.disabled = true;
 
       const letters = ["A", "B", "C", "D"];
       const feedback = document.getElementById("feedback");
@@ -1807,7 +2019,9 @@
 
       if (selectedIdx === correctIdx) {
         correctCount++;
-        playSfxCorrect();
+        comboStreak++;
+        updateComboBanner();
+        playSfxCorrect(comboStreak);
         targetBtn.classList.add("correct");
         
         if (currentModule === "vocab") {
@@ -1820,7 +2034,16 @@
         if (isMistakeMode) {
           recordMistakeCorrectMastery(q.prompt, correctWord);
         }
+
+        // 答對時：延遲自動換下一題 (若有朗讀單字保留 1.8 秒聽完發音，否則 1.2 秒)
+        const delayTime = ((currentModule === "vocab" || isMistakeMode) && q.audioText) ? 1800 : 1200;
+        autoNextTimer = setTimeout(() => {
+          nextQuestion();
+        }, delayTime);
+
       } else {
+        comboStreak = 0;
+        updateComboBanner();
         playSfxWrong();
         targetBtn.classList.add("wrong");
         if (currentModule === "vocab") {
@@ -1849,6 +2072,9 @@
           tip: q.tip || "",
           rawQuestion: q
         });
+
+        // 答錯時：不自動跳題，顯示「下一題」按鈕讓學生細看解析
+        document.getElementById("next-btn").style.display = "inline-block";
       }
 
       const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
@@ -1860,18 +2086,16 @@
         tipBox.style.display = "block";
       }
 
-      // 答題後錯開 350ms 清楚朗讀英文單字
       if ((currentModule === "vocab" || isMistakeMode) && q.audioText) {
         audioTimer = setTimeout(() => {
           playSpeech(q.audioText);
         }, 350);
       }
-
-      document.getElementById("next-btn").style.display = "inline-block";
     }
 
     function nextQuestion() {
       stopAllAudio();
+      cancelAutoNextTimer();
       stopQuestionTimer();
       currentIdx++;
       if (currentIdx < currentQuestions.length) {
