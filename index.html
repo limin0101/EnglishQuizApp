@@ -1,15 +1,17 @@
 <!--
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
-最後更新日期：2026-09-28
-版本號：v2.1.0
+最後更新日期：2026-09-29
+版本號：v2.2.0
 
 【核心功能修改清單】：
 1. 題庫校正：
    - questions.js：P1 校正第 2, 3, 7, 8, 11, 36 題；P2 校正第 15, 26, 35, 40 題。
    - 新增 500 題聽力八大考點隨機題庫生成引擎。
-2. 測驗節奏：
-   - 啟用每題 6 秒倒數計時與紅條進度條，逾時判定為錯題並同步至 Google 表單。
+2. 測驗節奏與計時精確控制：
+   - 聽力/單字題改為「發音完全結束後」才啟動 6 秒倒數；播音期間顯示「🎧 聆聽中...」，避免搶秒焦慮。
+   - 文法題進入即刻啟動 6 秒倒數。
+   - 逾時自動鎖定判定為錯題並即時回傳 Google 表單。
 3. 音效合成 (Web Audio API)：
    - 答對播放 880Hz->1318Hz 雙鈴聲；答錯播放頓音；高分播放勝利琶音。
    - 答題後錯開 350ms 朗讀單字，徹底解決快答疊音問題。
@@ -19,7 +21,7 @@
    - 連續打卡天數計算 (Streak) 與 4 款成就徽章。
    - 原生 SVG 動態繪製最近 5 次測驗進步軌跡折線圖。
 5. 語音調整：
-   - 語速選單新增「超慢（0.5x）」選項，方便初學者清晰辨音。
+   - 語速選單支援 0.5x（超慢）、0.6x、0.7x、0.85x（正常）。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -152,6 +154,12 @@
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      transition: all 0.3s;
+    }
+    .timer-badge.waiting {
+      background: #e0f2fe;
+      color: #0369a1;
+      border-color: #7dd3fc;
     }
     .timer-bar-container {
       width: 100%;
@@ -571,7 +579,7 @@
     <!-- 測驗準備畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
-      <div class="start-desc" id="start-desc">每題限時 6 秒作答，超過時間未選將判定為時間到錯誤並同步至試算表！</div>
+      <div class="start-desc" id="start-desc">聽力題將在音訊完全播放完畢後才開始 6 秒倒數，請專注聆聽！</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
@@ -835,7 +843,7 @@
     <div class="quiz-active-area" id="quiz-active-area">
       <div class="score-board">
         <span>進度: <span id="q-index">1</span> / <span id="total-q">0</span> | 目前得分: <span id="score">0</span></span>
-        <span class="timer-badge">⏳ 倒數: <b id="timer-sec" style="font-size: 16px;">6</b> 秒</span>
+        <span class="timer-badge waiting" id="timer-badge">🎧 聆聽中...</span>
       </div>
 
       <div class="timer-bar-container">
@@ -883,7 +891,7 @@
 
   <script>
     // ==========================================
-    // 1. 原生 Web Audio API 音效合成引擎 (高辨識度清脆版本)
+    // 1. 原生 Web Audio API 音效合成引擎
     // ==========================================
     let audioCtx = null;
     function getAudioContext() {
@@ -896,13 +904,11 @@
       return audioCtx;
     }
 
-    // 答對音效：明亮悅耳的高音雙鈴聲 (880Hz -> 1320Hz)
     function playSfxCorrect() {
       try {
         const ctx = getAudioContext();
         const now = ctx.currentTime;
 
-        // 第 1 聲鈴音 (880Hz / A5)
         const osc1 = ctx.createOscillator();
         const gain1 = ctx.createGain();
         osc1.type = 'sine';
@@ -914,7 +920,6 @@
         osc1.start(now);
         osc1.stop(now + 0.25);
 
-        // 第 2 聲清脆高音 (1318.5Hz / E6) 稍晚0.1秒響起
         const osc2 = ctx.createOscillator();
         const gain2 = ctx.createGain();
         osc2.type = 'sine';
@@ -928,7 +933,6 @@
       } catch (e) {}
     }
 
-    // 答錯/超時音效：乾脆低沉的兩聲頓音 (280Hz -> 200Hz)
     function playSfxWrong() {
       try {
         const ctx = getAudioContext();
@@ -951,7 +955,6 @@
       } catch (e) {}
     }
 
-    // 滿分或高分過關勝利和弦 (C-E-G-C 琶音)
     function playSfxVictory() {
       try {
         const ctx = getAudioContext();
@@ -1175,7 +1178,7 @@
     }
 
     // ==========================================
-    // 5. 核心測驗變數與「答對 2 次才除名」機制
+    // 5. 核心測驗變數與精熟計時控制
     // ==========================================
     let speechRate = 0.85;
     let speechVolume = 1.0;
@@ -1191,6 +1194,7 @@
     let isMistakeMode = false;
     let currentMistakeFilter = "all";
 
+    // 倒數計時核心變數
     let questionTimer = null;
     let timeLeft = 6;
     const TOTAL_TIME = 6;
@@ -1276,13 +1280,17 @@
       }
     }
 
+    // 啟動 6 秒倒數計時（發音結束或文法題直接呼叫）
     function startQuestionTimer() {
       stopQuestionTimer();
       timeLeft = TOTAL_TIME;
-      const secElem = document.getElementById("timer-sec");
+      const badgeElem = document.getElementById("timer-badge");
       const barElem = document.getElementById("timer-bar");
       
-      if (secElem) secElem.textContent = timeLeft;
+      if (badgeElem) {
+        badgeElem.classList.remove("waiting");
+        badgeElem.innerHTML = `⏳ 倒數: <b id="timer-sec" style="font-size: 16px;">${timeLeft}</b> 秒`;
+      }
       if (barElem) {
         barElem.style.transition = "none";
         barElem.style.width = "100%";
@@ -1293,6 +1301,7 @@
 
       questionTimer = setInterval(() => {
         timeLeft--;
+        const secElem = document.getElementById("timer-sec");
         if (secElem) secElem.textContent = timeLeft;
         if (barElem) barElem.style.width = `${(timeLeft / TOTAL_TIME) * 100}%`;
 
@@ -1364,7 +1373,6 @@
         tipBox.style.display = "block";
       }
 
-      // 超時未答必定朗讀正確單字 (錯開 350ms)
       if ((currentModule === "vocab" || isMistakeMode) && q.audioText) {
         audioTimer = setTimeout(() => {
           playSpeech(q.audioText);
@@ -1419,20 +1427,20 @@
 
       if (currentModule === "vocab") {
         titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (25題)";
-        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題，每題限時 6 秒！作答後立即播音並揭曉中文。";
+        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題。單字發音結束後立即展開 6 秒倒數！作答後揭曉中文。";
       } else if (currentModule === "grammar") {
         titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
-        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，每題限時 6 秒！隨機抽樣 25 題練習。";
+        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，進入每題限時 6 秒！隨機抽樣 25 題練習。";
       } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
           titleElem.textContent = "🎯 聽力八大考點專練 (500題題庫)";
-          descElem.textContent = "從 500 題 B 級考點題庫隨機抽樣 25 題，每題限時 6 秒！涵蓋時間讀法、介系詞、頻率副詞與長篇因果對話。";
+          descElem.textContent = "從 500 題 B 級考點題庫隨機抽樣 25 題。聽力發音完全結束後才開始 6 秒倒數，請安心專注聆聽！";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗";
-          descElem.textContent = "共 40 題，包含 Part 1-4 完整檢定結構。每題限時 6 秒。";
+          descElem.textContent = "共 40 題，包含 Part 1-4 完整檢定結構。題目音訊播放完畢後倒數 6 秒。";
         } else if (currentListeningStage === "p2") {
           titleElem.textContent = "🎯 Practice 2 全真模擬測驗";
-          descElem.textContent = "共 50 題，包含長篇短文與對話。每題限時 6 秒。";
+          descElem.textContent = "共 50 題，包含長篇短文與對話。題目音訊播放完畢後倒數 6 秒。";
         }
       }
     }
@@ -1645,8 +1653,12 @@
       }
     }
 
+    // TTS 發音引擎（支援音訊完全結束 callback）
     function playSpeech(text, callback) {
-      if (!('speechSynthesis' in window)) return;
+      if (!('speechSynthesis' in window)) {
+        if (callback) callback();
+        return;
+      }
 
       stopAllAudio();
       window.speechSynthesis.resume();
@@ -1666,29 +1678,48 @@
       }
 
       if (callback) {
-        utter.onend = callback;
-        utter.onerror = callback;
+        utter.onend = () => callback();
+        utter.onerror = () => callback();
       }
 
       window.speechSynthesis.speak(utter);
     }
 
+    // 使用者點擊「🔊 播放音訊」：暫停倒數，音訊結束後重開 6 秒
     function playCurrentAudioUser() {
-      playCurrentAudio();
+      stopQuestionTimer();
+      const badgeElem = document.getElementById("timer-badge");
+      if (badgeElem) {
+        badgeElem.classList.add("waiting");
+        badgeElem.textContent = "🎧 聆聽中...";
+      }
+      playCurrentAudio(() => {
+        startQuestionTimer();
+      });
     }
 
-    function playCurrentAudio() {
+    // 播放當前題目音訊（支援對話朗讀兩次與完成 callback）
+    function playCurrentAudio(onFinishedCallback) {
       const q = currentQuestions[currentIdx];
-      if (!q || !q.audioText) return;
+      if (!q || !q.audioText) {
+        if (onFinishedCallback) onFinishedCallback();
+        return;
+      }
 
       if (q.repeat) {
+        // 第一遍
         playSpeech(q.audioText, () => {
           audioTimer = setTimeout(() => {
-            playSpeech(q.audioText);
-          }, 1000);
+            // 第二遍（兩遍播完才真正觸發 callback）
+            playSpeech(q.audioText, () => {
+              if (onFinishedCallback) onFinishedCallback();
+            });
+          }, 800);
         });
       } else {
-        playSpeech(q.audioText);
+        playSpeech(q.audioText, () => {
+          if (onFinishedCallback) onFinishedCallback();
+        });
       }
     }
 
@@ -1723,12 +1754,29 @@
         container.appendChild(btn);
       });
 
-      startQuestionTimer();
+      const badgeElem = document.getElementById("timer-badge");
+      const barElem = document.getElementById("timer-bar");
 
+      // 關鍵邏輯：如果是聽力或單字題，先顯示「🎧 聆聽中...」，等發音結束才開始倒數！
       if (currentModule === "listening" || currentModule === "vocab" || (isMistakeMode && q.audioText)) {
+        if (badgeElem) {
+          badgeElem.classList.add("waiting");
+          badgeElem.textContent = "🎧 聆聽中...";
+        }
+        if (barElem) {
+          barElem.style.transition = "none";
+          barElem.style.width = "100%";
+        }
+
         audioTimer = setTimeout(() => {
-          playCurrentAudio();
+          playCurrentAudio(() => {
+            // 發音全部播完後，才正式啟動 6 秒倒數計時！
+            startQuestionTimer();
+          });
         }, 300);
+      } else {
+        // 文法題無播音，直接啟動倒數
+        startQuestionTimer();
       }
     }
 
@@ -1759,7 +1807,7 @@
 
       if (selectedIdx === correctIdx) {
         correctCount++;
-        playSfxCorrect(); // 播放清脆雙鈴音
+        playSfxCorrect();
         targetBtn.classList.add("correct");
         
         if (currentModule === "vocab") {
@@ -1773,7 +1821,7 @@
           recordMistakeCorrectMastery(q.prompt, correctWord);
         }
       } else {
-        playSfxWrong(); // 播放清晰頓音
+        playSfxWrong();
         targetBtn.classList.add("wrong");
         if (currentModule === "vocab") {
           feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) 英文: ${correctWord} ，中文: ${correctMeaning}`;
@@ -1812,7 +1860,7 @@
         tipBox.style.display = "block";
       }
 
-      // 答題後錯開 350ms 必定清楚朗讀英文單字
+      // 答題後錯開 350ms 清楚朗讀英文單字
       if ((currentModule === "vocab" || isMistakeMode) && q.audioText) {
         audioTimer = setTimeout(() => {
           playSpeech(q.audioText);
