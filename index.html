@@ -1,21 +1,24 @@
 <!--
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
-最後更新日期：2026-09-29
-版本號：v2.5.0
+最後更新日期：2026-09-30
+版本號：v2.5.1
 
 【核心功能修改清單】：
-1. 測驗中途離開確認 (Unload & 導覽防呆)：
+1. 聽力播音異常與倒數卡住徹底修復：
+   - 全域保存 Utterance 參照防止瀏覽器 GC 吞掉 onend。
+   - 導入 Watchdog 安全看門狗與防重複回呼鎖定，音訊播畢 100% 接軌 6 秒倒數。
+2. 測驗中途離開確認 (Unload & 導覽防呆)：
    - 瀏覽器關閉/重整時觸發 beforeunload 警告。
    - 測驗作答中點擊頂部主標籤或子選單時，彈窗防誤觸確認，避免作答進度遺失。
-2. 測驗暫停/繼續功能 (Pause & Resume)：
-   - 新增「⏸️ 暫停」按鈕，立即凍結 6 秒作答倒數與 3 秒審題倒數，遮蔽選項避免作弊。
+3. 測驗暫停/繼續功能 (Pause & Resume)：
+   - 新增「⏸️ 暫停」按鈕，立即凍結作答倒數與審題倒數，遮蔽選項避免作弊。
    - 點擊「▶️ 繼續作答」解除遮罩，自暫停剩餘秒數繼續計時，並重播當前音訊。
-3. 答對自動跳題心流機制：
+4. 答對自動跳題心流機制：
    - 答對自動延遲載入下一題；答錯/超時保留手動「下一題」檢視解析。
-4. 英檢「3 秒審題預覽」與「音訊/選項語意對齊」：
+5. 英檢「3 秒審題預覽」與「音訊/選項語意對齊」：
    - 聽力題 3 秒審題倒數；選項洗牌後 Statement A/B/C 語音與按鈕字母 100% 同步。
-5. 6 秒顏色漸變倒數 (綠->黃->紅閃爍)、每題重聽限 1 次、錯題精熟 2 次除名、打卡 Streak、原生 SVG 折線圖。
+6. 6 秒顏色漸變倒數 (綠->黃->紅閃爍)、每題重聽限 1 次、錯題精熟 2 次除名、打卡 Streak、原生 SVG 折線圖。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -768,7 +771,7 @@
               <button class="play-sample-btn" onclick="playSpeech('I always do my homework before dinner. I never eat first.')">🔊 聽示範</button>
             </div>
             <div class="guide-item-sample">
-              <span>🗣️ 3. "My father usually goes to work by train."</span>
+              <span>🗣️️ 3. "My father usually goes to work by train."</span>
               <button class="play-sample-btn" onclick="playSpeech('My father usually goes to work by train.')">🔊 聽示範</button>
             </div>
           </div>
@@ -1021,7 +1024,7 @@
     // ==========================================
     // 0. 中途離開確認防呆機制 (Unload 警告)
     // ==========================================
-    let isQuizActive = false; // 是否處於測驗作答進行中
+    let isQuizActive = false;
 
     window.addEventListener("beforeunload", (e) => {
       if (isQuizActive) {
@@ -1367,7 +1370,7 @@
     let isPaused = false;
     let pausedTimeLeft = 6;
     let pausedPreviewTimeLeft = 0;
-    let isPreviewPhase = false; // 是否正在 3 秒審題階段
+    let isPreviewPhase = false;
 
     // 倒數計時核心變數
     let questionTimer = null;
@@ -1375,6 +1378,10 @@
     let timeLeft = 6;
     const TOTAL_TIME = 6;
     const PREVIEW_TIME = 3;
+
+    // 全域參照防止 Utterance 被瀏覽器 GC 吞掉 onend，並加入安全看門狗
+    window.currentActiveUtterance = null;
+    let ttsWatchdogTimer = null;
 
     const STORAGE_KEY = "gram_b_quiz_mistakes";
 
@@ -1445,6 +1452,10 @@
         clearTimeout(audioTimer);
         audioTimer = null;
       }
+      if (ttsWatchdogTimer) {
+        clearTimeout(ttsWatchdogTimer);
+        ttsWatchdogTimer = null;
+      }
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
@@ -1476,28 +1487,23 @@
       const pauseBtn = document.getElementById("pause-btn");
 
       if (!isPaused) {
-        // --- 進入暫停 ---
         isPaused = true;
         stopAllAudio();
         cancelAutoNextTimer();
 
-        // 記錄當前階段剩餘時間
         pausedTimeLeft = timeLeft;
         stopQuestionTimer();
 
         overlay.style.display = "flex";
         pauseBtn.textContent = "▶️ 繼續";
       } else {
-        // --- 恢復繼續 ---
         isPaused = false;
         overlay.style.display = "none";
         pauseBtn.textContent = "⏸️ 暫停";
 
         if (isPreviewPhase) {
-          // 若在審題階段暫停，從剩餘審題秒數繼續
           resumePreviewCountdown();
         } else {
-          // 若在作答階段暫停，自剩餘秒數繼續並重播發音
           resumeQuestionTimer();
         }
       }
@@ -2044,17 +2050,24 @@
       }
     }
 
-    // TTS 發音引擎
+    // 強化版 TTS 發音引擎 (具備防 GC、防重複觸發與 Watchdog 機制)
     function playSpeech(text, callback) {
       if (!('speechSynthesis' in window)) {
         if (callback) callback();
         return;
       }
 
+      if (ttsWatchdogTimer) {
+        clearTimeout(ttsWatchdogTimer);
+        ttsWatchdogTimer = null;
+      }
+
       window.speechSynthesis.cancel();
       window.speechSynthesis.resume();
 
       const utter = new SpeechSynthesisUtterance(text);
+      window.currentActiveUtterance = utter;
+
       utter.lang = 'en-US';
       utter.rate = speechRate;
       utter.volume = speechVolume;
@@ -2068,10 +2081,29 @@
         utter.voice = englishVoice;
       }
 
-      if (callback) {
-        utter.onend = () => callback();
-        utter.onerror = () => callback();
-      }
+      let hasHandled = false;
+      const finishExecution = () => {
+        if (hasHandled) return;
+        hasHandled = true;
+        if (ttsWatchdogTimer) {
+          clearTimeout(ttsWatchdogTimer);
+          ttsWatchdogTimer = null;
+        }
+        window.currentActiveUtterance = null;
+        if (callback) callback();
+      };
+
+      utter.onend = finishExecution;
+      utter.onerror = (err) => {
+        if (err && err.error === 'interrupted') return;
+        finishExecution();
+      };
+
+      const wordsCount = text.split(/\s+/).length;
+      const expectedTimeMs = Math.max(3000, (wordsCount / speechRate) * 800 + 2000);
+      ttsWatchdogTimer = setTimeout(() => {
+        finishExecution();
+      }, expectedTimeMs);
 
       window.speechSynthesis.speak(utter);
     }
@@ -2173,7 +2205,6 @@
         container.appendChild(btn);
       });
 
-      // 聽力題流程：3 秒審題預覽 -> 播放音訊 -> 6 秒倒數計時
       if (currentModule === "listening") {
         startPreviewCountdown(() => {
           const badgeElem = document.getElementById("timer-badge");
@@ -2251,7 +2282,6 @@
           recordMistakeCorrectMastery(q.prompt, correctWord);
         }
 
-        // 答對時：延遲自動換下一題 (若有單字朗讀留 1.8 秒，其餘 1.2 秒)
         const delayTime = ((currentModule === "vocab" || isMistakeMode) && q.audioText) ? 1800 : 1200;
         autoNextTimer = setTimeout(() => {
           nextQuestion();
@@ -2289,7 +2319,6 @@
           rawQuestion: q
         });
 
-        // 答錯時：不自動換題，顯示按鈕供學生檢視
         document.getElementById("next-btn").style.display = "inline-block";
       }
 
@@ -2317,7 +2346,7 @@
       if (currentIdx < currentQuestions.length) {
         loadQuestion();
       } else {
-        isQuizActive = false; // 測驗完成解除離開防護
+        isQuizActive = false;
         document.getElementById("quiz-active-area").style.display = "none";
         const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
         document.getElementById("final-score").textContent = finalScore;
