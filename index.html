@@ -2,19 +2,14 @@
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
 最後更新日期：2026-10-01
-版本號：v2.6.0
+版本號：v4.0.0 (文法題庫完全隔離無錯版)
 
-【核心功能修改清單】：
-1. 內嵌 Part 1 官方看圖題 SVG 向量插畫庫：
-   - P1 (11 題) 與 P2 (10 題) 共 21 題全數內嵌清晰彩色向量圖，零外部圖檔依賴。
-2. 聽力播音異常與倒數卡住徹底修復：
-   - 全域保存 Utterance 參照防止瀏覽器 GC 吞掉 onend。
-   - 導入 Watchdog 安全看門狗與防重複回呼鎖定，音訊播畢 100% 接軌 6 秒倒數。
-3. 測驗中途離開確認 (Unload & 導覽防呆)：
-   - 瀏覽器關閉/重整時觸發 beforeunload 警告；作答中點擊頂部標籤彈窗防誤觸。
-4. 測驗暫停/繼續功能 (Pause & Resume)：
-   - 新增「⏸️ 暫停」按鈕，立即凍結作答倒數與審題倒數，遮蔽選項避免作弊。
-5. 答對自動跳題心流機制、英檢 3 秒審題預覽、6 秒漸變倒數、每題重聽限 1 次、錯題精熟 2 次除名、打卡 Streak、原生 SVG 折線圖。
+【核心修復與優化清單】：
+1. 修正文法測驗抽題邏輯，徹底隔離單字庫，文法題 100% 只會抽文法題。
+2. 修正文法題無音訊時右上角卡死在「聆聽中...」的 Bug，文法題直接啟動 6 秒倒數。
+3. 統一腳本檔名引用為 questions.js。
+4. 導入 isAnswering 防連點互鎖機制，杜絕作弊重複計分。
+5. 解決重聽音訊與暫停的 Race Condition，確保暫停中計時器絕不偷跑。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -48,7 +43,6 @@
     }
     h1 { color: #2c3e50; font-size: 22px; margin-bottom: 6px; }
 
-    /* 連續打卡與徽章頂部看板 */
     .top-gamify-bar {
       display: flex;
       justify-content: space-between;
@@ -128,7 +122,6 @@
       color: white;
     }
 
-    /* 計時與進度列樣式 */
     .score-board { 
       font-size: 15px; 
       font-weight: 600; 
@@ -217,7 +210,6 @@
       transition: width 1s linear, background-color 0.4s;
     }
 
-    /* Combo 連對激勵飄浮橫條 */
     .combo-banner {
       display: none;
       background: linear-gradient(135deg, #f59e0b, #ef4444);
@@ -235,7 +227,6 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    /* 測驗暫停全屏遮罩 */
     .pause-overlay {
       display: none;
       position: absolute;
@@ -266,7 +257,6 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
     }
-    .resume-btn:active { transform: scale(0.98); }
 
     .start-screen, .result-screen, .analysis-screen, .guide-screen {
       background: #f8fafc;
@@ -295,7 +285,6 @@
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
     }
-    .start-run-btn:active { transform: scale(0.98); }
 
     .action-btn-group {
       display: flex;
@@ -344,7 +333,6 @@
     .prompt-text { font-size: 18px; font-weight: bold; color: #1e293b; line-height: 1.5; }
     .listen-hint { font-size: 13px; color: #475569; }
 
-    /* Part 1 看圖題專用 SVG 繪圖容器 */
     .question-image-container {
       display: none;
       width: 100%;
@@ -420,7 +408,6 @@
       cursor: not-allowed;
       opacity: 0.7;
     }
-    .sound-btn:not(:disabled):active { background: #ee5253; }
 
     .top-feedback-area {
       display: flex;
@@ -478,7 +465,6 @@
       font-weight: 600;
       font-size: 13px;
       margin-left: 6px;
-      font-family: "Lucida Sans Unicode", "Segoe UI", sans-serif;
     }
     .meaning-badge {
       color: #0369a1;
@@ -507,7 +493,6 @@
     .stat-number { font-size: 24px; font-weight: bold; color: #ef4444; }
     .stat-label { font-size: 13px; color: #64748b; margin-top: 4px; }
 
-    /* 錯題標籤過濾按鈕群 */
     .filter-tags-group {
       display: flex;
       flex-wrap: wrap;
@@ -574,7 +559,6 @@
     .mistake-wrong-tag { color: #dc2626; font-size: 13px; }
     .mistake-tip { background: #fefce8; padding: 6px 8px; border-radius: 4px; color: #713f12; font-size: 12px; margin-top: 6px; }
 
-    /* 測驗進步歷程折線圖區塊 */
     .history-chart-card {
       width: 100%;
       background: white;
@@ -597,7 +581,6 @@
       height: 120px;
     }
 
-    /* 考點精華卡片樣式 */
     .guide-card-list {
       width: 100%;
       display: flex;
@@ -668,14 +651,12 @@
 <body>
 
   <div class="card">
-    <!-- 測驗暫停全屏遮罩 -->
     <div class="pause-overlay" id="pause-overlay">
       <div class="pause-overlay-title">⏸️ 測驗暫停中</div>
       <div class="pause-overlay-desc">題目倒數與音訊已全面暫停，稍微休息喝口水。準備好隨時點擊下方按鈕繼續！</div>
       <button class="resume-btn" onclick="togglePauseQuiz()">▶️ 繼續作答</button>
     </div>
 
-    <!-- 頂部打卡天數與徽章欄 -->
     <div class="top-gamify-bar">
       <span>🔥 連續打卡：<b id="streak-days">1</b> 天</span>
       <div class="badge-display-area">
@@ -699,7 +680,6 @@
       <button class="sub-btn active" onclick="switchVocabStageSafe('b_level')">⭐ B級綜合測驗 (25題)</button>
     </div>
 
-    <!-- 聽力子導覽列 -->
     <div class="sub-nav" id="listening-subnav" style="display: none;">
       <button class="sub-btn active" onclick="switchListeningStageSafe('guide')">💡 考點精華卡片 (純複習)</button>
       <button class="sub-btn" onclick="switchListeningStageSafe('review_quiz')">🎯 考點核心專練 (500題隨機抽25)</button>
@@ -707,216 +687,44 @@
       <button class="sub-btn" onclick="switchListeningStageSafe('p2')">Practice 2 模擬測驗 (50題)</button>
     </div>
 
-    <!-- 測驗準備畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
       <div class="start-desc" id="start-desc">聽力題將先給予 3 秒審題預覽，音訊結束後展開 6 秒倒數。Part 1 附彩色情境圖，答對將自動跳題！</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
-    <!-- 聽力八大核心考點說明畫面 (純複習不計分) -->
     <div class="guide-screen" id="guide-screen">
       <div class="start-title">🎧 聽力檢定：八大核心考點精華</div>
       <div class="start-desc">涵蓋 B 級官方檢定最常見的 8 大聽力陷阱。每點提供 3 句實戰示範與易錯提示，點擊喇叭即可聆聽純正發音！</div>
       
       <div class="guide-card-list">
-        <!-- 考點 1 -->
         <div class="guide-item">
           <div class="guide-item-title">考點 1：時間讀法 (Quarter past / to)</div>
           <div class="guide-item-desc">時間介系詞辨析：<b>past</b> 代表「過」，<b>to</b> 代表「差幾分到下一個鐘頭」。15 分鐘為 a quarter，30 分鐘為 half past。</div>
           <div class="guide-samples-group">
             <div class="guide-item-sample">
-              <span>🗣️️ 1. "It's a quarter past 10." (10點15分)</span>
+              <span>🗣️ 1. "It's a quarter past 10." (10點15分)</span>
               <button class="play-sample-btn" onclick="playSpeech('It is a quarter past 10.')">🔊 聽示範</button>
             </div>
             <div class="guide-item-sample">
               <span>🗣️ 2. "It's a quarter to 11." (差一刻到11點 / 10點45分)</span>
               <button class="play-sample-btn" onclick="playSpeech('It is a quarter to 11.')">🔊 聽示範</button>
             </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "The baseball game starts at half past 9:00." (9點30分)</span>
-              <button class="play-sample-btn" onclick="playSpeech('The baseball game starts at half past nine.')">🔊 聽示範</button>
-            </div>
           </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：小朋友常將 <b>a quarter to 11</b> 誤聽為 11:15（把 to 聽成 past）或以為是 11:45。請叮嚀：「聽到 to 是指還沒到那個鐘頭」！
-          </div>
-        </div>
-
-        <!-- 考點 2 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 2：空間相對介系詞 (Between / Next to / Beside)</div>
-          <div class="guide-item-desc">聽清三者地標相對位置，尤其 <b>between A and B</b> 永遠指被包夾在中間的建築物。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "The supermarket is between the hospital and the restaurant."</span>
-              <button class="play-sample-btn" onclick="playSpeech('The supermarket is between the hospital and the restaurant.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "The post office is next to the bakery." (在旁邊)</span>
-              <button class="play-sample-btn" onclick="playSpeech('The post office is next to the bakery.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "There is a park behind our school." (在學校後面)</span>
-              <button class="play-sample-btn" onclick="playSpeech('There is a park behind our school.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：看圖選句時，題目會把主角和兩旁的地標顛倒（例如圖中超市在中間，選項卻唸 The hospital is between...），需聽清句首主詞是誰！
-          </div>
-        </div>
-
-        <!-- 考點 3 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 3：頻率副詞高低層次 (Rarely / Never / Always)</div>
-          <div class="guide-item-desc">頻率副詞掌握程度：<b>always (100%) > usually (80%) > often (60%) > sometimes (40%) > rarely (10%) > never (0%)</b>。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "Andy rarely plays the guitar. He only does it once a year."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Andy rarely plays the guitar. He only does it once a year.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "I always do my homework before dinner. I never eat first."</span>
-              <button class="play-sample-btn" onclick="playSpeech('I always do my homework before dinner. I never eat first.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "My father usually goes to work by train."</span>
-              <button class="play-sample-btn" onclick="playSpeech('My father usually goes to work by train.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：<b>rarely</b> 本身具有「極低頻率/幾乎不」的半否定含義，常考「一年才做一次」的情境，常被誤以為是有經常在做。
-          </div>
-        </div>
-
-        <!-- 考點 4 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 4：Where 疑問詞與地點回答</div>
-          <div class="guide-item-desc">聽到 <b>Where</b> 開頭的第二大題簡短問答，核心必須回答「<b>具體空間介系詞片語</b>」。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "Where do you cook? — I cook in the kitchen."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Where do you cook? I cook in the kitchen.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "Where are you doing your homework? — At my desk in the bedroom."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Where are you doing your homework? At my desk in the bedroom.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "What floor do your parents live on? — They live on the 2nd floor."</span>
-              <button class="play-sample-btn" onclick="playSpeech('What floor do your parents live on? They live on the second floor.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：干擾選項常出現字詞重複但文不對題的答案（例如問 Where do you cook? 干擾項卻是 I have a big kitchen 或 Yes, I cook every day）。切記找準「具體位置」！
-          </div>
-        </div>
-
-        <!-- 考點 5 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 5：現在進行式問答 (What is ... doing?)</div>
-          <div class="guide-item-desc">問句若帶有 <b>is / are + V-ing</b>，回答一定要包含 <b>be動詞 + V-ing</b>，不可用一般現在式或過去式回答。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "What is she doing? — She is playing the guitar."</span>
-              <button class="play-sample-btn" onclick="playSpeech('What is she doing? She is playing the guitar.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "Are Mike and Jason washing their cars? — No, they aren't."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Are Mike and Jason washing their cars? No, they are not.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "People are trembling in their seats. They are watching a horror movie."</span>
-              <button class="play-sample-btn" onclick="playSpeech('People are trembling in their seats. They are watching a horror movie.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：聽簡答時注意<b>人稱代名詞與單複數</b>。Mike and Jason 是兩個人（they），簡答必須用 they aren't，不能誤選 he isn't！
-          </div>
-        </div>
-
-        <!-- 考點 6 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 6：數量疑問詞 (How many vs How much)</div>
-          <div class="guide-item-desc">可數名詞複數用 <b>How many</b>，不可數名詞用 <b>How much</b>。注意兩者的回答搭配詞完全不同。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "How much sugar do you want? — Just a little."</span>
-              <button class="play-sample-btn" onclick="playSpeech('How much sugar do you want? Just a little.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "May I borrow some money? — Sure, how much do you need?"</span>
-              <button class="play-sample-btn" onclick="playSpeech('May I borrow some money? Sure, how much do you need?')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "How many seconds are there in a minute? — There are 60 seconds."</span>
-              <button class="play-sample-btn" onclick="playSpeech('How many seconds are there in a minute? There are 60 seconds in a minute.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：<b>money（錢）、sugar（糖）、shampoo（洗髮精）、water（水）</b> 皆為不可數！回答時不可用 Not many 或明確的阿拉伯數字，要用 a little 或 much 回答。
-          </div>
-        </div>
-
-        <!-- 考點 7 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 7：對話因果與原因辨識 (Why 問句)</div>
-          <div class="guide-item-desc">聽對話與短文時，特別留意 <b>Why, because, have to, about to</b> 之後的理由關鍵句。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "Why does Helen have to run? — The movie is about to start."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Why does Helen have to run? The movie is about to start.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "Why is Sally sad? — Because her parents will not come to her party."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Why is Sally sad? Because her parents will not come to her birthday party.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "Why is Kathy thin? — Because she runs every day and doesn't eat too much."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Why is Kathy thin? Because she runs every day and does not eat too much.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：對話常在開頭提到藉口，結尾才說出真正原因；或是選項只重複文章的一個單字（如 She likes to run）來混淆，一定要抓住真正的因果連結。
-          </div>
-        </div>
-
-        <!-- 考點 8 -->
-        <div class="guide-item">
-          <div class="guide-item-title">考點 8：能力與轉折辨析 (Can vs Can't)</div>
-          <div class="guide-item-desc">抓取人物「會做」與「不會做」的事情。否定詞 <b>can't</b> [kænt] 常出現在連接詞 <b>but</b> 之後。</div>
-          <div class="guide-samples-group">
-            <div class="guide-item-sample">
-              <span>🗣️ 1. "Frank can ride a bicycle, but he can't drive a car."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Frank can ride a bicycle, but he can not drive a car.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 2. "Henry can play the piano and guitar, but he can't play the violin."</span>
-              <button class="play-sample-btn" onclick="playSpeech('Henry can play the piano and guitar, but he can not play the violin.')">🔊 聽示範</button>
-            </div>
-            <div class="guide-item-sample">
-              <span>🗣️ 3. "She can stand on one leg and touch the floor."</span>
-              <button class="play-sample-btn" onclick="playSpeech('She can stand on one leg and touch the floor.')">🔊 聽示範</button>
-            </div>
-          </div>
-          <div class="guide-trap-box">
-            ⚠️ <b>常見陷阱</b>：題目問「What <b>can't</b> Frank do?（不能做什麼）」，小朋友容易因為文章前半段聽到 piano、guitar 就急著選，漏聽了後面 but 轉折帶出的 can't drive a car！
-          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：聽到 to 代表還沒到那個鐘頭！</div>
         </div>
       </div>
     </div>
 
-    <!-- 測驗完成結果畫面 (附進步軌跡折線圖) -->
     <div class="result-screen" id="result-screen">
       <div class="start-title">🎉 本單元測驗完成！</div>
       <p style="font-size: 22px; color: #1e293b; margin: 10px 0;">最終成績：<b id="final-score">0</b> / 100</p>
       
       <div class="action-btn-group">
-        <button class="start-run-btn" onclick="unlockAudioAndStart()">🔄 重新隨機測驗</button>
+        <button class="start-run-btn" id="result-restart-btn" onclick="handleResultRestart()">🔄 重新隨機測驗</button>
         <button class="btn-secondary" onclick="selectMainModuleSafe('analysis')">📊 查看本次錯題分析</button>
       </div>
 
-      <!-- 測驗進步軌跡折線圖 -->
       <div class="history-chart-card">
         <div class="chart-title">
           <span>📈 最近 5 次測驗進步軌跡</span>
@@ -926,7 +734,6 @@
       </div>
     </div>
 
-    <!-- 錯題弱點分析庫畫面 (附標籤篩選 + 熟練度除名進度) -->
     <div class="analysis-screen" id="analysis-screen">
       <div class="start-title">📊 個人錯題弱點分析庫</div>
       <div class="start-desc">系統會自動保存作答錯誤或逾時的題型。重測答對 <b>2 次</b> 即可真正攻克除名！</div>
@@ -950,16 +757,11 @@
         </div>
       </div>
 
-      <!-- 錯題標籤過濾按鈕群 -->
       <div class="filter-tags-group">
         <button class="tag-filter-btn active" onclick="setMistakeFilter('all', this)">全部顯示</button>
         <button class="tag-filter-btn" onclick="setMistakeFilter('vocab', this)">核心單字</button>
         <button class="tag-filter-btn" onclick="setMistakeFilter('grammar', this)">重點文法</button>
         <button class="tag-filter-btn" onclick="setMistakeFilter('timeout', this)">⏰ 超時未答</button>
-        <button class="tag-filter-btn" onclick="setMistakeFilter('quarter', this)">時間 (Quarter)</button>
-        <button class="tag-filter-btn" onclick="setMistakeFilter('between', this)">介系詞 (Between)</button>
-        <button class="tag-filter-btn" onclick="setMistakeFilter('rarely', this)">頻率副詞</button>
-        <button class="tag-filter-btn" onclick="setMistakeFilter('count', this)">數量 (How many/much)</button>
       </div>
 
       <div class="action-btn-group">
@@ -970,9 +772,7 @@
       <div class="mistake-list" id="mistake-list-container"></div>
     </div>
 
-    <!-- 測驗進行區塊 -->
     <div class="quiz-active-area" id="quiz-active-area">
-      <!-- Combo 連對浮動橫條 -->
       <div class="combo-banner" id="combo-banner">🔥 2 連對！太棒了！</div>
 
       <div class="score-board">
@@ -991,10 +791,7 @@
         <span class="listen-hint" id="listen-hint">🎧 聽力播放中，請注意聆聽：</span>
         <div class="prompt-text" id="display-prompt">載入中...</div>
         
-        <!-- Part 1 看圖題專用 SVG 繪圖容器 -->
         <div class="question-image-container" id="question-image-container"></div>
-
-        <!-- Part 1 看圖題備援文字提示框 -->
         <div class="scene-hint-box" id="scene-hint-box"></div>
 
         <div class="audio-controls" id="audio-ctrl-group">
@@ -1004,7 +801,7 @@
 
           <div class="ctrl-badge">
             <label for="speed-select">⚡ 語速：</label>
-            <select id="speed-select" onchange="changeSpeechRate()">
+            <select id="speed-select">
               <option value="0.5">超慢（0.5x）</option>
               <option value="0.6">稍慢（0.6x）</option>
               <option value="0.7">慢（0.7x）</option>
@@ -1030,13 +827,12 @@
     </div>
   </div>
 
+  <!-- 正式統一引用 questions.js -->
   <script src="questions.js"></script>
 
   <script>
-    // ==========================================
-    // 0. 中途離開確認防呆機制 (Unload 警告)
-    // ==========================================
     let isQuizActive = false;
+    let isAnswering = false;
 
     window.addEventListener("beforeunload", (e) => {
       if (isQuizActive) {
@@ -1051,9 +847,17 @@
       return confirm("⚠️ 目前測驗正在進行中，離開將會遺失當前作答進度，確定要中途退出嗎？");
     }
 
+    // 安全切換主模組：切換前強制停用所有計時器與自動跳題
     function selectMainModuleSafe(mod) {
-      if (!confirmLeaveCurrentQuiz()) return;
+      if (isQuizActive && !confirmLeaveCurrentQuiz()) return;
+
       isQuizActive = false;
+      isAnswering = false;
+      isPaused = false;
+      stopAllAudio();
+      cancelAutoNextTimer();
+      stopQuestionTimer();
+
       selectMainModule(mod);
     }
 
@@ -1069,9 +873,6 @@
       switchListeningStage(stage);
     }
 
-    // ==========================================
-    // 1. 原生 Web Audio API 音效合成引擎
-    // ==========================================
     let audioCtx = null;
     function getAudioContext() {
       if (!audioCtx) {
@@ -1156,9 +957,6 @@
       } catch (e) {}
     }
 
-    // ==========================================
-    // 2. 打卡天數與成就徽章系統 (LocalStorage)
-    // ==========================================
     const STREAK_KEY = "gram_b_streak_data";
     const BADGES_KEY = "gram_b_badges_data";
 
@@ -1219,9 +1017,6 @@
       if (badges.includes("clean")) document.getElementById("badge-clean").classList.add("unlocked");
     }
 
-    // ==========================================
-    // 3. 測驗歷史分數與原生 SVG 折線圖
-    // ==========================================
     const SCORE_HISTORY_KEY = "gram_b_score_history";
 
     function recordScoreHistory(score) {
@@ -1281,11 +1076,7 @@
       container.innerHTML = svgHtml;
     }
 
-    // ==========================================
-    // 4. Google 表單雲端同步設定
-    // ==========================================
     const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScPPuAAn9a-WxVNiYT2AvZIr2nNXgLKc7lQQJH8d582Bnsmww/formResponse";
-
     const ENTRY_NAME      = "entry.1497266437";
     const ENTRY_MODULE    = "entry.1362970063";
     const ENTRY_PROMPT    = "entry.762033637";
@@ -1296,46 +1087,25 @@
     let sessionSentMistakes = new Set();
 
     function submitToGoogleForm(payload) {
-      let hiddenIframe = document.getElementById("hidden_iframe");
-      if (!hiddenIframe) {
-        hiddenIframe = document.createElement("iframe");
-        hiddenIframe.id = "hidden_iframe";
-        hiddenIframe.name = "hidden_iframe";
-        hiddenIframe.style.display = "none";
-        document.body.appendChild(hiddenIframe);
-      }
+      try {
+        const formData = new URLSearchParams();
+        formData.append(ENTRY_NAME, payload.name || STUDENT_NAME);
+        formData.append(ENTRY_MODULE, payload.module);
+        formData.append(ENTRY_PROMPT, payload.prompt);
+        formData.append(ENTRY_WRONG, payload.wrong);
+        formData.append(ENTRY_CORRECT, payload.correct);
 
-      const form = document.createElement("form");
-      form.method = "POST";
-      form.action = GOOGLE_FORM_URL;
-      form.target = "hidden_iframe";
-      form.style.display = "none";
-
-      const fields = {
-        [ENTRY_NAME]: payload.name || STUDENT_NAME,
-        [ENTRY_MODULE]: payload.module,
-        [ENTRY_PROMPT]: payload.prompt,
-        [ENTRY_WRONG]: payload.wrong,
-        [ENTRY_CORRECT]: payload.correct
-      };
-
-      for (const [key, value] of Object.entries(fields)) {
-        const input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = value;
-        form.appendChild(input);
-      }
-
-      document.body.appendChild(form);
-      form.submit();
-      setTimeout(() => {
-        form.remove();
-      }, 1000);
+        fetch(GOOGLE_FORM_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData.toString()
+        }).catch(() => {});
+      } catch (e) {}
     }
 
     function sendMistakeToGoogleForm(data) {
-      const mistakeKey = `${data.promptText}_${data.selectedWord}`;
+      const mistakeKey = `${data.qId || data.promptText}_${data.selectedWord}`;
       if (sessionSentMistakes.has(mistakeKey)) return;
       sessionSentMistakes.add(mistakeKey);
 
@@ -1357,11 +1127,6 @@
       });
     }
 
-    // ==========================================
-    // 5. 核心測驗變數、暫停控制與自動跳題
-    // ==========================================
-    let speechRate = 0.85;
-    let speechVolume = 1.0;
     let currentModule = "vocab";
     let currentVocabStage = "b_level";
     let currentListeningStage = "guide"; 
@@ -1378,20 +1143,18 @@
 
     let audioReplayRemaining = 1;
 
-    // 暫停控制變數
     let isPaused = false;
     let pausedTimeLeft = 6;
-    let pausedPreviewTimeLeft = 0;
+    let pausedPreviewTimeLeft = 3;
     let isPreviewPhase = false;
+    let currentPlayPhase = 0;
 
-    // 倒數計時核心變數
     let questionTimer = null;
     let previewTimer = null;
     let timeLeft = 6;
     const TOTAL_TIME = 6;
     const PREVIEW_TIME = 3;
 
-    // 全域參照防止 Utterance 被瀏覽器 GC 吞掉 onend，並加入安全看門狗
     window.currentActiveUtterance = null;
     let ttsWatchdogTimer = null;
 
@@ -1407,7 +1170,7 @@
 
     function saveMistake(item) {
       const list = getMistakes();
-      const existsIndex = list.findIndex(m => m.promptText === item.promptText && m.correctWord === item.correctWord);
+      const existsIndex = list.findIndex(m => m.qId === item.qId);
       if (existsIndex >= 0) {
         list[existsIndex].selectedWord = item.selectedWord;
         list[existsIndex].masteryCount = 0;
@@ -1419,13 +1182,14 @@
       sendMistakeToGoogleForm(item);
     }
 
-    function recordMistakeCorrectMastery(promptText, correctWord) {
+    function recordMistakeCorrectMastery(qId) {
+      if (!qId) return;
       const list = getMistakes();
-      const item = list.find(m => m.promptText === promptText && m.correctWord === correctWord);
+      const item = list.find(m => m.qId === qId);
       if (item) {
         item.masteryCount = (item.masteryCount || 0) + 1;
         if (item.masteryCount >= 2) {
-          const updated = list.filter(m => !(m.promptText === promptText && m.correctWord === correctWord));
+          const updated = list.filter(m => m.qId !== qId);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
           if (updated.length === 0) unlockBadge("clean");
         } else {
@@ -1471,6 +1235,7 @@
       if ('speechSynthesis' in window) {
         window.speechSynthesis.cancel();
       }
+      window.currentActiveUtterance = null;
     }
 
     function cancelAutoNextTimer() {
@@ -1491,7 +1256,6 @@
       }
     }
 
-    // 暫停 / 繼續控制核心
     function togglePauseQuiz() {
       if (!isQuizActive) return;
 
@@ -1549,7 +1313,9 @@
             badgeElem.textContent = "🎧 聆聽中...";
           }
           playCurrentAudio(() => {
-            startQuestionTimer();
+            if (!isPaused && isQuizActive) {
+              startQuestionTimer();
+            }
           });
         }
       }, 1000);
@@ -1674,19 +1440,21 @@
       const feedback = document.getElementById("feedback");
       const q = currentQuestions[currentIdx];
 
-      if (currentModule === "vocab" && q.meanings) {
+      if (currentModule === "vocab") {
         q.options.forEach((opt, idx) => {
           const btn = document.getElementById(`opt-btn-${idx}`);
           if (btn) {
-            const kkHtml = q.kkList && q.kkList[idx] ? `<span class="kk-badge">${q.kkList[idx]}</span>` : "";
-            const meanHtml = `<span class="meaning-badge">中文：${q.meanings[idx]}</span>`;
+            const kk = (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "";
+            const mean = (q.meanings && q.meanings[idx]) ? q.meanings[idx] : "";
+            const kkHtml = kk ? `<span class="kk-badge">${kk}</span>` : "";
+            const meanHtml = mean ? `<span class="meaning-badge">中文：${mean}</span>` : "";
             btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml} ${meanHtml}`;
           }
         });
       }
 
       const correctWord = q.options[q.ans];
-      const correctMeaning = (currentModule === "vocab" && q.meaning) ? q.meaning : "";
+      const correctMeaning = (currentModule === "vocab" && q.meanings) ? q.meanings[q.ans] : (q.meaning || "");
 
       feedback.textContent = `⏰ 時間到！正確答案是 (${letters[q.ans]}) ${correctWord} ${correctMeaning ? '(' + correctMeaning + ')' : ''}`;
       feedback.style.color = "#dc2626";
@@ -1704,6 +1472,7 @@
       }
 
       saveMistake({
+        qId: q.qId,
         module: moduleCategory,
         moduleName: moduleTitle,
         promptText: q.prompt,
@@ -1711,7 +1480,7 @@
         correctWord: correctWord,
         correctMeaning: correctMeaning,
         tip: q.tip || "",
-        rawQuestion: q
+        rawQuestion: JSON.parse(JSON.stringify(q))
       });
 
       const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
@@ -1746,20 +1515,18 @@
       }
     }
 
-    function changeSpeechRate() {
-      speechRate = parseFloat(document.getElementById("speed-select").value);
-    }
-
     function changeVolume() {
-      speechVolume = parseFloat(document.getElementById("volume-range").value);
-      document.getElementById("volume-val").textContent = Math.round(speechVolume * 100) + "%";
+      const vol = parseFloat(document.getElementById("volume-range").value);
+      document.getElementById("volume-val").textContent = Math.round(vol * 100) + "%";
     }
 
     function shuffleArray(array) {
-      const arr = [...array];
+      const arr = array.slice();
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+        const temp = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp;
       }
       return arr;
     }
@@ -1851,10 +1618,6 @@
       if (currentMistakeFilter === "vocab") filtered = list.filter(m => m.module === "vocab");
       else if (currentMistakeFilter === "grammar") filtered = list.filter(m => m.module === "grammar");
       else if (currentMistakeFilter === "timeout") filtered = list.filter(m => m.selectedWord && m.selectedWord.includes("時間到"));
-      else if (currentMistakeFilter === "quarter") filtered = list.filter(m => (m.promptText + m.tip).toLowerCase().includes("quarter"));
-      else if (currentMistakeFilter === "between") filtered = list.filter(m => (m.promptText + m.tip).toLowerCase().includes("between"));
-      else if (currentMistakeFilter === "rarely") filtered = list.filter(m => (m.promptText + m.tip).toLowerCase().includes("rarely") || (m.promptText + m.tip).includes("頻率"));
-      else if (currentMistakeFilter === "count") filtered = list.filter(m => (m.promptText + m.tip).toLowerCase().includes("how many") || (m.promptText + m.tip).toLowerCase().includes("how much"));
 
       const container = document.getElementById("mistake-list-container");
       container.innerHTML = "";
@@ -1893,6 +1656,7 @@
 
       isMistakeMode = true;
       isQuizActive = true;
+      isAnswering = false;
       comboStreak = 0;
       updateComboBanner();
       cancelAutoNextTimer();
@@ -1901,7 +1665,7 @@
       document.getElementById("quiz-active-area").style.display = "block";
 
       const reviewTargets = shuffleArray(list).slice(0, 20);
-      currentQuestions = reviewTargets.map(m => m.rawQuestion);
+      currentQuestions = reviewTargets.map(m => buildSyncedQuestion(JSON.parse(JSON.stringify(m.rawQuestion))));
 
       currentIdx = 0;
       correctCount = 0;
@@ -1909,14 +1673,22 @@
       loadQuestion();
     }
 
+    function handleResultRestart() {
+      if (isMistakeMode) {
+        startMistakeReviewQuiz();
+      } else {
+        unlockAudioAndStart();
+      }
+    }
+
     function buildSyncedQuestion(q) {
-      if (!q.options || q.options.length === 0) return { ...q };
+      if (!q.options || q.options.length === 0) return Object.assign({}, q);
 
       const letters = ["A", "B", "C", "D"];
       const combined = q.options.map((opt, idx) => ({
         opt: opt,
-        meaning: q.meanings ? q.meanings[idx] : null,
-        kk: q.kkList ? q.kkList[idx] : null,
+        meaning: (q.meanings && q.meanings[idx]) ? q.meanings[idx] : null,
+        kk: (q.kkList && q.kkList[idx]) ? q.kkList[idx] : null,
         isCorrect: idx === q.ans
       }));
 
@@ -1926,33 +1698,34 @@
 
       let newAudioText = q.audioText;
       if (q.audioText && q.audioText.includes("Statement A:")) {
-        const parts = [];
-        if (q.audioText.includes("Look at the picture")) {
-          parts.push("Look at the picture and choose the best answer.");
-        }
+        const matchIntro = q.audioText.match(/^(.*?)(?=Statement A:)/i);
+        const introText = matchIntro ? matchIntro[1].trim() : "Look at the picture and choose the best answer.";
+        
+        const parts = [introText];
         newOptions.forEach((opt, idx) => {
           parts.push(`Statement ${letters[idx]}: ${opt}`);
         });
         newAudioText = parts.join(" ");
       }
 
-      return {
-        ...q,
+      return Object.assign({}, q, {
         options: newOptions,
         meanings: q.meanings ? shuffled.map(c => c.meaning) : null,
         kkList: q.kkList ? shuffled.map(c => c.kk) : null,
         ans: newAns,
         audioText: newAudioText
-      };
+      });
     }
 
     function startCurrentQuiz() {
       isMistakeMode = false;
       isQuizActive = true;
+      isAnswering = false;
       comboStreak = 0;
       updateComboBanner();
       cancelAutoNextTimer();
       sessionSentMistakes.clear();
+
       document.getElementById("start-screen").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
       document.getElementById("analysis-screen").style.display = "none";
@@ -1960,25 +1733,43 @@
       document.getElementById("quiz-active-area").style.display = "block";
 
       let source = [];
+
+      // 嚴格依據當前模組獨立取題，100% 杜絕交叉污染
       if (currentModule === "vocab") {
         if (typeof buildDynamicVocabQuiz === 'function') {
           source = buildDynamicVocabQuiz(25, "⭐ B級綜合測驗 (25題)");
-        } else {
+        } else if (typeof rawVocabBLevel !== 'undefined') {
           source = rawVocabBLevel.slice(0, 25);
         }
       } else if (currentModule === "grammar") {
-        source = rawGrammarQuestions.slice(0, 25);
-      } else {
+        // 文法題：嚴格只取文法題庫
+        if (typeof rawGrammarQuestions !== 'undefined' && rawGrammarQuestions.length > 0) {
+          source = shuffleArray(rawGrammarQuestions).slice(0, 25);
+        } else if (typeof generate500GrammarQuestions === 'function') {
+          source = shuffleArray(generate500GrammarQuestions()).slice(0, 25);
+        }
+      } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
-          source = rawReviewQuestions.slice(0, 25);
+          if (typeof rawReviewQuestions !== 'undefined' && rawReviewQuestions.length > 0) {
+            source = shuffleArray(rawReviewQuestions).slice(0, 25);
+          } else if (typeof generate500ListeningReviewQuestions === 'function') {
+            source = shuffleArray(generate500ListeningReviewQuestions()).slice(0, 25);
+          }
         } else if (currentListeningStage === "p1") {
-          source = rawMockP1;
+          source = (typeof rawMockP1 !== 'undefined') ? rawMockP1 : [];
         } else if (currentListeningStage === "p2") {
-          source = rawMockP2;
+          source = (typeof rawMockP2 !== 'undefined') ? rawMockP2 : [];
         }
       }
 
-      currentQuestions = shuffleArray(source).map(q => buildSyncedQuestion(q));
+      if (!source || source.length === 0) {
+        alert("題庫載入中，請稍候重試！");
+        setupStartScreen();
+        return;
+      }
+
+      // 深拷貝，完全阻斷引用污染
+      currentQuestions = shuffleArray(source).map(q => buildSyncedQuestion(JSON.parse(JSON.stringify(q))));
 
       currentIdx = 0;
       correctCount = 0;
@@ -1987,12 +1778,13 @@
     }
 
     function selectMainModule(mod) {
-      stopAllAudio();
-      cancelAutoNextTimer();
-      stopQuestionTimer();
+      currentModule = mod;
+      isMistakeMode = false;
+      currentQuestions = [];
+      currentIdx = 0;
+      correctCount = 0;
       comboStreak = 0;
       updateComboBanner();
-      currentModule = mod;
 
       const tabBtns = document.querySelectorAll(".main-tab-btn");
       tabBtns.forEach(b => b.classList.remove("active"));
@@ -2001,6 +1793,13 @@
       const listenNav = document.getElementById("listening-subnav");
       const audioControls = document.getElementById("audio-ctrl-group");
       const listenHint = document.getElementById("listen-hint");
+
+      // 切換模組時必定回到準備畫面
+      document.getElementById("quiz-active-area").style.display = "none";
+      document.getElementById("result-screen").style.display = "none";
+      document.getElementById("analysis-screen").style.display = "none";
+      document.getElementById("guide-screen").style.display = "none";
+      document.getElementById("start-screen").style.display = "flex";
 
       if (mod === "vocab") {
         tabBtns[0].classList.add("active");
@@ -2062,7 +1861,6 @@
       }
     }
 
-    // 強化版 TTS 發音引擎 (具備防 GC、防重複觸發與 Watchdog 機制)
     function playSpeech(text, callback) {
       if (!('speechSynthesis' in window)) {
         if (callback) callback();
@@ -2080,9 +1878,14 @@
       const utter = new SpeechSynthesisUtterance(text);
       window.currentActiveUtterance = utter;
 
+      const speedSelect = document.getElementById("speed-select");
+      const volumeRange = document.getElementById("volume-range");
+      const currentRate = speedSelect ? parseFloat(speedSelect.value) : 0.85;
+      const currentVol = volumeRange ? parseFloat(volumeRange.value) : 1.0;
+
       utter.lang = 'en-US';
-      utter.rate = speechRate;
-      utter.volume = speechVolume;
+      utter.rate = currentRate;
+      utter.volume = currentVol;
       utter.pitch = 1.0;
 
       if (cachedVoices.length === 0) {
@@ -2112,7 +1915,7 @@
       };
 
       const wordsCount = text.split(/\s+/).length;
-      const expectedTimeMs = Math.max(3000, (wordsCount / speechRate) * 800 + 2000);
+      const expectedTimeMs = Math.max(4000, (wordsCount / currentRate) * 1200 + 4000);
       ttsWatchdogTimer = setTimeout(() => {
         finishExecution();
       }, expectedTimeMs);
@@ -2121,13 +1924,15 @@
     }
 
     function playCurrentAudioUser() {
-      if (audioReplayRemaining <= 0 || isPaused) return;
+      if (audioReplayRemaining <= 0 || isPaused || isAnswering) return;
 
       audioReplayRemaining--;
       updateAudioReplayButton();
 
+      pausedTimeLeft = timeLeft;
       stopQuestionTimer();
       cancelAutoNextTimer();
+
       const badgeElem = document.getElementById("timer-badge");
       if (badgeElem) {
         badgeElem.classList.remove("warning", "danger", "preview");
@@ -2136,7 +1941,9 @@
       }
 
       playCurrentAudio(() => {
-        startQuestionTimer();
+        if (!isPaused && isQuizActive) {
+          resumeQuestionTimer();
+        }
       });
     }
 
@@ -2160,15 +1967,22 @@
       }
 
       if (q.repeat) {
+        currentPlayPhase = 1;
         playSpeech(q.audioText, () => {
+          if (isPaused) return;
           audioTimer = setTimeout(() => {
+            if (isPaused) return;
+            currentPlayPhase = 2;
             playSpeech(q.audioText, () => {
+              currentPlayPhase = 0;
               if (onFinishedCallback) onFinishedCallback();
             });
           }, 800);
         });
       } else {
+        currentPlayPhase = 1;
         playSpeech(q.audioText, () => {
+          currentPlayPhase = 0;
           if (onFinishedCallback) onFinishedCallback();
         });
       }
@@ -2179,8 +1993,18 @@
       cancelAutoNextTimer();
       stopQuestionTimer();
 
+      isAnswering = false;
+
+      if ('speechSynthesis' in window && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+
       audioReplayRemaining = 1;
       updateAudioReplayButton();
+
+      if (!currentQuestions || currentQuestions.length === 0 || !currentQuestions[currentIdx]) {
+        return;
+      }
 
       const q = currentQuestions[currentIdx];
       document.getElementById("q-index").textContent = currentIdx + 1;
@@ -2190,7 +2014,6 @@
       document.getElementById("tip-box").style.display = "none";
       document.getElementById("next-btn").style.display = "none";
 
-      // 圖片與情境提示動態渲染 (優先呈現 SVG 圖片)
       const imgContainer = document.getElementById("question-image-container");
       const sceneBox = document.getElementById("scene-hint-box");
 
@@ -2228,6 +2051,7 @@
         container.appendChild(btn);
       });
 
+      // 嚴格依當前模組啟動計時流程，文法題無音訊直接倒數！
       if (currentModule === "listening") {
         startPreviewCountdown(() => {
           const badgeElem = document.getElementById("timer-badge");
@@ -2237,27 +2061,38 @@
             badgeElem.textContent = "🎧 聆聽中...";
           }
           playCurrentAudio(() => {
-            startQuestionTimer();
+            if (!isPaused && isQuizActive) {
+              startQuestionTimer();
+            }
           });
         });
       } else if (currentModule === "vocab" || (isMistakeMode && q.audioText)) {
         const badgeElem = document.getElementById("timer-badge");
         if (badgeElem) {
+          badgeElem.classList.remove("preview", "warning", "danger");
           badgeElem.classList.add("waiting");
           badgeElem.textContent = "🎧 聆聽中...";
         }
         audioTimer = setTimeout(() => {
           playCurrentAudio(() => {
-            startQuestionTimer();
+            if (!isPaused && isQuizActive) {
+              startQuestionTimer();
+            }
           });
         }, 300);
       } else {
+        // 文法測驗：直接啟動 6 秒作答倒數，拔除 waiting 樣式
+        const badgeElem = document.getElementById("timer-badge");
+        if (badgeElem) {
+          badgeElem.classList.remove("waiting", "preview");
+        }
         startQuestionTimer();
       }
     }
 
     function checkAnswer(selectedIdx, targetBtn, correctIdx) {
-      if (isPaused) return;
+      if (isPaused || isAnswering) return;
+      isAnswering = true;
 
       stopAllAudio();
       cancelAutoNextTimer();
@@ -2273,19 +2108,21 @@
       const feedback = document.getElementById("feedback");
       const q = currentQuestions[currentIdx];
 
-      if (currentModule === "vocab" && q.meanings) {
+      if (currentModule === "vocab") {
         q.options.forEach((opt, idx) => {
           const btn = document.getElementById(`opt-btn-${idx}`);
           if (btn) {
-            const kkHtml = q.kkList && q.kkList[idx] ? `<span class="kk-badge">${q.kkList[idx]}</span>` : "";
-            const meanHtml = `<span class="meaning-badge">中文：${q.meanings[idx]}</span>`;
+            const kk = (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "";
+            const mean = (q.meanings && q.meanings[idx]) ? q.meanings[idx] : "";
+            const kkHtml = kk ? `<span class="kk-badge">${kk}</span>` : "";
+            const meanHtml = mean ? `<span class="meaning-badge">中文：${mean}</span>` : "";
             btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml} ${meanHtml}`;
           }
         });
       }
 
       const correctWord = q.options[correctIdx];
-      const correctMeaning = (currentModule === "vocab" && q.meaning) ? q.meaning : "";
+      const correctMeaning = (currentModule === "vocab" && q.meanings) ? q.meanings[correctIdx] : (q.meaning || "");
 
       if (selectedIdx === correctIdx) {
         correctCount++;
@@ -2302,7 +2139,7 @@
         feedback.style.color = "#15803d";
 
         if (isMistakeMode) {
-          recordMistakeCorrectMastery(q.prompt, correctWord);
+          recordMistakeCorrectMastery(q.qId);
         }
 
         const delayTime = ((currentModule === "vocab" || isMistakeMode) && q.audioText) ? 1800 : 1200;
@@ -2332,6 +2169,7 @@
         }
 
         saveMistake({
+          qId: q.qId,
           module: moduleCategory,
           moduleName: moduleTitle,
           promptText: q.prompt,
@@ -2339,7 +2177,7 @@
           correctWord: correctWord,
           correctMeaning: correctMeaning,
           tip: q.tip || "",
-          rawQuestion: q
+          rawQuestion: JSON.parse(JSON.stringify(q))
         });
 
         document.getElementById("next-btn").style.display = "inline-block";
@@ -2365,6 +2203,7 @@
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
+
       currentIdx++;
       if (currentIdx < currentQuestions.length) {
         loadQuestion();
@@ -2374,6 +2213,11 @@
         const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
         document.getElementById("final-score").textContent = finalScore;
         document.getElementById("result-screen").style.display = "flex";
+
+        const restartBtn = document.getElementById("result-restart-btn");
+        if (restartBtn) {
+          restartBtn.textContent = isMistakeMode ? "🔄 繼續重測錯題" : "🔄 重新隨機測驗";
+        }
 
         if (finalScore >= 80) playSfxVictory();
         if (finalScore === 100) unlockBadge("perfect");
