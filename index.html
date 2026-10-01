@@ -1,24 +1,20 @@
 <!--
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
-最後更新日期：2026-09-30
-版本號：v2.5.1
+最後更新日期：2026-10-01
+版本號：v2.6.0
 
 【核心功能修改清單】：
-1. 聽力播音異常與倒數卡住徹底修復：
+1. 內嵌 Part 1 官方看圖題 SVG 向量插畫庫：
+   - P1 (11 題) 與 P2 (10 題) 共 21 題全數內嵌清晰彩色向量圖，零外部圖檔依賴。
+2. 聽力播音異常與倒數卡住徹底修復：
    - 全域保存 Utterance 參照防止瀏覽器 GC 吞掉 onend。
    - 導入 Watchdog 安全看門狗與防重複回呼鎖定，音訊播畢 100% 接軌 6 秒倒數。
-2. 測驗中途離開確認 (Unload & 導覽防呆)：
-   - 瀏覽器關閉/重整時觸發 beforeunload 警告。
-   - 測驗作答中點擊頂部主標籤或子選單時，彈窗防誤觸確認，避免作答進度遺失。
-3. 測驗暫停/繼續功能 (Pause & Resume)：
+3. 測驗中途離開確認 (Unload & 導覽防呆)：
+   - 瀏覽器關閉/重整時觸發 beforeunload 警告；作答中點擊頂部標籤彈窗防誤觸。
+4. 測驗暫停/繼續功能 (Pause & Resume)：
    - 新增「⏸️ 暫停」按鈕，立即凍結作答倒數與審題倒數，遮蔽選項避免作弊。
-   - 點擊「▶️ 繼續作答」解除遮罩，自暫停剩餘秒數繼續計時，並重播當前音訊。
-4. 答對自動跳題心流機制：
-   - 答對自動延遲載入下一題；答錯/超時保留手動「下一題」檢視解析。
-5. 英檢「3 秒審題預覽」與「音訊/選項語意對齊」：
-   - 聽力題 3 秒審題倒數；選項洗牌後 Statement A/B/C 語音與按鈕字母 100% 同步。
-6. 6 秒顏色漸變倒數 (綠->黃->紅閃爍)、每題重聽限 1 次、錯題精熟 2 次除名、打卡 Streak、原生 SVG 折線圖。
+5. 答對自動跳題心流機制、英檢 3 秒審題預覽、6 秒漸變倒數、每題重聽限 1 次、錯題精熟 2 次除名、打卡 Streak、原生 SVG 折線圖。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -348,7 +344,20 @@
     .prompt-text { font-size: 18px; font-weight: bold; color: #1e293b; line-height: 1.5; }
     .listen-hint { font-size: 13px; color: #475569; }
 
-    /* Part 1 看圖題情境畫面提示框 */
+    /* Part 1 看圖題專用 SVG 繪圖容器 */
+    .question-image-container {
+      display: none;
+      width: 100%;
+      max-width: 320px;
+      height: 180px;
+      margin: 4px auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border: 2px solid #e2e8f0;
+      background: #ffffff;
+    }
+
     .scene-hint-box {
       display: none;
       background: #ecfdf5;
@@ -701,7 +710,7 @@
     <!-- 測驗準備畫面 -->
     <div class="start-screen" id="start-screen">
       <div class="start-title" id="start-title">準備測驗</div>
-      <div class="start-desc" id="start-desc">聽力題將先給予 3 秒審題預覽，音訊結束後展開 6 秒倒數。答對將自動跳題，支援中途暫停！</div>
+      <div class="start-desc" id="start-desc">聽力題將先給予 3 秒審題預覽，音訊結束後展開 6 秒倒數。Part 1 附彩色情境圖，答對將自動跳題！</div>
       <button class="start-run-btn" onclick="unlockAudioAndStart()">🚀 開始測驗</button>
     </div>
 
@@ -717,7 +726,7 @@
           <div class="guide-item-desc">時間介系詞辨析：<b>past</b> 代表「過」，<b>to</b> 代表「差幾分到下一個鐘頭」。15 分鐘為 a quarter，30 分鐘為 half past。</div>
           <div class="guide-samples-group">
             <div class="guide-item-sample">
-              <span>🗣️ 1. "It's a quarter past 10." (10點15分)</span>
+              <span>🗣️️ 1. "It's a quarter past 10." (10點15分)</span>
               <button class="play-sample-btn" onclick="playSpeech('It is a quarter past 10.')">🔊 聽示範</button>
             </div>
             <div class="guide-item-sample">
@@ -771,7 +780,7 @@
               <button class="play-sample-btn" onclick="playSpeech('I always do my homework before dinner. I never eat first.')">🔊 聽示範</button>
             </div>
             <div class="guide-item-sample">
-              <span>🗣️️ 3. "My father usually goes to work by train."</span>
+              <span>🗣️ 3. "My father usually goes to work by train."</span>
               <button class="play-sample-btn" onclick="playSpeech('My father usually goes to work by train.')">🔊 聽示範</button>
             </div>
           </div>
@@ -982,7 +991,10 @@
         <span class="listen-hint" id="listen-hint">🎧 聽力播放中，請注意聆聽：</span>
         <div class="prompt-text" id="display-prompt">載入中...</div>
         
-        <!-- Part 1 看圖題情境畫面輔助框 -->
+        <!-- Part 1 看圖題專用 SVG 繪圖容器 -->
+        <div class="question-image-container" id="question-image-container"></div>
+
+        <!-- Part 1 看圖題備援文字提示框 -->
         <div class="scene-hint-box" id="scene-hint-box"></div>
 
         <div class="audio-controls" id="audio-ctrl-group">
@@ -1798,10 +1810,10 @@
           descElem.textContent = "先給予 3 秒審題預覽，音訊結束後才開始 6 秒倒數！選項與 Statement A/B/C 完全對齊。";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗";
-          descElem.textContent = "共 40 題，Part 1 看圖題附情境畫面輔助，具備 3 秒審題時間與答對自動跳題。";
+          descElem.textContent = "共 40 題，Part 1 看圖題附彩色情境圖，具備 3 秒審題時間與答對自動跳題。";
         } else if (currentListeningStage === "p2") {
           titleElem.textContent = "🎯 Practice 2 全真模擬測驗";
-          descElem.textContent = "共 50 題，Part 1 看圖題附情境畫面輔助，長篇對話朗讀兩次，審題 3 秒後開始播音。";
+          descElem.textContent = "共 50 題，Part 1 看圖題附彩色情境圖，長篇對話朗讀兩次，審題 3 秒後開始播音。";
         }
       }
     }
@@ -2178,12 +2190,23 @@
       document.getElementById("tip-box").style.display = "none";
       document.getElementById("next-btn").style.display = "none";
 
+      // 圖片與情境提示動態渲染 (優先呈現 SVG 圖片)
+      const imgContainer = document.getElementById("question-image-container");
       const sceneBox = document.getElementById("scene-hint-box");
-      if (q.sceneHint) {
-        sceneBox.textContent = `🖼️ 畫面提示：${q.sceneHint}`;
-        sceneBox.style.display = "block";
-      } else {
+
+      if (q.svgData) {
+        imgContainer.innerHTML = q.svgData;
+        imgContainer.style.display = "block";
         sceneBox.style.display = "none";
+      } else {
+        imgContainer.innerHTML = "";
+        imgContainer.style.display = "none";
+        if (q.sceneHint) {
+          sceneBox.textContent = `🖼️ 畫面提示：${q.sceneHint}`;
+          sceneBox.style.display = "block";
+        } else {
+          sceneBox.style.display = "none";
+        }
       }
 
       const container = document.getElementById("options-container");
