@@ -2,13 +2,13 @@
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
 最後更新日期：2026-10-01
-版本號：v4.0.0 (文法題庫完全隔離無錯版)
+版本號：v4.4.0 (雙向防呆完全無錯版)
 
 【核心修復與優化清單】：
-1. 修正文法測驗抽題邏輯，徹底隔離單字庫，文法題 100% 只會抽文法題。
-2. 修正文法題無音訊時右上角卡死在「聆聽中...」的 Bug，文法題直接啟動 6 秒倒數。
-3. 統一腳本檔名引用為 questions.js。
-4. 導入 isAnswering 防連點互鎖機制，杜絕作弊重複計分。
+1. 修正單字測驗發音與計時銜接，加掛 1.5 秒超時保底，絕不再卡在「聆聽中...」。
+2. 單字答題後安全展開中文標籤與 KK 音標，杜絕 undefined 錯誤。
+3. 文法測驗徹底隔離單字庫，文法題 100% 只抽文法題，並直接啟動 6 秒倒數。
+4. 引用檔名統一為 questions.js。
 5. 解決重聽音訊與暫停的 Race Condition，確保暫停中計時器絕不偷跑。
 ===================================================================
 -->
@@ -1687,20 +1687,21 @@
       const letters = ["A", "B", "C", "D"];
       const combined = q.options.map((opt, idx) => ({
         opt: opt,
-        meaning: (q.meanings && q.meanings[idx]) ? q.meanings[idx] : null,
-        kk: (q.kkList && q.kkList[idx]) ? q.kkList[idx] : null,
+        meaning: (q.meanings && q.meanings[idx]) ? q.meanings[idx] : (q.meaning || ""),
+        kk: (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "",
         isCorrect: idx === q.ans
       }));
 
       const shuffled = shuffleArray(combined);
       const newOptions = shuffled.map(c => c.opt);
+      const newMeanings = shuffled.map(c => c.meaning);
+      const newKkList = shuffled.map(c => c.kk);
       const newAns = shuffled.findIndex(c => c.isCorrect);
 
       let newAudioText = q.audioText;
       if (q.audioText && q.audioText.includes("Statement A:")) {
         const matchIntro = q.audioText.match(/^(.*?)(?=Statement A:)/i);
         const introText = matchIntro ? matchIntro[1].trim() : "Look at the picture and choose the best answer.";
-        
         const parts = [introText];
         newOptions.forEach((opt, idx) => {
           parts.push(`Statement ${letters[idx]}: ${opt}`);
@@ -1710,8 +1711,8 @@
 
       return Object.assign({}, q, {
         options: newOptions,
-        meanings: q.meanings ? shuffled.map(c => c.meaning) : null,
-        kkList: q.kkList ? shuffled.map(c => c.kk) : null,
+        meanings: newMeanings,
+        kkList: newKkList,
         ans: newAns,
         audioText: newAudioText
       });
@@ -2025,7 +2026,7 @@
         imgContainer.innerHTML = "";
         imgContainer.style.display = "none";
         if (q.sceneHint) {
-          sceneBox.textContent = `🖼️ 畫面提示：${q.sceneHint}`;
+          sceneBox.textContent = `🖼️️ 畫面提示：${q.sceneHint}`;
           sceneBox.style.display = "block";
         } else {
           sceneBox.style.display = "none";
@@ -2051,7 +2052,7 @@
         container.appendChild(btn);
       });
 
-      // 嚴格依當前模組啟動計時流程，文法題無音訊直接倒數！
+      // 依當前模組啟動計時與播放流程
       if (currentModule === "listening") {
         startPreviewCountdown(() => {
           const badgeElem = document.getElementById("timer-badge");
@@ -2073,15 +2074,26 @@
           badgeElem.classList.add("waiting");
           badgeElem.textContent = "🎧 聆聽中...";
         }
+
+        let hasStartedTimer = false;
+        const triggerTimer = () => {
+          if (hasStartedTimer) return;
+          hasStartedTimer = true;
+          if (!isPaused && isQuizActive) {
+            startQuestionTimer();
+          }
+        };
+
+        // 播放單字語音，並加掛 1.5 秒防呆超時保底，確保計時器一定會接續啟動
+        playCurrentAudio(() => {
+          triggerTimer();
+        });
         audioTimer = setTimeout(() => {
-          playCurrentAudio(() => {
-            if (!isPaused && isQuizActive) {
-              startQuestionTimer();
-            }
-          });
-        }, 300);
+          triggerTimer();
+        }, 1500);
+
       } else {
-        // 文法測驗：直接啟動 6 秒作答倒數，拔除 waiting 樣式
+        // 文法測驗：無音訊直接啟動 6 秒作答倒數，拔除 waiting 樣式
         const badgeElem = document.getElementById("timer-badge");
         if (badgeElem) {
           badgeElem.classList.remove("waiting", "preview");
@@ -2108,6 +2120,7 @@
       const feedback = document.getElementById("feedback");
       const q = currentQuestions[currentIdx];
 
+      // 安全展開中文標籤與 KK 音標
       if (currentModule === "vocab") {
         q.options.forEach((opt, idx) => {
           const btn = document.getElementById(`opt-btn-${idx}`);
@@ -2132,7 +2145,7 @@
         targetBtn.classList.add("correct");
         
         if (currentModule === "vocab") {
-          feedback.textContent = `答對了！Very Good! 🎉英文: ${correctWord} ，中文: ${correctMeaning}`;
+          feedback.textContent = `答對了！Very Good! 🎉 英文: ${correctWord} ，中文: ${correctMeaning}`;
         } else {
           feedback.textContent = "答對了！Very Good! 🎉";
         }
