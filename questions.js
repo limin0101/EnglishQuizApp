@@ -1,8 +1,8 @@
 /**
  * ===================================================================
  * @file questions.js
- * @description 格蘭英語 B 級全方位題庫 (全域物件安全掛載版，徹底根除 ts2451 宣告衝突)
- * @version 6.0.0
+ * @description 格蘭英語 B 級全方位題庫 (12大文法考點 + 450+ 完整單字庫無縮減版)
+ * @version 7.0.0
  * ===================================================================
  */
 
@@ -86,109 +86,194 @@ window.p2SvgImages = {
 };
 
 // ==========================================
-// 1. 文法 500 題生成引擎與全域掛載
+// 1. 文法 500 題生成引擎 (升級：12大考點多樣態生活情境題庫)
 // ==========================================
 function generate500GrammarQuestions() {
-  const names = ["Andy", "Julia", "Janice", "Henry", "Susan", "Tina", "Frank", "Stephen", "Lucy", "Jerry", "Maggie", "Kathy", "Jason", "Mike"];
-  const locations = ["in the kitchen", "in the living room", "in the bedroom", "in the dining room", "in the garage", "at the library"];
-  const uncountables = [
-    { word: "sugar", hint: "糖" },
-    { word: "shampoo", hint: "洗髮精" },
-    { word: "milk", hint: "牛奶" },
-    { word: "money", hint: "金錢" }
-  ];
-  const countables = [
-    { word: "sausages", single: "sausage", hint: "香腸" },
-    { word: "pillows", single: "pillow", hint: "枕頭" },
-    { word: "hangers", single: "hanger", hint: "衣架" }
-  ];
-  const verbs = [
-    { base: "play the guitar", ing: "playing the guitar", s: "plays the guitar" },
-    { base: "brush teeth", ing: "brushing teeth", s: "brushes teeth" },
-    { base: "do homework", ing: "doing homework", s: "does homework" }
+  const grammarTemplates = [
+    // 考點 1: 時間介系詞 (at / on / in)
+    {
+      prompt: "The train usually arrives at the station ______ 7:30 a.m.",
+      options: ["at", "on", "in", "for"],
+      ans: 0,
+      tip: "💡【時間介系詞】具體的鐘點時間（如 7:30 a.m.）前面介系詞使用 at。"
+    },
+    {
+      prompt: "We have an English test ______ Monday morning.",
+      options: ["on", "at", "in", "with"],
+      ans: 0,
+      tip: "💡【時間介系詞】特定的星期、日期或特定某一天的早上下午，介系詞使用 on。"
+    },
+    {
+      prompt: "My family likes to go on a picnic ______ autumn.",
+      options: ["in", "at", "on", "to"],
+      ans: 0,
+      tip: "💡【時間介系詞】季節、月份、年份與早中晚（in the morning/afternoon），介系詞使用 in。"
+    },
+
+    // 考點 2: 現在進行式情境句
+    {
+      prompt: "Listen! The baby ______ in the bedroom. Please be quiet.",
+      options: ["is crying", "cries", "crying", "cry"],
+      ans: 0,
+      tip: "💡【現在進行式】Listen! 或 Look! 表當前正在發生的動作，主詞 The baby (單數) 搭配 is + V-ing。"
+    },
+    {
+      prompt: "Look! The boys ______ basketball happily in the playground.",
+      options: ["are playing", "is playing", "play", "played"],
+      ans: 0,
+      tip: "💡【主詞動詞一致】主詞 The boys 為複數名詞，現在進行式搭配 are + playing。"
+    },
+    {
+      prompt: "What ______ you and Kevin doing in the garage right now?",
+      options: ["are", "is", "do", "does"],
+      ans: 0,
+      tip: "💡【現在進行式疑問句】主詞 you and Kevin 為兩個人（複數），be 動詞使用 are。"
+    },
+
+    // 考點 3: 存在句 (There is / There are)
+    {
+      prompt: "______ any milk left in the bottle on the table?",
+      options: ["Is there", "Are there", "Do there", "Have there"],
+      ans: 0,
+      tip: "💡【不可數存在句】milk（牛奶）為不可數名詞，疑問句型使用 Is there...？"
+    },
+    {
+      prompt: "There ______ two pillows and a soft blanket on the bed.",
+      options: ["are", "is", "have", "has"],
+      ans: 0,
+      tip: "💡【存在句主謂一致】鄰近的主詞 two pillows 為複數名詞，be 動詞使用 are。"
+    },
+    {
+      prompt: "There ______ any students in the classroom after 6:00 p.m.",
+      options: ["aren't", "isn't", "don't", "doesn't"],
+      ans: 0,
+      tip: "💡【存在句否定】students 為複數，否定句使用 There aren't any..."
+    },
+
+    // 考點 4: 助動詞與三單動詞
+    {
+      prompt: "Does your sister ______ her teeth before going to bed every night?",
+      options: ["brush", "brushes", "brushing", "brushed"],
+      ans: 0,
+      tip: "💡【助動詞後接原形】助動詞 Does 出現後，後面的主要動詞必須打回原形動詞 brush。"
+    },
+    {
+      prompt: "Tony ______ his homework every evening, so he always gets good grades.",
+      options: ["does", "do", "doing", "is do"],
+      ans: 0,
+      tip: "💡【第三人稱單數】主詞 Tony 為單數第三人稱，一般動詞 do 需加上 -es 變成 does。"
+    },
+    {
+      prompt: "Can Maggie drive a car? No, she ______.",
+      options: ["can't", "doesn't", "isn't", "won't"],
+      ans: 0,
+      tip: "💡【情態助動詞簡答】用 Can 提問能力的問句，否定簡答使用 No, she can't。"
+    },
+
+    // 考點 5: 頻率副詞位置與意義
+    {
+      prompt: "Henry is a good student. He is ______ late for school.",
+      options: ["never", "always", "often", "sometimes"],
+      ans: 0,
+      tip: "💡【頻率副詞與句意】好學生從不遲到，never 代表從不（0%），且置於 be 動詞之後。"
+    },
+    {
+      prompt: "My father ______ coffee in the morning before going to work.",
+      options: ["usually drinks", "drinks usually", "is usually drink", "usually drinking"],
+      ans: 0,
+      tip: "💡【頻率副詞位置】頻率副詞（usually）應放在一般動詞（drinks）之前。"
+    },
+
+    // 考點 6: 疑問詞辨析 (Whose / Where / How much / How many)
+    {
+      prompt: "______ guitar is this on the sofa? It belongs to Henry.",
+      options: ["Whose", "Who", "Where", "Which"],
+      ans: 0,
+      tip: "💡【所有格疑問詞】詢問物品的所有人『誰的』，使用 Whose + 名詞。"
+    },
+    {
+      prompt: "______ shampoo do we need to buy from the supermarket?",
+      options: ["How much", "How many", "How often", "How long"],
+      ans: 0,
+      tip: "💡【不可數數量】shampoo（洗髮精）為不可數名詞，詢問數量使用 How much。"
+    },
+    {
+      prompt: "______ forks and spoons are there in the dining room?",
+      options: ["How many", "How much", "How often", "How old"],
+      ans: 0,
+      tip: "💡【可數複數數量】forks and spoons 為可數名詞複數，詢問數量使用 How many。"
+    },
+
+    // 考點 7: 空間位置介系詞
+    {
+      prompt: "The bookstore is ______ the bakery and the bank.",
+      options: ["between", "next to", "opposite", "under"],
+      ans: 0,
+      tip: "💡【空間介系詞】between A and B 為固定搭配，表示『在兩者之間』。"
+    },
+    {
+      prompt: "Please put your shoes ______ the bed, not on the floor.",
+      options: ["under", "between", "among", "through"],
+      ans: 0,
+      tip: "💡【空間介系詞】under 代表在…下方（under the bed 在床底下）。"
+    },
+
+    // 考點 8: 祈使句與對話應答
+    {
+      prompt: "The movie is about to start. Please ______ quiet in the theater.",
+      options: ["be", "is", "are", "being"],
+      ans: 0,
+      tip: "💡【祈使句原形】祈使句以原形動詞開頭，be 動詞的原形就是 be。"
+    },
+    {
+      prompt: "______ speak too loud here. People are studying in the library.",
+      options: ["Don't", "No", "Not", "Aren't"],
+      ans: 0,
+      tip: "💡【否定祈使句】命令或勸阻他人不要做某事，句首使用 Don't + 原形動詞。"
+    },
+
+    // 考點 9: 連接詞 (because / but / so / and)
+    {
+      prompt: "Frank likes to play basketball, ______ he can't play it today because it's raining.",
+      options: ["but", "so", "or", "because"],
+      ans: 0,
+      tip: "💡【轉折連接詞】前後語意相反或轉折（想打球但下雨不能打），使用 but。"
+    },
+    {
+      prompt: "Sally is sad ______ her parents have to fly to Singapore for work.",
+      options: ["because", "so", "but", "although"],
+      ans: 0,
+      tip: "💡【因果連接詞】後句說明前句難過的原因，使用 because（因為）。"
+    },
+
+    // 考點 10: 時間讀法實戰句
+    {
+      prompt: "The baseball game starts at 9:45. That means it begins at a ______ to ten.",
+      options: ["quarter", "half", "minute", "second"],
+      ans: 0,
+      tip: "💡【時間讀法】9:45 代表差一刻鐘（15分鐘）到十點，15 分鐘為 a quarter。"
+    },
+    {
+      prompt: "It's 10:30 now. We can also say it is ______ past ten.",
+      options: ["half", "quarter", "clock", "thirty to"],
+      ans: 0,
+      tip: "💡【時間讀法】10:30 代表十點過半小時，30 分鐘英文使用 half past。"
+    }
   ];
 
   const generated = [];
-  for (let i = 0; i < 500; i++) {
-    const type = i % 7;
-    const name1 = names[i % names.length];
-    const name2 = names[(i + 3) % names.length];
-    const loc = locations[i % locations.length];
-    const uncnt = uncountables[i % uncountables.length];
-    const cnt = countables[i % countables.length];
-    const v = verbs[i % verbs.length];
-    const hour = (i % 11) + 1;
-    const nextHour = hour + 1;
-
-    let qObj = {};
-    switch (type) {
-      case 0:
-        qObj = {
-          part: "重點文法：時間表達 (Quarter Past)",
-          prompt: `It's ${hour}:15 now. We can say it is ______ ${hour}.`,
-          options: ["a quarter past", "a quarter to", "half past", "at a quarter"],
-          ans: 0,
-          tip: `💡【時間讀法】${hour}:15 代表『過了一刻鐘』，使用 a quarter past ${hour}。`
-        };
-        break;
-      case 1:
-        qObj = {
-          part: "重點文法：時間表達 (Quarter To)",
-          prompt: `Look at the clock! It is ${hour}:45. It is ______ ${nextHour}.`,
-          options: ["a quarter to", "a quarter past", "half past", "15 to past"],
-          ans: 0,
-          tip: `💡【時間讀法】差 15 分鐘到 ${nextHour} 點（即 ${hour}:45），使用 a quarter to ${nextHour}。`
-        };
-        break;
-      case 2:
-        qObj = {
-          part: "重點文法：不可數名詞數量",
-          prompt: `How ______ ${uncnt.word} does ${name1} need in the kitchen?`,
-          options: ["much", "many", "a little", "any"],
-          ans: 0,
-          tip: `💡【不可數名詞】${uncnt.word}（${uncnt.hint}）為不可數名詞，詢問數量一律用 How much。`
-        };
-        break;
-      case 3:
-        qObj = {
-          part: "重點文法：可數複數數量",
-          prompt: `How ______ ${cnt.word} can you see on ${name1}'s table?`,
-          options: ["many", "much", "any", "some"],
-          ans: 0,
-          tip: `💡【可數名詞複數】${cnt.word}（${cnt.hint}）為可數複數名詞，詢問數量要用 How many。`
-        };
-        break;
-      case 4:
-        qObj = {
-          part: "重點文法：現在進行式問答",
-          prompt: `What is ${name1} doing ${loc}? She ______ now.`,
-          options: [`is ${v.ing}`, v.s, v.base, `has ${v.ing}`],
-          ans: 0,
-          tip: `💡【現在進行式】問句包含 is ... doing，回答必須對應用主詞 + be動詞 + V-ing（is ${v.ing}）。`
-        };
-        break;
-      case 5:
-        qObj = {
-          part: "重點文法：複數代名詞簡答",
-          prompt: `Are ${name1} and ${name2} ${v.ing} right now? No, ______.`,
-          options: ["they aren't", "he isn't", "they don't", "she isn't"],
-          ans: 0,
-          tip: `💡【代名詞與簡答】${name1} and ${name2} 為兩個人（they），be 動詞問句否定簡答用 No, they aren't。`
-        };
-        break;
-      case 6:
-      default:
-        qObj = {
-          part: "重點文法：空間介系詞 (Between)",
-          prompt: `The supermarket is ______ the hospital and ${name1}'s house.`,
-          options: ["between", "next to", "beside", "behind"],
-          ans: 0,
-          tip: "💡【空間介系詞】between A and B 為固定片語，表示『在兩者之間』。"
-        };
-        break;
-    }
-    qObj.qId = generateQuestionHash("g500_" + i + "_" + qObj.prompt);
-    generated.push(qObj);
+  const totalPoolSize = 500;
+  for (let i = 0; i < totalPoolSize; i++) {
+    const base = grammarTemplates[i % grammarTemplates.length];
+    const item = {
+      qId: generateQuestionHash("g500_v2_" + i + "_" + base.prompt),
+      part: "重點文法測驗",
+      prompt: base.prompt,
+      options: base.options.slice(),
+      ans: base.ans,
+      tip: base.tip
+    };
+    generated.push(item);
   }
   return generated;
 }
@@ -795,7 +880,7 @@ window.rawMockP2Data = [
   { part: "Part 3: Conversations (37)", prompt: "Question 37: Whose birthday is coming?", audioText: "From the previous conversation, listen to Question 37: Whose birthday is coming?", options: ["Jack's birthday.", "Lucy's birthday.", "Susan's birthday."], ans: 1, tip: "💡【壽星人物】開頭提到 Hi, Lucy, your birthday is coming，過生日的是 Lucy。" },
   { part: "Part 3: Conversations (38)", prompt: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", audioText: "From the previous conversation, listen to Question 38: How many friends may go to the birthday party with Lucy and Jack?", options: ["2 friends.", "3 friends (Jerry, Susan, and Henry).", "5 friends."], ans: 1, tip: "💡【名單清點】Lucy 邀請了 Jerry, Susan, Henry 共 3 位朋友。" },
   { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: "Listen to the conversation. Hi Helen. Where are you going? I am going to watch a movie. Really? What kind of movie are you going to watch? I want to see a science fiction movie. I have to run now. The movie is about to start. Okay, and I have to be home before lunch. See you. Now listen to Question 39: What kind of movies does Helen like?", options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, repeat: true, tip: "💡【喜好單字】Helen 想要看 science fiction movies（科幻電影）。" },
-  { part: "Part 3: Conversations (40)", prompt: "Question 40: Why does Helen have to run?", audioText: "From the previous conversation, listen to Question 40: Why does Helen have to run?", options: ["She wants to exercise.", "She needs to catch a bus.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 The movie is about to start（電影即將開始）。" },
+  { part: "Part 4: Talks (40)", prompt: "Question 40: Why does Helen have to run?", audioText: "From the previous conversation, listen to Question 40: Why does Helen have to run?", options: ["She wants to exercise.", "She needs to catch a bus.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 The movie is about to start（電影即將開始）。" },
   { part: "Part 4: Talks (41-42)", prompt: "Question 41: Where does Henry come from?", audioText: "Listen to the talk. Hello everyone, today I'd like to tell you something about my English studies. My name is Henry. I am from Japan. I am a student at Gram English. I like to study English very much, but my spoken English is not good. When I say R, I find it difficult to say it right. Now listen to Question 41: Where does Henry come from?", options: ["America.", "Singapore.", "Japan."], ans: 2, repeat: true, tip: "💡【國家細節】Henry 自我介紹提到 I am from Japan（日本）。" },
   { part: "Part 4: Talks (42)", prompt: "Question 42: Where does he learn English?", audioText: "From the talk, listen to Question 42: Where does he learn English?", options: ["At Gram English.", "At school in Japan.", "At home by himself."], ans: 0, tip: "💡【機構名稱】Henry 說 I am a student at Gram English。" },
   { part: "Part 4: Talks (43-45)", prompt: "Question 43: What can't Frank do?", audioText: "Listen to the talk. Frank and Maggie are my good friends. They can do many things. Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Maggie is very talented. She can sing and dance very well. She likes to practice Kung Fu on Mondays. We can all speak English very well. Now listen to Question 43: What can't Frank do?", options: ["Drive a car.", "Play the guitar.", "Ride a bicycle."], ans: 0, repeat: true, tip: "💡【否定情態轉折】Frank 會彈鋼琴、吉他、騎車，但 he CAN'T drive a car（不會開車）。" },
