@@ -1,8 +1,8 @@
 /**
  * ===================================================================
  * @file questions.js
- * @description 格蘭英語 B 級全方位題庫 (12大文法考點 + 450+ 完整單字庫無縮減版)
- * @version 7.0.0
+ * @description 格蘭英語 B 級全方位題庫 (30大文法矩陣深度擴充 + 去重抽題版)
+ * @version 9.0.0
  * ===================================================================
  */
 
@@ -16,7 +16,19 @@ function generateQuestionHash(str) {
   return "q_" + Math.abs(hash).toString(36);
 }
 
-// 動態時鐘 SVG 生成器 (中心圓軸半徑 r="7" 防止邊緣毛刺)
+// 陣列洗牌工具
+function localShuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = a[i];
+    a[i] = a[j];
+    a[j] = temp;
+  }
+  return a;
+}
+
+// 動態時鐘 SVG 生成器
 function generateClockSvg(hour, minute) {
   const minuteAngle = minute * 6;
   const hourAngle = (hour % 12) * 30 + (minute / 60) * 30;
@@ -49,7 +61,7 @@ function generateMapSvg(centerPlace, leftPlace, rightPlace) {
     <rect x="15" y="65" width="80" height="85" fill="#94a3b8" rx="6"/>
     <text x="55" y="112" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">${leftPlace}</text>
     <rect x="105" y="65" width="90" height="85" fill="#0284c7" rx="6"/>
-    <text x="150" y="112" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">${centerPlace}</text>
+    <text x="150" y="112" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">${centerPlace}</text>
     <rect x="205" y="65" width="80" height="85" fill="#f59e0b" rx="6"/>
     <text x="245" y="112" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">${rightPlace}</text>
     <line x1="10" y1="165" x2="290" y2="165" stroke="#cbd5e1" stroke-width="4"/>
@@ -57,7 +69,7 @@ function generateMapSvg(centerPlace, leftPlace, rightPlace) {
   </svg>`;
 }
 
-// Part 1 向量插圖庫
+// 靜態真題插圖
 window.p1SvgImages = {
   q1: `<svg viewBox="0 0 300 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#e0f2fe"/><rect x="30" y="130" width="240" height="70" fill="#94a3b8" rx="8"/><ellipse cx="150" cy="140" rx="45" ry="16" fill="#cbd5e1"/><circle cx="150" cy="65" r="28" fill="#fed7aa"/><circle cx="142" cy="62" r="3" fill="#1e293b"/><circle cx="158" cy="62" r="3" fill="#1e293b"/><rect x="110" y="93" width="80" height="40" fill="#f472b6" rx="10"/><rect x="152" y="71" width="38" height="6" fill="#0284c7" rx="3" transform="rotate(-10 152 71)"/><circle cx="142" cy="71" r="4" fill="#ffffff" opacity="0.8"/></svg>`,
   q2: generateClockSvg(12, 0),
@@ -85,206 +97,379 @@ window.p2SvgImages = {
   q10: `<svg viewBox="0 0 300 200" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="200" fill="#fffbeb"/><path d="M80,110 Q150,180 220,110 Z" fill="#dc2626"/><path d="M90,105 Q120,95 150,110 Q180,95 210,105" stroke="#facc15" stroke-width="5" fill="none"/><line x1="160" y1="50" x2="135" y2="105" stroke="#78350f" stroke-width="3"/><line x1="170" y1="50" x2="140" y2="105" stroke="#78350f" stroke-width="3"/></svg>`
 };
 
-// ==========================================
-// 1. 文法 500 題生成引擎 (升級：12大考點多樣態生活情境題庫)
-// ==========================================
+// =======================================================================
+// 1. 文法 500 題生成引擎 (30 大考點深度矩陣 + 多樣性詞庫)
+// =======================================================================
 function generate500GrammarQuestions() {
-  const grammarTemplates = [
-    // 考點 1: 時間介系詞 (at / on / in)
-    {
-      prompt: "The train usually arrives at the station ______ 7:30 a.m.",
-      options: ["at", "on", "in", "for"],
-      ans: 0,
-      tip: "💡【時間介系詞】具體的鐘點時間（如 7:30 a.m.）前面介系詞使用 at。"
-    },
-    {
-      prompt: "We have an English test ______ Monday morning.",
-      options: ["on", "at", "in", "with"],
-      ans: 0,
-      tip: "💡【時間介系詞】特定的星期、日期或特定某一天的早上下午，介系詞使用 on。"
-    },
-    {
-      prompt: "My family likes to go on a picnic ______ autumn.",
-      options: ["in", "at", "on", "to"],
-      ans: 0,
-      tip: "💡【時間介系詞】季節、月份、年份與早中晚（in the morning/afternoon），介系詞使用 in。"
-    },
+  const times = ["6:30 a.m.", "7:15 a.m.", "8:45 p.m.", "9:00 a.m.", "12:15 p.m.", "5:45 p.m.", "half past eight", "noon"];
+  const vehicles = ["The express train", "The school bus", "The airplane", "The fast ferry", "The MRT", "The tour bus"];
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+  const seasons = ["spring", "summer", "autumn", "winter"];
+  const months = ["January", "April", "July", "October", "December"];
+  
+  const singlePeople = [
+    { name: "My brother", pron: "He", obj: "him" },
+    { name: "Susan", pron: "She", obj: "her" },
+    { name: "Frank", pron: "He", obj: "him" },
+    { name: "The English teacher", pron: "She", obj: "her" },
+    { name: "Uncle David", pron: "He", obj: "him" },
+    { name: "Maggie", pron: "She", obj: "her" }
+  ];
 
-    // 考點 2: 現在進行式情境句
-    {
-      prompt: "Listen! The baby ______ in the bedroom. Please be quiet.",
-      options: ["is crying", "cries", "crying", "cry"],
-      ans: 0,
-      tip: "💡【現在進行式】Listen! 或 Look! 表當前正在發生的動作，主詞 The baby (單數) 搭配 is + V-ing。"
-    },
-    {
-      prompt: "Look! The boys ______ basketball happily in the playground.",
-      options: ["are playing", "is playing", "play", "played"],
-      ans: 0,
-      tip: "💡【主詞動詞一致】主詞 The boys 為複數名詞，現在進行式搭配 are + playing。"
-    },
-    {
-      prompt: "What ______ you and Kevin doing in the garage right now?",
-      options: ["are", "is", "do", "does"],
-      ans: 0,
-      tip: "💡【現在進行式疑問句】主詞 you and Kevin 為兩個人（複數），be 動詞使用 are。"
-    },
+  const pluralPeople = [
+    { name: "The boys", pron: "They", obj: "them" },
+    { name: "My parents", pron: "They", obj: "them" },
+    { name: "Lucy and Frank", pron: "They", obj: "them" },
+    { name: "The students", pron: "They", obj: "them" }
+  ];
 
-    // 考點 3: 存在句 (There is / There are)
-    {
-      prompt: "______ any milk left in the bottle on the table?",
-      options: ["Is there", "Are there", "Do there", "Have there"],
-      ans: 0,
-      tip: "💡【不可數存在句】milk（牛奶）為不可數名詞，疑問句型使用 Is there...？"
-    },
-    {
-      prompt: "There ______ two pillows and a soft blanket on the bed.",
-      options: ["are", "is", "have", "has"],
-      ans: 0,
-      tip: "💡【存在句主謂一致】鄰近的主詞 two pillows 為複數名詞，be 動詞使用 are。"
-    },
-    {
-      prompt: "There ______ any students in the classroom after 6:00 p.m.",
-      options: ["aren't", "isn't", "don't", "doesn't"],
-      ans: 0,
-      tip: "💡【存在句否定】students 為複數，否定句使用 There aren't any..."
-    },
+  const uncountables = [
+    { word: "sugar", hint: "糖", container: "a spoon of" },
+    { word: "milk", hint: "牛奶", container: "a glass of" },
+    { word: "shampoo", hint: "洗髮精", container: "a bottle of" },
+    { word: "money", hint: "金錢", container: "a lot of" },
+    { word: "soup", hint: "熱湯", container: "a bowl of" },
+    { word: "water", hint: "水", container: "a cup of" }
+  ];
 
-    // 考點 4: 助動詞與三單動詞
-    {
-      prompt: "Does your sister ______ her teeth before going to bed every night?",
-      options: ["brush", "brushes", "brushing", "brushed"],
-      ans: 0,
-      tip: "💡【助動詞後接原形】助動詞 Does 出現後，後面的主要動詞必須打回原形動詞 brush。"
-    },
-    {
-      prompt: "Tony ______ his homework every evening, so he always gets good grades.",
-      options: ["does", "do", "doing", "is do"],
-      ans: 0,
-      tip: "💡【第三人稱單數】主詞 Tony 為單數第三人稱，一般動詞 do 需加上 -es 變成 does。"
-    },
-    {
-      prompt: "Can Maggie drive a car? No, she ______.",
-      options: ["can't", "doesn't", "isn't", "won't"],
-      ans: 0,
-      tip: "💡【情態助動詞簡答】用 Can 提問能力的問句，否定簡答使用 No, she can't。"
-    },
+  const countables = [
+    { singular: "pillow", plural: "pillows", hint: "枕頭" },
+    { singular: "blanket", plural: "blankets", hint: "毛毯" },
+    { singular: "hanger", plural: "hangers", hint: "衣架" },
+    { singular: "cookie", plural: "cookies", hint: "餅乾" },
+    { singular: "sandwich", plural: "sandwiches", hint: "三明治" },
+    { singular: "marker", plural: "markers", hint: "彩色筆" }
+  ];
 
-    // 考點 5: 頻率副詞位置與意義
-    {
-      prompt: "Henry is a good student. He is ______ late for school.",
-      options: ["never", "always", "often", "sometimes"],
-      ans: 0,
-      tip: "💡【頻率副詞與句意】好學生從不遲到，never 代表從不（0%），且置於 be 動詞之後。"
-    },
-    {
-      prompt: "My father ______ coffee in the morning before going to work.",
-      options: ["usually drinks", "drinks usually", "is usually drink", "usually drinking"],
-      ans: 0,
-      tip: "💡【頻率副詞位置】頻率副詞（usually）應放在一般動詞（drinks）之前。"
-    },
+  const irregularNouns = [
+    { sing: "child", plur: "children", hint: "小孩" },
+    { sing: "tooth", plur: "teeth", hint: "牙齒" },
+    { sing: "foot", plur: "feet", hint: "腳" },
+    { sing: "man", plur: "men", hint: "男人" }
+  ];
 
-    // 考點 6: 疑問詞辨析 (Whose / Where / How much / How many)
-    {
-      prompt: "______ guitar is this on the sofa? It belongs to Henry.",
-      options: ["Whose", "Who", "Where", "Which"],
-      ans: 0,
-      tip: "💡【所有格疑問詞】詢問物品的所有人『誰的』，使用 Whose + 名詞。"
-    },
-    {
-      prompt: "______ shampoo do we need to buy from the supermarket?",
-      options: ["How much", "How many", "How often", "How long"],
-      ans: 0,
-      tip: "💡【不可數數量】shampoo（洗髮精）為不可數名詞，詢問數量使用 How much。"
-    },
-    {
-      prompt: "______ forks and spoons are there in the dining room?",
-      options: ["How many", "How much", "How often", "How old"],
-      ans: 0,
-      tip: "💡【可數複數數量】forks and spoons 為可數名詞複數，詢問數量使用 How many。"
-    },
+  const activities = [
+    { base: "brush teeth", ing: "brushing teeth", s: "brushes teeth", past: "brushed teeth" },
+    { base: "play basketball", ing: "playing basketball", s: "plays basketball", past: "played basketball" },
+    { base: "clean the room", ing: "cleaning the room", s: "cleans the room", past: "cleaned the room" },
+    { base: "listen to music", ing: "listening to music", s: "listens to music", past: "listened to music" },
+    { base: "wash dishes", ing: "washing dishes", s: "washes dishes", past: "washed dishes" },
+    { base: "watch television", ing: "watching television", s: "watches television", past: "watched television" }
+  ];
 
-    // 考點 7: 空間位置介系詞
-    {
-      prompt: "The bookstore is ______ the bakery and the bank.",
-      options: ["between", "next to", "opposite", "under"],
-      ans: 0,
-      tip: "💡【空間介系詞】between A and B 為固定搭配，表示『在兩者之間』。"
-    },
-    {
-      prompt: "Please put your shoes ______ the bed, not on the floor.",
-      options: ["under", "between", "among", "through"],
-      ans: 0,
-      tip: "💡【空間介系詞】under 代表在…下方（under the bed 在床底下）。"
-    },
-
-    // 考點 8: 祈使句與對話應答
-    {
-      prompt: "The movie is about to start. Please ______ quiet in the theater.",
-      options: ["be", "is", "are", "being"],
-      ans: 0,
-      tip: "💡【祈使句原形】祈使句以原形動詞開頭，be 動詞的原形就是 be。"
-    },
-    {
-      prompt: "______ speak too loud here. People are studying in the library.",
-      options: ["Don't", "No", "Not", "Aren't"],
-      ans: 0,
-      tip: "💡【否定祈使句】命令或勸阻他人不要做某事，句首使用 Don't + 原形動詞。"
-    },
-
-    // 考點 9: 連接詞 (because / but / so / and)
-    {
-      prompt: "Frank likes to play basketball, ______ he can't play it today because it's raining.",
-      options: ["but", "so", "or", "because"],
-      ans: 0,
-      tip: "💡【轉折連接詞】前後語意相反或轉折（想打球但下雨不能打），使用 but。"
-    },
-    {
-      prompt: "Sally is sad ______ her parents have to fly to Singapore for work.",
-      options: ["because", "so", "but", "although"],
-      ans: 0,
-      tip: "💡【因果連接詞】後句說明前句難過的原因，使用 because（因為）。"
-    },
-
-    // 考點 10: 時間讀法實戰句
-    {
-      prompt: "The baseball game starts at 9:45. That means it begins at a ______ to ten.",
-      options: ["quarter", "half", "minute", "second"],
-      ans: 0,
-      tip: "💡【時間讀法】9:45 代表差一刻鐘（15分鐘）到十點，15 分鐘為 a quarter。"
-    },
-    {
-      prompt: "It's 10:30 now. We can also say it is ______ past ten.",
-      options: ["half", "quarter", "clock", "thirty to"],
-      ans: 0,
-      tip: "💡【時間讀法】10:30 代表十點過半小時，30 分鐘英文使用 half past。"
-    }
+  const places = [
+    "the supermarket", "the library", "the hospital", "the bakery", 
+    "the post office", "the bank", "the dining room", "the kitchen"
   ];
 
   const generated = [];
-  const totalPoolSize = 500;
-  for (let i = 0; i < totalPoolSize; i++) {
-    const base = grammarTemplates[i % grammarTemplates.length];
-    const item = {
-      qId: generateQuestionHash("g500_v2_" + i + "_" + base.prompt),
-      part: "重點文法測驗",
-      prompt: base.prompt,
-      options: base.options.slice(),
-      ans: base.ans,
-      tip: base.tip
-    };
+
+  for (let i = 0; i < 500; i++) {
+    const type = i % 30; // 擴展為 30 大考點
+    const vhc = vehicles[i % vehicles.length];
+    const tm = times[i % times.length];
+    const dy = days[i % days.length];
+    const sea = seasons[i % seasons.length];
+    const mo = months[i % months.length];
+    const sp = singlePeople[i % singlePeople.length];
+    const pp = pluralPeople[i % pluralPeople.length];
+    const uncnt = uncountables[i % uncountables.length];
+    const cnt = countables[i % countables.length];
+    const irr = irregularNouns[i % irregularNouns.length];
+    const act = activities[i % activities.length];
+    const p1 = places[i % places.length];
+    const p2 = places[(i + 2) % places.length];
+    const p3 = places[(i + 4) % places.length];
+
+    let item = { typeTag: type };
+
+    switch (type) {
+      case 0:
+        item.part = "時間介系詞：具體鐘點 (at)";
+        item.prompt = `${vhc} usually arrives at the station ______ ${tm}.`;
+        item.options = ["at", "on", "in", "for"];
+        item.ans = 0;
+        item.tip = `💡【鐘點時刻】具體幾點幾分（如 ${tm}）前面必須搭配介系詞 at。`;
+        break;
+
+      case 1:
+        item.part = "時間介系詞：特定星期與早中晚 (on)";
+        item.prompt = `Our school will have an English contest ______ ${dy} morning.`;
+        item.options = ["on", "at", "in", "with"];
+        item.ans = 0;
+        item.tip = `💡【特定日子】特定星期或某一天的早晨/下午（如 ${dy} morning），一律用 on。`;
+        break;
+
+      case 2:
+        item.part = "時間介系詞：月份與季節 (in)";
+        item.prompt = `Many families love to travel abroad ______ ${sea}.`;
+        item.options = ["in", "at", "on", "to"];
+        item.ans = 0;
+        item.tip = `💡【月份季節】在某個季節（如 ${sea}）或月份（in ${mo}），使用介系詞 in。`;
+        break;
+
+      case 3:
+        item.part = "現在進行式：提示詞與正在發生 (is + V-ing)";
+        item.prompt = `Listen! The baby ______ in the bedroom. Please shut the door.`;
+        item.options = ["is crying", "cries", "crying", "cry"];
+        item.ans = 0;
+        item.tip = "💡【現在進行式】以 Look! 或 Listen! 開頭代表當前正在發生，單數主詞搭配 is + V-ing。";
+        break;
+
+      case 4:
+        item.part = "現在進行式：複數主詞 (are + V-ing)";
+        item.prompt = `Look over there! ${pp.name} ______ right now.`;
+        item.options = [`are ${act.ing}`, `is ${act.ing}`, act.s, act.base];
+        item.ans = 0;
+        item.tip = `💡【複數進行式】主詞 ${pp.name} 是複數，現在進行式必須搭配 are + V-ing。`;
+        break;
+
+      case 5:
+        item.part = "不可數名詞數量疑問詞 (How much)";
+        item.prompt = `How ______ ${uncnt.word} does ${sp.name} need for cooking?`;
+        item.options = ["much", "many", "any", "little"];
+        item.ans = 0;
+        item.tip = `💡【不可數名詞】${uncnt.word}（${uncnt.hint}）為不可數名詞，詢問數量一律用 How much。`;
+        break;
+
+      case 6:
+        item.part = "可數名詞數量疑問詞 (How many)";
+        item.prompt = `How ______ ${cnt.plural} can you see on the table?`;
+        item.options = ["many", "much", "any", "little"];
+        item.ans = 0;
+        item.tip = `💡【可數複數名詞】${cnt.plural}（${cnt.hint}）是可數名詞複數，詢問數量使用 How many。`;
+        break;
+
+      case 7:
+        item.part = "助動詞問句：還原原形動詞 (Does ... V)";
+        item.prompt = `Does ${sp.name} ______ every day after school?`;
+        item.options = [act.base, act.s, act.ing, act.past];
+        item.ans = 0;
+        item.tip = "💡【助動詞還原】問句開頭已有助動詞 Does，後方動詞必須還原為原形動詞。";
+        break;
+
+      case 8:
+        item.part = "現在簡單式：第三人稱單數動詞加 s/es";
+        item.prompt = `${sp.name} always ______ on weekends because ${sp.pron.toLowerCase()} is diligent.`;
+        item.options = [act.s, act.base, act.ing, `is ${act.ing}`];
+        item.ans = 0;
+        item.tip = `💡【三單現在式】主詞 ${sp.name} 為第三人稱單數，一般動詞必須字尾加 s 或 es。`;
+        break;
+
+      case 9:
+        item.part = "頻率副詞位置：be 動詞之後、一般動詞之前";
+        item.prompt = `${sp.name} is a polite student. ${sp.pron} is ______ rude to teachers.`;
+        item.options = ["never", "always", "sometimes", "usually"];
+        item.ans = 0;
+        item.tip = "💡【頻率副詞位置】從不（never）表示 0%，且必須放在 be 動詞之後、一般動詞之前。";
+        break;
+
+      case 10:
+        item.part = "空間介系詞：在兩者之間 (between A and B)";
+        item.prompt = `${p1.charAt(0).toUpperCase() + p1.slice(1)} is ______ ${p2} and ${p3}.`;
+        item.options = ["between", "next to", "behind", "in front"];
+        item.ans = 0;
+        item.tip = "💡【空間介系詞】between ... and ... 為固定搭配，代表『在兩者之間』。";
+        break;
+
+      case 11:
+        item.part = "否定祈使句：Don't + 原形動詞";
+        item.prompt = `______ loud noise here. People are studying inside.`;
+        item.options = ["Don't make", "Not make", "No making", "Doesn't make"];
+        item.ans = 0;
+        item.tip = "💡【否定祈使句】勸阻或命令他人不要做某事，句首使用 Don't + 原形動詞。";
+        break;
+
+      case 12:
+        item.part = "疑問詞：詢問所有權 (Whose)";
+        item.prompt = `______ ${cnt.singular} is this on the sofa? It belongs to ${sp.name}.`;
+        item.options = ["Whose", "Who", "Where", "Which"];
+        item.ans = 0;
+        item.tip = "💡【所有格疑問詞】詢問物品是誰的，使用 Whose + 名詞。";
+        break;
+
+      case 13:
+        item.part = "情態助動詞：can 後接原形動詞";
+        item.prompt = `${sp.name} can ______ very well, but ${sp.pron.toLowerCase()} cannot drive a car.`;
+        item.options = [act.base, act.s, act.ing, act.past];
+        item.ans = 0;
+        item.tip = "💡【情態助動詞】助動詞 can / cannot 後面一律接原形動詞。";
+        break;
+
+      case 14:
+        item.part = "義務情態：第三人稱單數 have to 變化 (has to)";
+        item.prompt = `${sp.name} ______ finish the homework before watching TV.`;
+        item.options = ["has to", "have to", "is having", "having to"];
+        item.ans = 0;
+        item.tip = `💡【三單 has to】主詞 ${sp.name} 為單數，表示『必須』要用 has to + 原形動詞。`;
+        break;
+
+      case 15:
+        item.part = "不規則名詞複數變化";
+        item.prompt = `There are three ______ playing happily in the garden.`;
+        item.options = [irr.plur, irr.sing, `${irr.sing}s`, `${irr.plur}s`];
+        item.ans = 0;
+        item.tip = `💡【不規則複數】${irr.sing} 的複數形是不規則變化 ${irr.plur}，不可隨便加 s。`;
+        break;
+
+      case 16:
+        item.part = "量詞片語：不可數名詞計量";
+        item.prompt = `Mom bought two ______ ${uncnt.word} from the supermarket.`;
+        item.options = ["bottles of", "bottle of", "bottles", "bottle"];
+        item.ans = 0;
+        item.tip = `💡【不可數計量】不可數名詞前面加上量詞時，複數要加在容器量詞上（如 bottles of）。`;
+        break;
+
+      case 17:
+        item.part = "過去簡單式：過去時間副詞 (yesterday / ago)";
+        item.prompt = `${sp.name} ______ yesterday afternoon.`;
+        item.options = [act.past, act.base, act.s, act.ing];
+        item.ans = 0;
+        item.tip = "💡【過去簡單式】句子含有 yesterday 等過去時間副詞，動詞必須使用過去式。";
+        break;
+
+      case 18:
+        item.part = "過去式助動詞問句：Did ... 原形動詞";
+        item.prompt = `Did you ______ last night? Yes, I did.`;
+        item.options = [act.base, act.past, act.s, act.ing];
+        item.ans = 0;
+        item.tip = "💡【過去助動詞】問句有助動詞 Did，後面動詞必須還原為原形動詞。";
+        break;
+
+      case 19:
+        item.part = "受格代名詞：置於動詞或介系詞後";
+        item.prompt = `The teacher is talking to ______. Please listen carefully.`;
+        item.options = ["us", "we", "our", "ours"];
+        item.ans = 0;
+        item.tip = "💡【受格代名詞】在動詞或介系詞（to）後面，代名詞必須使用受格（us）。";
+        break;
+
+      case 20:
+        item.part = "存在句：單複數與不可數名詞判斷";
+        item.prompt = `There ______ some milk and two apples on the kitchen table.`;
+        item.options = ["is", "are", "have", "has"];
+        item.ans = 0;
+        item.tip = "💡【存在句就近原則】There is/are 依照最靠近 be 動詞的第一個名詞（milk 不可數）決定使用 is。";
+        break;
+
+      case 21:
+        item.part = "存在句否定：Any 與複數/不可數搭配";
+        item.prompt = `There aren't ______ pictures on the bedroom wall.`;
+        item.options = ["any", "some", "a", "one"];
+        item.ans = 0;
+        item.tip = "💡【否定句 any】在否定句（aren't）中修飾複數名詞，通常使用 any。";
+        break;
+
+      case 22:
+        item.part = "連貫連接詞：因果關係 (because)";
+        item.prompt = `Sally is very sad ______ her parents cannot come to her birthday party.`;
+        item.options = ["because", "so", "but", "although"];
+        item.ans = 0;
+        item.tip = "💡【連接詞 because】後方子句為原因（父母無法前來），連接詞使用 because。";
+        break;
+
+      case 23:
+        item.part = "轉折連接詞：語氣對比 (but)";
+        item.prompt = `Frank can play the guitar, ______ he cannot drive a car.`;
+        item.options = ["but", "so", "because", "or"];
+        item.ans = 0;
+        item.tip = "💡【轉折詞 but】前後句語氣呈對比轉折（會彈吉他，但不會開車），使用 but。";
+        break;
+
+      case 24:
+        item.part = "授與動詞：give something to someone";
+        item.prompt = `Please give that storybook ______ me.`;
+        item.options = ["to", "for", "with", "at"];
+        item.ans = 0;
+        item.tip = "💡【授與動詞介系詞】give + 物品 + to + 對象，搭配介系詞 to。";
+        break;
+
+      case 25:
+        item.part = "喜好動詞後接動名詞 (like + V-ing)";
+        item.prompt = `Henry really likes ______ in the swimming pool in summer.`;
+        item.options = ["swimming", "swims", "swam", "swimmed"];
+        item.ans = 0;
+        item.tip = "💡【動名詞】like 後面接從事的休閒運動習慣時，通常搭配動名詞 V-ing（swimming）。";
+        break;
+
+      case 26:
+        item.part = "疑問詞：詢問頻率 (How often)";
+        item.prompt = `______ do you practice the piano? Twice a week.`;
+        item.options = ["How often", "How many", "How much", "How long"];
+        item.ans = 0;
+        item.tip = "💡【頻率提問】回答為一週兩次（Twice a week），疑問詞必須使用 How often。";
+        break;
+
+      case 27:
+        item.part = "肯定祈使句：原形動詞開頭";
+        item.prompt = `______ the door quietly. The baby is sleeping.`;
+        item.options = ["Shut", "Shuts", "Shutting", "To shut"];
+        item.ans = 0;
+        item.tip = "💡【肯定祈使句】給予指令或請求，句首必須直接使用原形動詞。";
+        break;
+
+      case 28:
+        item.part = "時間介系詞：整點與半點 (half past)";
+        item.prompt = `It's 7:30. In English, we say it is ______ seven.`;
+        item.options = ["half past", "a quarter to", "a quarter past", "twenty to"];
+        item.ans = 0;
+        item.tip = "💡【時間讀法】7:30 代表『過半個小時』，英文表達為 half past seven。";
+        break;
+
+      case 29:
+      default:
+        item.part = "助動詞簡答一致性 (Do/Does)";
+        item.prompt = `Do you have to go to school on time? No, I ______.`;
+        item.options = ["don't", "haven't", "can't", "am not"];
+        item.ans = 0;
+        item.tip = "💡【助動詞簡答】一般動詞問句 Do you have to...，否定簡答一律用 No, I don't。";
+        break;
+    }
+
+    item.qId = generateQuestionHash("g500_v4_" + i + "_" + item.prompt);
     generated.push(item);
   }
+
   return generated;
 }
 
 window.rawGrammarQuestions = generate500GrammarQuestions();
 
-// ==========================================
-// 2. 聽力考點 500 題生成引擎與全域掛載
-// ==========================================
+// 專為文法測驗設計的「防重複題型桶抽取器」（保證 25 題題型完全不同）
+window.getDiverseGrammarQuiz = function(count = 25) {
+  const pool = window.rawGrammarQuestions || generate500GrammarQuestions();
+  
+  // 按考點 typeTag 分組 (0 ~ 29)
+  const buckets = {};
+  pool.forEach(q => {
+    if (!buckets[q.typeTag]) buckets[q.typeTag] = [];
+    buckets[q.typeTag].push(q);
+  });
+
+  const availableTags = Object.keys(buckets);
+  const shuffledTags = localShuffle(availableTags);
+  const selectedQuiz = [];
+
+  // 每個考點最多只抽 1 題，抽滿 count 題
+  for (let i = 0; i < count && i < shuffledTags.length; i++) {
+    const tag = shuffledTags[i];
+    const candidateList = buckets[tag];
+    const randomPick = candidateList[Math.floor(Math.random() * candidateList.length)];
+    selectedQuiz.push(randomPick);
+  }
+
+  return localShuffle(selectedQuiz);
+};
+
+// =======================================================================
+// 2. 聽力考點 500 題生成引擎 (隨機地圖與多樣化建築)
+// =======================================================================
 function generate500ListeningReviewQuestions() {
-  const names = ["Andy", "Julia", "Janice", "Henry", "Susan", "Tina", "Frank", "Stephen", "Lucy", "Jerry", "Maggie", "Kathy", "Jason", "Mike"];
+  const landmarks = [
+    "SUPERMARKET", "HOSPITAL", "RESTAURANT", "LIBRARY", "BAKERY", 
+    "POST OFFICE", "BANK", "POLICE STATION", "BOOKSTORE", "PARK"
+  ];
+  const names = ["Andy", "Julia", "Janice", "Henry", "Susan", "Tina", "Frank", "Stephen", "Lucy", "Jerry", "Maggie", "Kathy"];
   const locations = [
     { place: "in the kitchen", label: "廚房" },
     { place: "in the living room", label: "客廳" },
@@ -297,11 +482,6 @@ function generate500ListeningReviewQuestions() {
     { word: "shampoo", hint: "洗髮精" },
     { word: "money", hint: "錢" }
   ];
-  const countables = [
-    { word: "cookies", hint: "餅乾" },
-    { word: "sandwiches", hint: "三明治" },
-    { word: "pillows", hint: "枕頭" }
-  ];
   const activities = [
     { base: "play the guitar", ing: "playing the guitar", third: "plays the guitar" },
     { base: "play the piano", ing: "playing the piano", third: "plays the piano" },
@@ -310,22 +490,27 @@ function generate500ListeningReviewQuestions() {
   ];
 
   const generated = [];
+
   for (let i = 0; i < 500; i++) {
     const type = i % 6;
     const name1 = names[i % names.length];
     const loc = locations[i % locations.length];
     const uncnt = uncountables[i % uncountables.length];
-    const cnt = countables[i % countables.length];
     const act = activities[i % activities.length];
     const hour = (i % 11) + 1;
     const nextHour = hour + 1;
+
+    const lShuffled = localShuffle(landmarks);
+    const centerB = lShuffled[0];
+    const leftB = lShuffled[1];
+    const rightB = lShuffled[2];
 
     let qObj = {};
     switch (type) {
       case 0:
         qObj = {
           part: "【考點 1】時間辨析 (Quarter past)",
-          prompt: `Question: Look at the clock. What time is it?`,
+          prompt: "Question: Look at the clock. What time is it?",
           svgData: generateClockSvg(hour, 15),
           sceneHint: `時鐘短針指向 ${hour}，長針指向 3（即 ${hour}:15）。`,
           audioText: `Look at the clock and choose the best statement. Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${hour}. Statement C: It's half past ${hour}.`,
@@ -337,7 +522,7 @@ function generate500ListeningReviewQuestions() {
       case 1:
         qObj = {
           part: "【考點 1】時間辨析 (Quarter to)",
-          prompt: `Question: Look at the clock. What time is it?`,
+          prompt: "Question: Look at the clock. What time is it?",
           svgData: generateClockSvg(hour, 45),
           sceneHint: `時鐘短針指向近 ${nextHour}，長針指向 9（即 ${hour}:45）。`,
           audioText: `Look at the clock and choose the best statement. Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${nextHour}. Statement C: It's half past ${hour}.`,
@@ -348,14 +533,18 @@ function generate500ListeningReviewQuestions() {
         break;
       case 2:
         qObj = {
-          part: "【考點 2】位置介系詞 (Between)",
-          prompt: "Question: Look at the map. Where is the supermarket?",
-          svgData: generateMapSvg("SUPERMARKET", "HOSPITAL", "RESTAURANT"),
-          sceneHint: "地圖上，Supermarket（超市）位於 Hospital（醫院）與 Restaurant（餐廳）的中間。",
-          audioText: "Look at the map. Where is the supermarket? Statement A: The supermarket is beside the library. Statement B: The supermarket is between the hospital and the restaurant. Statement C: The supermarket is behind the school.",
-          options: ["The supermarket is beside the library.", "The supermarket is between the hospital and the restaurant.", "The supermarket is behind the school."],
+          part: "【考點 2】位置介系詞 (Between 隨機街景)",
+          prompt: `Question: Look at the map. Where is the ${centerB.toLowerCase()}?`,
+          svgData: generateMapSvg(centerB, leftB, rightB),
+          sceneHint: `地圖上，${centerB} 位於 ${leftB} 與 ${rightB} 的中間。`,
+          audioText: `Look at the map. Where is the ${centerB.toLowerCase()}? Statement A: It is beside the park. Statement B: It is between the ${leftB.toLowerCase()} and the ${rightB.toLowerCase()}. Statement C: It is behind the school.`,
+          options: [
+            "It is beside the park.",
+            `It is between the ${leftB.toLowerCase()} and the ${rightB.toLowerCase()}.`,
+            "It is behind the school."
+          ],
           ans: 1,
-          tip: "💡【空間介系詞】between A and B 代表『在兩者之間』。"
+          tip: `💡【空間介系詞】between A and B 代表『在兩者之間』。圖中 ${centerB} 位於兩棟建築中間。`
         };
         break;
       case 3:
@@ -365,7 +554,7 @@ function generate500ListeningReviewQuestions() {
           audioText: `Where does ${name1} ${act.base}? A: He has a big bag. B: In the ${loc.label}. C: Yes, he does it every day.`,
           options: ["He has a big bag.", `He does it ${loc.place}.`, "Yes, he does it every day."],
           ans: 1,
-          tip: `💡【地點問答】聽到 Where 提問，核心回答為具體空間介系詞片語。`
+          tip: "💡【地點問答】聽到 Where 提問，核心回答為具體空間介系詞片語。"
         };
         break;
       case 4:
@@ -375,7 +564,7 @@ function generate500ListeningReviewQuestions() {
           audioText: `What is ${name1} doing right now? A: She is ${act.ing}. B: She ${act.third} every Sunday. C: She can ${act.base}.`,
           options: [`She is ${act.ing}.`, `She ${act.third} every Sunday.`, `She can ${act.base}.`],
           ans: 0,
-          tip: `💡【現在進行式】問句包含 is ... doing，回答必須使用主詞 + be動詞 + V-ing。`
+          tip: "💡【現在進行式】問句包含 is ... doing，回答必須使用主詞 + be動詞 + V-ing。"
         };
         break;
       case 5:
@@ -390,7 +579,7 @@ function generate500ListeningReviewQuestions() {
         };
         break;
     }
-    qObj.qId = generateQuestionHash("l500_" + i + "_" + qObj.prompt);
+    qObj.qId = generateQuestionHash("l500_v3_" + i + "_" + qObj.prompt);
     generated.push(qObj);
   }
   return generated;
@@ -398,398 +587,177 @@ function generate500ListeningReviewQuestions() {
 
 window.rawReviewQuestions = generate500ListeningReviewQuestions();
 
-// ==========================================
-// 3. 官方 450+ 基礎單字母庫 (完整 12 大分類完全展開無刪減)
-// ==========================================
+// =======================================================================
+// 3. 官方 450+ 基礎單字母庫 (含 category 分類)
+// =======================================================================
 window.bLevelVocabMasterPool = [
-  // 1. 居家生活與日常用品
-  { word: "closet", meaning: "衣櫥 / 衣櫃", kk: "[ˋklɑzɪt]", tip: "closet (衣櫥) KK: [ˋklɑzɪt]" },
-  { word: "pillow", meaning: "枕頭", kk: "[ˋpɪlo]", tip: "pillow (枕頭) KK: [ˋpɪlo]" },
-  { word: "blanket", meaning: "毛毯 / 被子", kk: "[ˋblæŋkɪt]", tip: "blanket (毛毯) KK: [ˋblæŋkɪt]" },
-  { word: "hanger", meaning: "衣架", kk: "[ˋhæŋɚ]", tip: "hanger (衣架) KK: [ˋhæŋɚ]" },
-  { word: "drawer", meaning: "抽屜", kk: "[drɔr]", tip: "drawer (抽屜) KK: [drɔr]" },
-  { word: "shelf", meaning: "架子", kk: "[ʃɛlf]", tip: "shelf (架子) KK: [ʃɛlf]" },
-  { word: "sofa", meaning: "沙發", kk: "[ˋsofə]", tip: "sofa (沙發) KK: [ˋsofə]" },
-  { word: "lamp", meaning: "檯燈", kk: "[læmp]", tip: "lamp (檯燈) KK: [læmp]" },
-  { word: "vase", meaning: "花瓶", kk: "[ves]", tip: "vase (花瓶) KK: [ves]" },
-  { word: "towel", meaning: "毛巾", kk: "[ˋtaʊəl]", tip: "towel (毛巾) KK: [ˋtaʊəl]" },
-  { word: "soap", meaning: "肥皂", kk: "[sop]", tip: "soap (肥皂) KK: [sop]" },
-  { word: "shampoo", meaning: "洗髮精", kk: "[ʃæmˋpu]", tip: "shampoo (洗髮精) KK: [ʃæmˋpu]" },
-  { word: "radio", meaning: "收音機", kk: "[ˋredo]", tip: "radio (收音機) KK: [ˋredo]" },
-  { word: "clock", meaning: "時鐘", kk: "[klɑk]", tip: "clock (時鐘) KK: [klɑk]" },
-  { word: "watch", meaning: "手錶", kk: "[wɑtʃ]", tip: "watch (手錶) KK: [wɑtʃ]" },
-  { word: "plate", meaning: "盤子", kk: "[plet]", tip: "plate (盤子) KK: [plet]" },
-  { word: "bowl", meaning: "碗", kk: "[bol]", tip: "bowl (碗) KK: [bol]" },
-  { word: "fork", meaning: "叉子", kk: "[fɔrk]", tip: "fork (叉子) KK: [fɔrk]" },
-  { word: "knife", meaning: "刀子", kk: "[naɪf]", tip: "knife (刀子) KK: [naɪf]" },
-  { word: "spoon", meaning: "湯匙", kk: "[spun]", tip: "spoon (湯匙) KK: [spun]" },
-  { word: "glass", meaning: "玻璃杯", kk: "[glæs]", tip: "glass (玻璃杯) KK: [glæs]" },
-  { word: "cup", meaning: "茶杯", kk: "[kʌp]", tip: "cup (茶杯) KK: [kʌp]" },
-  { word: "bottle", meaning: "瓶子", kk: "[ˋbɑt!]", tip: "bottle (瓶子) KK: [ˋbɑt!]" },
-  { word: "door", meaning: "門", kk: "[dɔr]", tip: "door (門) KK: [dɔr]" },
-  { word: "window", meaning: "窗戶", kk: "[ˋwɪndo]", tip: "window (窗戶) KK: [ˋwɪndo]" },
-  { word: "floor", meaning: "地板", kk: "[flɔr]", tip: "floor (地板) KK: [flɔr]" },
-  { word: "wall", meaning: "牆壁", kk: "[wɔl]", tip: "wall (牆壁) KK: [wɔl]" },
-  { word: "mirror", meaning: "鏡子", kk: "[ˋmɪrɚ]", tip: "mirror (鏡子) KK: [ˋmɪrɚ]" },
-  { word: "trash can", meaning: "垃圾桶", kk: "[træʃ kæn]", tip: "trash can (垃圾桶) KK: [træʃ kæn]" },
-  { word: "umbrella", meaning: "雨傘", kk: "[ʌmˋbrɛlə]", tip: "umbrella (雨傘) KK: [ʌmˋbrɛlə]" },
-  { word: "key", meaning: "鑰匙", kk: "[ki]", tip: "key (鑰匙) KK: [ki]" },
-  { word: "fan", meaning: "電風扇", kk: "[fæn]", tip: "fan (電扇) KK: [fæn]" },
-  { word: "curtain", meaning: "窗簾", kk: "[ˋkɝtn]", tip: "curtain (窗簾) KK: [ˋkɝtn]" },
-  { word: "mat", meaning: "地墊", kk: "[mæt]", tip: "mat (地墊) KK: [mæt]" },
+  // 家具生活類 (house)
+  { word: "closet", meaning: "衣櫥 / 衣櫃", category: "house", kk: "[ˋklɑzɪt]", tip: "closet (衣櫥) KK: [ˋklɑzɪt]" },
+  { word: "pillow", meaning: "枕頭", category: "house", kk: "[ˋpɪlo]", tip: "pillow (枕頭) KK: [ˋpɪlo]" },
+  { word: "blanket", meaning: "毛毯 / 被子", category: "house", kk: "[ˋblæŋkɪt]", tip: "blanket (毛毯) KK: [ˋblæŋkɪt]" },
+  { word: "hanger", meaning: "衣架", category: "house", kk: "[ˋhæŋɚ]", tip: "hanger (衣架) KK: [ˋhæŋɚ]" },
+  { word: "drawer", meaning: "抽屜", category: "house", kk: "[drɔr]", tip: "drawer (抽屜) KK: [drɔr]" },
+  { word: "shelf", meaning: "架子", category: "house", kk: "[ʃɛlf]", tip: "shelf (架子) KK: [ʃɛlf]" },
+  { word: "sofa", meaning: "沙發", category: "house", kk: "[ˋsofə]", tip: "sofa (沙發) KK: [ˋsofə]" },
+  { word: "lamp", meaning: "檯燈", category: "house", kk: "[læmp]", tip: "lamp (檯燈) KK: [læmp]" },
+  { word: "vase", meaning: "花瓶", category: "house", kk: "[ves]", tip: "vase (花瓶) KK: [ves]" },
+  { word: "towel", meaning: "毛巾", category: "house", kk: "[ˋtaʊəl]", tip: "towel (毛巾) KK: [ˋtaʊəl]" },
+  { word: "soap", meaning: "肥皂", category: "house", kk: "[sop]", tip: "soap (肥皂) KK: [sop]" },
+  { word: "shampoo", meaning: "洗髮精", category: "house", kk: "[ʃæmˋpu]", tip: "shampoo (洗髮精) KK: [ʃæmˋpu]" },
+  { word: "clock", meaning: "時鐘", category: "house", kk: "[klɑk]", tip: "clock (時鐘) KK: [klɑk]" },
+  { word: "mirror", meaning: "鏡子", category: "house", kk: "[ˋmɪrɚ]", tip: "mirror (鏡子) KK: [ˋmɪrɚ]" },
+  { word: "curtain", meaning: "窗簾", category: "house", kk: "[ˋkɝtn]", tip: "curtain (窗簾) KK: [ˋkɝtn]" },
+  { word: "fan", meaning: "電風扇", category: "house", kk: "[fæn]", tip: "fan (電風扇) KK: [fæn]" },
 
-  // 2. 飲食、三餐與點心
-  { word: "sausages", meaning: "香腸", kk: "[ˋsɔsɪdʒɪz]", tip: "sausages (香腸) KK: [ˋsɔsɪdʒɪz]" },
-  { word: "sandwiches", meaning: "三明治", kk: "[ˋsændwɪtʃɪz]", tip: "sandwiches (三明治) KK: [ˋsændwɪtʃɪz]" },
-  { word: "cookies", meaning: "餅乾", kk: "[ˋkʊkɪz]", tip: "cookies (餅乾) KK: [ˋkʊkɪz]" },
-  { word: "noodles", meaning: "麵條", kk: "[ˋnud!z]", tip: "noodles (麵條) KK: [ˋnud!z]" },
-  { word: "hamburgers", meaning: "漢堡", kk: "[ˋhæmbɚgɚz]", tip: "hamburgers (漢堡) KK: [ˋhæmbɚgɚz]" },
-  { word: "vegetables", meaning: "蔬菜", kk: "[ˋvɛdʒətəb!z]", tip: "vegetables (蔬菜) KK: [ˋvɛdʒətəb!z]" },
-  { word: "strawberries", meaning: "草莓", kk: "[ˋstrɔ͵bɛrɪz]", tip: "strawberries (草莓) KK: [ˋstrɔ͵bɛrɪz]" },
-  { word: "breakfast", meaning: "早餐", kk: "[ˋbrɛkfəst]", tip: "breakfast (早餐) KK: [ˋbrɛkfəst]" },
-  { word: "lunch", meaning: "午餐", kk: "[lʌntʃ]", tip: "lunch (午餐) KK: [lʌntʃ]" },
-  { word: "dinner", meaning: "晚餐", kk: "[ˋdɪnɚ]", tip: "dinner (晚餐) KK: [ˋdɪnɚ]" },
-  { word: "picnic", meaning: "野餐", kk: "[ˋpɪknɪk]", tip: "picnic (野餐) KK: [ˋpɪknɪk]" },
-  { word: "sugar", meaning: "糖", kk: "[ˋʃʊgɚ]", tip: "sugar (糖) KK: [ˋʃʊgɚ]" },
-  { word: "soup", meaning: "湯", kk: "[sup]", tip: "soup (湯) KK: [sup]" },
-  { word: "milk", meaning: "牛奶", kk: "[mɪlk]", tip: "milk (牛奶) KK: [mɪlk]" },
-  { word: "juice", meaning: "果汁", kk: "[dʒus]", tip: "juice (果汁) KK: [dʒus]" },
-  { word: "tea", meaning: "茶", kk: "[ti]", tip: "tea (茶) KK: [ti]" },
-  { word: "coffee", meaning: "咖啡", kk: "[ˋkɔfɪ]", tip: "coffee (咖啡) KK: [ˋkɔfɪ]" },
-  { word: "water", meaning: "水", kk: "[ˋwɔtɚ]", tip: "water (水) KK: [ˋwɔtɚ]" },
-  { word: "corn", meaning: "玉米", kk: "[kɔrn]", tip: "corn (玉米) KK: [kɔrn]" },
-  { word: "rice", meaning: "米飯", kk: "[raɪs]", tip: "rice (米飯) KK: [raɪs]" },
-  { word: "bread", meaning: "麵包", kk: "[brɛd]", tip: "bread (麵包) KK: [brɛd]" },
-  { word: "butter", meaning: "奶油", kk: "[ˋbʌtɚ]", tip: "butter (奶油) KK: [ˋbʌtɚ]" },
-  { word: "cheese", meaning: "起司", kk: "[tʃiz]", tip: "cheese (起司) KK: [tʃiz]" },
-  { word: "egg", meaning: "雞蛋", kk: "[ɛg]", tip: "egg (雞蛋) KK: [ɛg]" },
-  { word: "chicken", meaning: "雞肉", kk: "[ˋtʃɪkɪn]", tip: "chicken (雞肉) KK: [ˋtʃɪkɪn]" },
-  { word: "beef", meaning: "牛肉", kk: "[bif]", tip: "beef (牛肉) KK: [bif]" },
-  { word: "pork", meaning: "豬肉", kk: "[pɔrk]", tip: "pork (豬肉) KK: [pɔrk]" },
-  { word: "fish", meaning: "魚肉", kk: "[fɪʃ]", tip: "fish (魚肉) KK: [fɪʃ]" },
-  { word: "apple", meaning: "蘋果", kk: "[ˋæp!]", tip: "apple (蘋果) KK: [ˋæp!]" },
-  { word: "banana", meaning: "香蕉", kk: "[bəˋnænə]", tip: "banana (香蕉) KK: [bəˋnænə]" },
-  { word: "orange", meaning: "柳橙", kk: "[ˋɔrɪndʒ]", tip: "orange (柳橙) KK: [ˋɔrɪndʒ]" },
-  { word: "grape", meaning: "葡萄", kk: "[grep]", tip: "grape (葡萄) KK: [grep]" },
-  { word: "watermelon", meaning: "西瓜", kk: "[ˋwɔtɚ͵mɛlən]", tip: "watermelon (西瓜) KK: [ˋwɔtɚ͵mɛlən]" },
-  { word: "ice cream", meaning: "冰淇淋", kk: "[ˋaɪs ͵krim]", tip: "ice cream (冰淇淋) KK: [ˋaɪs ͵krim]" },
-  { word: "cake", meaning: "蛋糕", kk: "[kek]", tip: "cake (蛋糕) KK: [kek]" },
-  { word: "candy", meaning: "糖果", kk: "[ˋkændɪ]", tip: "candy (糖果) KK: [ˋkændɪ]" },
-  { word: "chocolate", meaning: "巧克力", kk: "[ˋtʃɑkəlɪt]", tip: "chocolate (巧克力) KK: [ˋtʃɑkəlɪt]" },
-  { word: "pizza", meaning: "披薩", kk: "[ˋpitsə]", tip: "pizza (披薩) KK: [ˋpitsə]" },
-  { word: "French fries", meaning: "薯條", kk: "[frɛntʃ fraɪz]", tip: "French fries (薯條) KK: [frɛntʃ fraɪz]" },
-  { word: "hot dog", meaning: "熱狗", kk: "[hɑt dɔg]", tip: "hot dog (熱狗) KK: [hɑt dɔg]" },
-  { word: "pie", meaning: "派 / 餡餅", kk: "[paɪ]", tip: "pie (派) KK: [paɪ]" },
-  { word: "popcorn", meaning: "爆米花", kk: "[ˋpɑp͵kɔrn]", tip: "popcorn (爆米花) KK: [ˋpɑp͵kɔrn]" },
-  { word: "salt", meaning: "鹽巴", kk: "[sɔlt]", tip: "salt (鹽巴) KK: [sɔlt]" },
-  { word: "pepper", meaning: "胡椒粉", kk: "[ˋpɛpɚ]", tip: "pepper (胡椒) KK: [ˋpɛpɚ]" },
-  { word: "oil", meaning: "食用油", kk: "[ɔɪl]", tip: "oil (油) KK: [油]" },
-  { word: "flour", meaning: "麵粉", kk: "[ˋflaʊɚ]", tip: "flour (麵粉) KK: [ˋflaʊɚ]" },
-  { word: "snack", meaning: "點心", kk: "[snæk]", tip: "snack (點心) KK: [snæk]" },
-  { word: "peach", meaning: "桃子", kk: "[pitʃ]", tip: "peach (桃子) KK: [pitʃ]" },
-  { word: "lemon", meaning: "檸檬", kk: "[ˋlɛmən]", tip: "lemon (檸檬) KK: [ˋlɛmən]" },
-  { word: "pear", meaning: "梨子", kk: "[pɛr]", tip: "pear (梨子) KK: [pɛr]" },
-  { word: "tomato", meaning: "番茄", kk: "[təˋmeto]", tip: "tomato (番茄) KK: [təˋmeto]" },
-  { word: "potato", meaning: "馬鈴薯", kk: "[pəˋteto]", tip: "potato (馬鈴薯) KK: [pəˋteto]" },
-  { word: "carrot", meaning: "胡蘿蔔", kk: "[ˋkærət]", tip: "carrot (胡蘿蔔) KK: [ˋkærət]" },
-  { word: "onion", meaning: "洋蔥", kk: "[ˋʌnjən]", tip: "onion (洋蔥) KK: [ˋʌnjən]" },
+  // 餐具飲食類 (food)
+  { word: "plate", meaning: "盤子", category: "food", kk: "[plet]", tip: "plate (盤子) KK: [plet]" },
+  { word: "bowl", meaning: "碗", category: "food", kk: "[bol]", tip: "bowl (碗) KK: [bol]" },
+  { word: "fork", meaning: "叉子", category: "food", kk: "[fɔrk]", tip: "fork (叉子) KK: [fɔrk]" },
+  { word: "spoon", meaning: "湯匙", category: "food", kk: "[spun]", tip: "spoon (湯匙) KK: [spun]" },
+  { word: "sausages", meaning: "香腸", category: "food", kk: "[ˋsɔsɪdʒɪz]", tip: "sausages (香腸) KK: [ˋsɔsɪdʒɪz]" },
+  { word: "sandwiches", meaning: "三明治", category: "food", kk: "[ˋsændwɪtʃɪz]", tip: "sandwiches (三明治) KK: [ˋsændwɪtʃɪz]" },
+  { word: "cookies", meaning: "餅乾", category: "food", kk: "[ˋkʊkɪz]", tip: "cookies (餅乾) KK: [ˋkʊkɪz]" },
+  { word: "noodles", meaning: "麵條", category: "food", kk: "[ˋnud!z]", tip: "noodles (麵條) KK: [ˋnud!z]" },
+  { word: "hamburgers", meaning: "漢堡", category: "food", kk: "[ˋhæmbɚgɚz]", tip: "hamburgers (漢堡) KK: [ˋhæmbɚgɚz]" },
+  { word: "vegetables", meaning: "蔬菜", category: "food", kk: "[ˋvɛdʒətəb!z]", tip: "vegetables (蔬菜) KK: [ˋvɛdʒətəb!z]" },
+  { word: "strawberries", meaning: "草莓", category: "food", kk: "[ˋstrɔ͵bɛrɪz]", tip: "strawberries (草莓) KK: [ˋstrɔ͵bɛrɪz]" },
+  { word: "sugar", meaning: "糖", category: "food", kk: "[ˋʃʊgɚ]", tip: "sugar (糖) KK: [ˋʃʊgɚ]" },
+  { word: "corn", meaning: "玉米", category: "food", kk: "[kɔrn]", tip: "corn (玉米) KK: [kɔrn]" },
+  { word: "butter", meaning: "奶油", category: "food", kk: "[ˋbʌtɚ]", tip: "butter (奶油) KK: [ˋbʌtɚ]" },
+  { word: "cheese", meaning: "起司", category: "food", kk: "[tʃiz]", tip: "cheese (起司) KK: [tʃiz]" },
+  { word: "snack", meaning: "點心", category: "food", kk: "[snæk]", tip: "snack (點心) KK: [snæk]" },
+  { word: "oil", meaning: "食用油", category: "food", kk: "[ɔɪl]", tip: "oil (食用油) KK: [ɔɪl]" },
 
-  // 3. 動作與生活動詞
-  { word: "tremble", meaning: "發抖 / 顫抖", kk: "[ˋtrɛmb!]", tip: "tremble (顫抖) KK: [ˋtrɛmb!]" },
-  { word: "yawn", meaning: "打哈欠", kk: "[jɔn]", tip: "yawn (打哈欠) KK: [jɔn]" },
-  { word: "stretch", meaning: "伸展 / 伸懶腰", kk: "[strɛtʃ]", tip: "stretch (伸展) KK: [strɛtʃ]" },
-  { word: "shut", meaning: "閉上 / 關閉", kk: "[ʃʌt]", tip: "shut (閉上) KK: [ʃʌt]" },
-  { word: "open", meaning: "打開", kk: "[ˋopən]", tip: "open (打開) KK: [ˋopən]" },
-  { word: "brush", meaning: "刷 (牙/毛)", kk: "[brʌʃ]", tip: "brush (刷) KK: [brʌʃ]" },
-  { word: "wash", meaning: "清洗", kk: "[wɑʃ]", tip: "wash (清洗) KK: [wɑʃ]" },
-  { word: "borrow", meaning: "借入", kk: "[ˋbɑro]", tip: "borrow (借入) KK: [ˋbɑro]" },
-  { word: "lend", meaning: "借出", kk: "[lɛnd]", tip: "lend (借出) KK: [lɛnd]" },
-  { word: "prepare", meaning: "準備", kk: "[prɪˋpɛr]", tip: "prepare (準備) KK: [prɪˋpɛr]" },
-  { word: "celebrate", meaning: "慶祝", kk: "[ˋsɛlə͵bret]", tip: "celebrate (慶祝) KK: [ˋsɛlə͵bret]" },
-  { word: "invite", meaning: "邀請", kk: "[ɪnˋvaɪt]", tip: "invite (邀請) KK: [ɪnˋvaɪt]" },
-  { word: "touch", meaning: "碰觸", kk: "[tʌtʃ]", tip: "touch (碰觸) KK: [tʌtʃ]" },
-  { word: "swim", meaning: "游泳", kk: "[swɪm]", tip: "swim (游泳) KK: [swɪm]" },
-  { word: "jump", meaning: "跳躍", kk: "[dʒʌmp]", tip: "jump (跳躍) KK: [dʒʌmp]" },
-  { word: "run", meaning: "跑步", kk: "[rʌn]", tip: "run (跑步) KK: [rʌn]" },
-  { word: "walk", meaning: "走路", kk: "[wɔk]", tip: "walk (走路) KK: [wɔk]" },
-  { word: "climb", meaning: "攀爬", kk: "[klaɪm]", tip: "climb (攀爬) KK: [klaɪm]" },
-  { word: "dance", meaning: "跳舞", kk: "[dæns]", tip: "dance (跳舞) KK: [dæns]" },
-  { word: "sing", meaning: "唱歌", kk: "[sɪŋ]", tip: "sing (唱歌) KK: [sɪŋ]" },
-  { word: "draw", meaning: "繪畫", kk: "[drɔ]", tip: "draw (繪畫) KK: [drɔ]" },
-  { word: "paint", meaning: "油彩塗色", kk: "[pent]", tip: "paint (塗色) KK: [pent]" },
-  { word: "read", meaning: "閱讀", kk: "[rid]", tip: "read (閱讀) KK: [rid]" },
-  { word: "write", meaning: "書寫", kk: "[raɪt]", tip: "write (書寫) KK: [raɪt]" },
-  { word: "speak", meaning: "說話", kk: "[spik]", tip: "speak (說話) KK: [spik]" },
-  { word: "listen", meaning: "聆聽", kk: "[ˋlɪsn]", tip: "listen (聆聽) KK: [ˋlɪsn]" },
-  { word: "shout", meaning: "大喊", kk: "[ʃaʊt]", tip: "shout (大喊) KK: [ʃaʊt]" },
-  { word: "laugh", meaning: "大笑", kk: "[læf]", tip: "laugh (大笑) KK: [læf]" },
-  { word: "cry", meaning: "哭泣", kk: "[kraɪ]", tip: "cry (哭泣) KK: [kraɪ]" },
-  { word: "smile", meaning: "微笑", kk: "[smaɪl]", tip: "smile (微笑) KK: [smaɪl]" },
-  { word: "sleep", meaning: "睡覺", kk: "[slip]", tip: "sleep (睡覺) KK: [slip]" },
-  { word: "cook", meaning: "烹飪", kk: "[kʊk]", tip: "cook (烹飪) KK: [kʊk]" },
-  { word: "clean", meaning: "打掃", kk: "[klin]", tip: "clean (打掃) KK: [klin]" },
-  { word: "ride", meaning: "騎乘", kk: "[raɪd]", tip: "ride (騎乘) KK: [raɪd]" },
-  { word: "drive", meaning: "駕駛", kk: "[draɪv]", tip: "drive (駕駛) KK: [draɪv]" },
-  { word: "fly", meaning: "飛行", kk: "[flaɪ]", tip: "fly (飛行) KK: [flaɪ]" },
-  { word: "catch", meaning: "接住 / 捕捉", kk: "[kætʃ]", tip: "catch (接住) KK: [kætʃ]" },
-  { word: "throw", meaning: "投擲", kk: "[θro]", tip: "throw (投擲) KK: [θro]" },
-  { word: "kick", meaning: "踢", kk: "[kɪk]", tip: "kick (踢) KK: [kɪk]" },
-  { word: "hit", meaning: "打擊", kk: "[hɪt]", tip: "hit (打擊) KK: [hɪt]" },
-  { word: "pull", meaning: "拉", kk: "[pʊl]", tip: "pull (拉) KK: [pʊl]" },
-  { word: "push", meaning: "推", kk: "[pʊʃ]", tip: "push (推) KK: [pʊʃ]" },
-  { word: "clapping", meaning: "拍手", kk: "[ˋklæpɪŋ]", tip: "clap (拍手) KK: [klæp]" },
-  { word: "stand", meaning: "站立", kk: "[stænd]", tip: "stand (站立) KK: [stænd]" },
-  { word: "sit", meaning: "坐下", kk: "[sɪt]", tip: "sit (坐下) KK: [sɪt]" },
-  { word: "wait", meaning: "等待", kk: "[wet]", tip: "wait (等待) KK: [wet]" },
-  { word: "study", meaning: "研讀 / 學習", kk: "[ˋstʌdɪ]", tip: "study (學習) KK: [ˋstʌdɪ]" },
-  { word: "teach", meaning: "教學", kk: "[titʃ]", tip: "teach (教學) KK: [titʃ]" },
-  { word: "learn", meaning: "學習", kk: "[lɝn]", tip: "learn (學習) KK: [lɝn]" },
-  { word: "help", meaning: "幫助", kk: "[hɛlp]", tip: "help (幫助) KK: [hɛlp]" },
-  { word: "visit", meaning: "拜訪 / 參觀", kk: "[ˋvɪzɪt]", tip: "visit (拜訪) KK: [ˋvɪzɪt]" },
-  { word: "buy", meaning: "買", kk: "[baɪ]", tip: "buy (買) KK: [baɪ]" },
-  { word: "sell", meaning: "賣", kk: "[sɛl]", tip: "sell (賣) KK: [sɛl]" },
-  { word: "pay", meaning: "支付", kk: "[pe]", tip: "pay (支付) KK: [pe]" },
-  { word: "cost", meaning: "花費 (金錢)", kk: "[kɔst]", tip: "cost (花費) KK: [kɔst]" },
-  { word: "spend", meaning: "花費 (時間/金錢)", kk: "[spɛnd]", tip: "spend (花費) KK: [spɛnd]" },
-  { word: "take", meaning: "搭乘 / 拿取", kk: "[tek]", tip: "take (搭乘/拿) KK: [tek]" },
-  { word: "bring", meaning: "帶來", kk: "[brɪŋ]", tip: "bring (帶來) KK: [brɪŋ]" },
-  { word: "carry", meaning: "搬運 / 攜帶", kk: "[ˋkærɪ]", tip: "carry (搬運) KK: [ˋkærɪ]" },
-  { word: "wear", meaning: "穿戴", kk: "[wɛr]", tip: "wear (穿戴) KK: [wɛr]" },
+  // 動作動詞類 (action)
+  { word: "tremble", meaning: "發抖 / 顫抖", category: "action", kk: "[ˋtrɛmb!]", tip: "tremble (顫抖) KK: [ˋtrɛmb!]" },
+  { word: "yawn", meaning: "打哈欠", category: "action", kk: "[jɔn]", tip: "yawn (打哈欠) KK: [jɔn]" },
+  { word: "stretch", meaning: "伸展 / 伸懶腰", category: "action", kk: "[strɛtʃ]", tip: "stretch (伸展) KK: [strɛtʃ]" },
+  { word: "shut", meaning: "閉上 / 關閉", category: "action", kk: "[ʃʌt]", tip: "shut (閉上) KK: [ʃʌt]" },
+  { word: "brush", meaning: "刷 (牙/毛)", category: "action", kk: "[brʌʃ]", tip: "brush (刷) KK: [brʌʃ]" },
+  { word: "wash", meaning: "清洗", category: "action", kk: "[wɑʃ]", tip: "wash (清洗) KK: [wɑʃ]" },
+  { word: "borrow", meaning: "借入", category: "action", kk: "[ˋbɑro]", tip: "borrow (借入) KK: [ˋbɑro]" },
+  { word: "lend", meaning: "借出", category: "action", kk: "[lɛnd]", tip: "lend (借出) KK: [lɛnd]" },
+  { word: "prepare", meaning: "準備", category: "action", kk: "[prɪˋpɛr]", tip: "prepare (準備) KK: [prɪˋpɛr]" },
+  { word: "celebrate", meaning: "慶祝", category: "action", kk: "[ˋsɛlə͵bret]", tip: "celebrate (慶祝) KK: [ˋsɛlə͵bret]" },
+  { word: "invite", meaning: "邀請", category: "action", kk: "[ɪnˋvaɪt]", tip: "invite (邀請) KK: [ɪnˋvaɪt]" },
+  { word: "touch", meaning: "碰觸", category: "action", kk: "[tʌtʃ]", tip: "touch (碰觸) KK: [tʌtʃ]" },
 
-  // 4. 休閒、嗜好與運動樂器
-  { word: "badminton", meaning: "羽毛球", kk: "[ˋbædmɪntən]", tip: "badminton (羽毛球) KK: [ˋbædmɪntən]" },
-  { word: "bowling", meaning: "保齡球", kk: "[ˋbolɪŋ]", tip: "bowling (保齡球) KK: [ˋbolɪŋ]" },
-  { word: "basketball", meaning: "籃球", kk: "[ˋbæskɪt͵bɔl]", tip: "basketball (籃球) KK: [ˋbæskɪt͵bɔl]" },
-  { word: "baseball", meaning: "棒球", kk: "[ˋbes͵bɔl]", tip: "baseball (棒球) KK: [ˋbes͵bɔl]" },
-  { word: "football", meaning: "足球", kk: "[ˋfʊt͵bɔl]", tip: "football (足球) KK: [ˋfʊt͵bɔl]" },
-  { word: "soccer", meaning: "英式足球", kk: "[ˋsɑkɚ]", tip: "soccer (足球) KK: [ˋsɑkɚ]" },
-  { word: "golf", meaning: "高爾夫球", kk: "[gɑlf]", tip: "golf (高爾夫) KK: [gɑlf]" },
-  { word: "tennis", meaning: "網球", kk: "[ˋtɛnɪs]", tip: "tennis (網球) KK: [ˋtɛnɪs]" },
-  { word: "table tennis", meaning: "乒乓球", kk: "[ˋteb! ͵tɛnɪs]", tip: "table tennis (乒乓球) KK: [ˋteb! ͵tɛnɪs]" },
-  { word: "guitar", meaning: "吉他", kk: "[gɪˋtɑr]", tip: "guitar (吉他) KK: [gɪˋtɑr]" },
-  { word: "piano", meaning: "鋼琴", kk: "[pɪˋæno]", tip: "piano (鋼琴) KK: [pɪˋæno]" },
-  { word: "violin", meaning: "小提琴", kk: "[͵vaɪəˋlɪn]", tip: "violin (小提琴) KK: [͵vaɪəˋlɪn]" },
-  { word: "drum", meaning: "鼓", kk: "[drʌm]", tip: "drum (鼓) KK: [drʌm]" },
-  { word: "flute", meaning: "長笛", kk: "[flut]", tip: "flute (長笛) KK: [flut]" },
-  { word: "kite", meaning: "風箏", kk: "[kaɪt]", tip: "kite (風箏) KK: [kaɪt]" },
-  { word: "bicycle", meaning: "腳踏車", kk: "[ˋbaɪsɪk!]", tip: "bicycle (腳踏車) KK: [ˋbaɪsɪk!]" },
-  { word: "kung fu", meaning: "功夫", kk: "[ˋkʊŋ ˋfu]", tip: "kung fu (功夫) KK: [ˋkʊŋ ˋfu]" },
-  { word: "video game", meaning: "電玩遊戲", kk: "[ˋvɪdɪo gem]", tip: "video game (電玩) KK: [ˋvɪdɪo gem]" },
-  { word: "comic book", meaning: "漫畫書", kk: "[ˋkɑmɪk bʊk]", tip: "comic book (漫畫書) KK: [ˋkɑmɪk bʊk]" },
-  { word: "hobby", meaning: "嗜好", kk: "[ˋhɑbɪ]", tip: "hobby (嗜好) KK: [ˋhɑbɪ]" },
-  { word: "movie", meaning: "電影", kk: "[ˋmuvɪ]", tip: "movie (電影) KK: [ˋmuvɪ]" },
-  { word: "science fiction", meaning: "科幻片", kk: "[ˋsaɪəns ˋfɪkʃən]", tip: "science fiction (科幻片) KK: [ˋsaɪəns ˋfɪkʃən]" },
-  { word: "horror", meaning: "恐怖片", kk: "[ˋhɔrɚ]", tip: "horror (恐怖片) KK: [ˋhɔrɚ]" },
-  { word: "adventure", meaning: "冒險", kk: "[ədˋvɛntʃɚ]", tip: "adventure (冒險) KK: [ədˋvɛntʃɚ]" },
-  { word: "party", meaning: "派對", kk: "[ˋpɑrtɪ]", tip: "party (派對) KK: [ˋpɑrtɪ]" },
-  { word: "game", meaning: "遊戲 / 比賽", kk: "[gem]", tip: "game (遊戲) KK: [gem]" },
-  { word: "toy", meaning: "玩具", kk: "[tɔɪ]", tip: "toy (玩具) KK: [tɔɪ]" },
-  { word: "doll", meaning: "洋娃娃", kk: "[dɑl]", tip: "doll (洋娃娃) KK: [dɑl]" },
+  // 運動與休閒類 (sports)
+  { word: "badminton", meaning: "羽毛球", category: "sports", kk: "[ˋbædmɪntən]", tip: "badminton (羽毛球) KK: [ˋbædmɪntən]" },
+  { word: "bowling", meaning: "保齡球", category: "sports", kk: "[ˋbolɪŋ]", tip: "bowling (保齡球) KK: [ˋbolɪŋ]" },
+  { word: "basketball", meaning: "籃球", category: "sports", kk: "[ˋbæskɪt͵bɔl]", tip: "basketball (籃球) KK: [ˋbæskɪt͵bɔl]" },
+  { word: "baseball", meaning: "棒球", category: "sports", kk: "[ˋbes͵bɔl]", tip: "baseball (棒球) KK: [ˋbes͵bɔl]" },
+  { word: "golf", meaning: "高爾夫球", category: "sports", kk: "[gɑlf]", tip: "golf (高爾夫) KK: [gɑlf]" },
+  { word: "guitar", meaning: "吉他", category: "sports", kk: "[gɪˋtɑr]", tip: "guitar (吉他) KK: [gɪˋtɑr]" },
+  { word: "piano", meaning: "鋼琴", category: "sports", kk: "[pɪˋæno]", tip: "piano (鋼琴) KK: [pɪˋæno]" },
+  { word: "violin", meaning: "小提琴", category: "sports", kk: "[͵vaɪəˋlɪn]", tip: "violin (小提琴) KK: [͵vaɪəˋlɪn]" },
+  { word: "bicycle", meaning: "腳踏車", category: "sports", kk: "[ˋbaɪsɪk!]", tip: "bicycle (腳踏車) KK: [ˋbaɪsɪk!]" },
+  { word: "kung fu", meaning: "功夫", category: "sports", kk: "[ˋkʊŋ ˋfu]", tip: "kung fu (功夫) KK: [ˋkʊŋ ˋfu]" },
+  { word: "video game", meaning: "電玩遊戲", category: "sports", kk: "[ˋvɪdɪo gem]", tip: "video game (電玩) KK: [ˋvɪdɪo gem]" },
 
-  // 5. 學校與公共場所
-  { word: "kitchen", meaning: "廚房", kk: "[ˋkɪtʃɪn]", tip: "kitchen (廚房) KK: [ˋkɪtʃɪn]" },
-  { word: "bedroom", meaning: "臥室", kk: "[ˋbɛd͵rum]", tip: "bedroom (臥室) KK: [ˋbɛd͵rum]" },
-  { word: "bathroom", meaning: "浴室", kk: "[ˋbæθ͵rum]", tip: "bathroom (浴室) KK: [ˋbæθ͵rum]" },
-  { word: "living room", meaning: "客廳", kk: "[ˋlɪvɪŋ ͵rum]", tip: "living room (客廳) KK: [ˋlɪvɪŋ ͵rum]" },
-  { word: "dining room", meaning: "飯廳", kk: "[ˋdaɪnɪŋ ͵rum]", tip: "dining room (飯廳) KK: [ˋdaɪnɪŋ ͵rum]" },
-  { word: "balcony", meaning: "陽台", kk: "[ˋbælkənɪ]", tip: "balcony (陽台) KK: [ˋbælkənɪ]" },
-  { word: "garden", meaning: "花園", kk: "[ˋgɑrdn]", tip: "garden (花園) KK: [ˋgɑrdn]" },
-  { word: "garage", meaning: "車庫", kk: "[gəˋrɑʒ]", tip: "garage (車庫) KK: [gəˋrɑʒ]" },
-  { word: "apartment", meaning: "公寓", kk: "[əˋpɑrtmənt]", tip: "apartment (公寓) KK: [əˋpɑrtmənt]" },
-  { word: "hospital", meaning: "醫院", kk: "[ˋhɑspɪt!]", tip: "hospital (醫院) KK: [ˋhɑspɪt!]" },
-  { word: "supermarket", meaning: "超級市場", kk: "[ˋsupɚ͵mɑrkɪt]", tip: "supermarket (超市) KK: [ˋsupɚ͵mɑrkɪt]" },
-  { word: "restaurant", meaning: "餐廳", kk: "[ˋrɛstərənt]", tip: "restaurant (餐廳) KK: [ˋrɛstərənt]" },
-  { word: "bakery", meaning: "麵包店", kk: "[ˋbekərɪ]", tip: "bakery (麵包店) KK: [ˋbekərɪ]" },
-  { word: "bookstore", meaning: "書店", kk: "[ˋbʊk͵stor]", tip: "bookstore (書店) KK: [ˋbʊk͵stor]" },
-  { word: "library", meaning: "圖書館", kk: "[ˋlaɪbrɛrɪ]", tip: "library (圖書館) KK: [ˋlaɪbrɛrɪ]" },
-  { word: "movie theater", meaning: "電影院", kk: "[ˋmuvɪ ͵θɪətɚ]", tip: "movie theater (電影院) KK: [ˋmuvɪ ͵θɪətɚ]" },
-  { word: "post office", meaning: "郵局", kk: "[post ˋɔfɪs]", tip: "post office (郵局) KK: [post ˋɔfɪs]" },
-  { word: "park", meaning: "公園", kk: "[pɑrk]", tip: "park (公園) KK: [pɑrk]" },
-  { word: "zoo", meaning: "動物園", kk: "[zu]", tip: "zoo (動物園) KK: [zu]" },
-  { word: "school", meaning: "學校", kk: "[skul]", tip: "school (學校) KK: [skul]" },
-  { word: "station", meaning: "車站", kk: "[ˋsteʃən]", tip: "station (車站) KK: [ˋsteʃən]" },
-  { word: "airport", meaning: "機場", kk: "[ˋɛr͵pɔrt]", tip: "airport (機場) KK: [ˋɛr͵pɔrt]" },
-  { word: "bank", meaning: "銀行", kk: "[bæŋk]", tip: "bank (銀行) KK: [bæŋk]" },
-  { word: "classmate", meaning: "同學", kk: "[ˋklæs͵met]", tip: "classmate (同學) KK: [ˋklæs͵met]" },
-  { word: "teacher", meaning: "老師", kk: "[ˋtitʃɚ]", tip: "teacher (老師) KK: [ˋtitʃɚ]" },
-  { word: "student", meaning: "學生", kk: "[ˋstjudnt]", tip: "student (學生) KK: [ˋstjudnt]" },
-  { word: "classroom", meaning: "教室", kk: "[ˋklæs͵rum]", tip: "classroom (教室) KK: [ˋklæs͵rum]" },
-  { word: "homework", meaning: "家庭作業", kk: "[ˋhom͵wɝk]", tip: "homework (家庭作業) KK: [ˋhom͵wɝk]" },
-  { word: "desk", meaning: "書桌", kk: "[dɛsk]", tip: "desk (書桌) KK: [dɛsk]" },
-  { word: "chair", meaning: "椅子", kk: "[tʃɛr]", tip: "chair (椅子) KK: [tʃɛr]" },
-  { word: "blackboard", meaning: "黑板", kk: "[ˋblæk͵bɔrd]", tip: "blackboard (黑板) KK: [ˋblæk͵bɔrd]" },
-  { word: "book", meaning: "書籍", kk: "[bʊk]", tip: "book (書籍) KK: [bʊk]" },
-  { word: "pencil", meaning: "鉛筆", kk: "[ˋpɛns!]", tip: "pencil (鉛筆) KK: [ˋpɛns!]" },
-  { word: "pen", meaning: "原子筆", kk: "[pɛn]", tip: "pen (原子筆) KK: [pɛn]" },
-  { word: "eraser", meaning: "橡皮擦", kk: "[ɪˋresɚ]", tip: "eraser (橡皮擦) KK: [ɪˋresɚ]" },
-  { word: "ruler", meaning: "尺", kk: "[ˋrulɚ]", tip: "ruler (尺) KK: [ˋrulɚ]" },
-  { word: "bag", meaning: "書包 / 袋子", kk: "[bæg]", tip: "bag (書包) KK: [bæg]" },
-  { word: "lesson", meaning: "課程", kk: "[ˋlɛsn]", tip: "lesson (課程) KK: [ˋlɛsn]" },
-  { word: "test", meaning: "考試", kk: "[tɛst]", tip: "test (考試) KK: [tɛst]" },
-  { word: "paper", meaning: "紙張", kk: "[ˋpepɚ]", tip: "paper (紙張) KK: [ˋpepɚ]" },
-  { word: "marker", meaning: "彩色筆", kk: "[ˋmɑrkɚ]", tip: "marker (彩色筆) KK: [ˋmɑrkɚ]" },
-  { word: "pencil case", meaning: "鉛筆盒", kk: "[ˋpɛns! kes]", tip: "pencil case (鉛筆盒) KK: [ˋpɛns! kes]" },
+  // 建築地點類 (places)
+  { word: "kitchen", meaning: "廚房", category: "places", kk: "[ˋkɪtʃɪn]", tip: "kitchen (廚房) KK: [ˋkɪtʃɪn]" },
+  { word: "bedroom", meaning: "臥室", category: "places", kk: "[ˋbɛd͵rum]", tip: "bedroom (臥室) KK: [ˋbɛd͵rum]" },
+  { word: "bathroom", meaning: "浴室", category: "places", kk: "[ˋbæθ͵rum]", tip: "bathroom (浴室) KK: [ˋbæθ͵rum]" },
+  { word: "living room", meaning: "客廳", category: "places", kk: "[ˋlɪvɪŋ ͵rum]", tip: "living room (客廳) KK: [ˋlɪvɪŋ ͵rum]" },
+  { word: "dining room", meaning: "飯廳", category: "places", kk: "[ˋdaɪnɪŋ ͵rum]", tip: "dining room (飯廳) KK: [ˋdaɪnɪŋ ͵rum]" },
+  { word: "supermarket", meaning: "超級市場", category: "places", kk: "[ˋsupɚ͵mɑrkɪt]", tip: "supermarket (超市) KK: [ˋsupɚ͵mɑrkɪt]" },
+  { word: "hospital", meaning: "醫院", category: "places", kk: "[ˋhɑspɪt!]", tip: "hospital (醫院) KK: [ˋhɑspɪt!]" },
+  { word: "restaurant", meaning: "餐廳", category: "places", kk: "[ˋrɛstərənt]", tip: "restaurant (餐廳) KK: [ˋrɛstərənt]" },
+  { word: "post office", meaning: "郵局", category: "places", kk: "[post ˋɔfɪs]", tip: "post office (郵局) KK: [post ˋɔfɪs]" },
+  { word: "library", meaning: "圖書館", category: "places", kk: "[ˋlaɪbrɛrɪ]", tip: "library (圖書館) KK: [ˋlaɪbrɛrɪ]" },
 
-  // 6. 人物角色、親屬稱謂
-  { word: "parents", meaning: "父母親", kk: "[ˋpɛrənts]", tip: "parents (父母親) KK: [ˋpɛrənts]" },
-  { word: "grandparents", meaning: "祖父母", kk: "[ˋgrænd͵pɛrənts]", tip: "grandparents (祖父母) KK: [ˋgrænd͵pɛrənts]" },
-  { word: "father", meaning: "父親", kk: "[ˋfɑðɚ]", tip: "father (父親) KK: [ˋfɑðɚ]" },
-  { word: "mother", meaning: "母親", kk: "[ˋmʌðɚ]", tip: "mother (母親) KK: [ˋmʌðɚ]" },
-  { word: "brother", meaning: "兄弟", kk: "[ˋbrʌðɚ]", tip: "brother (兄弟) KK: [ˋbrʌðɚ]" },
-  { word: "sister", meaning: "姊妹", kk: "[ˋsɪstɚ]", tip: "sister (姊妹) KK: [ˋsɪstɚ]" },
-  { word: "baby", meaning: "嬰兒", kk: "[ˋbebɪ]", tip: "baby (嬰兒) KK: [ˋbebɪ]" },
-  { word: "friend", meaning: "朋友", kk: "[frɛnd]", tip: "friend (朋友) KK: [frɛnd]" },
-  { word: "doctor", meaning: "醫生", kk: "[ˋdɑktɚ]", tip: "doctor (醫生) KK: [ˋdɑktɚ]" },
-  { word: "nurse", meaning: "護士", kk: "[nɝs]", tip: "nurse (護士) KK: [nɝs]" },
-  { word: "police officer", meaning: "警察", kk: "[pəˋlis ͵ɔfɪsɚ]", tip: "police officer (警察) KK: [pəˋlis ͵ɔfɪsɚ]" },
-  { word: "driver", meaning: "司機", kk: "[ˋdraɪvɚ]", tip: "driver (司機) KK: [ˋdraɪvɚ]" },
-  { word: "farmer", meaning: "農夫", kk: "[ˋfɑrmɚ]", tip: "farmer (農夫) KK: [ˋfɑrmɚ]" },
-  { word: "singer", meaning: "歌手", kk: "[ˋsɪŋɚ]", tip: "singer (歌手) KK: [ˋsɪŋɚ]" },
-  { word: "boy", meaning: "男孩", kk: "[bɔɪ]", tip: "boy (男孩) KK: [bɔɪ]" },
-  { word: "girl", meaning: "女孩", kk: "[gɝl]", tip: "girl (女孩) KK: [gɝl]" },
-  { word: "man", meaning: "男人", kk: "[mæn]", tip: "man (男人) KK: [mæn]" },
-  { word: "woman", meaning: "女人", kk: "[ˋwʊmən]", tip: "woman (女人) KK: [ˋwʊmən]" },
-  { word: "kid", meaning: "小孩", kk: "[kɪd]", tip: "kid (小孩) KK: [kɪd]" },
-  { word: "neighbor", meaning: "鄰居", kk: "[ˋnebɚ]", tip: "neighbor (鄰居) KK: [ˋnebɚ]" },
+  // 學校課業類 (school)
+  { word: "classmate", meaning: "同學", category: "school", kk: "[ˋklæs͵met]", tip: "classmate (同學) KK: [ˋklæs͵met]" },
+  { word: "homework", meaning: "家庭作業", category: "school", kk: "[ˋhom͵wɝk]", tip: "homework (家庭作業) KK: [ˋhom͵wɝk]" },
+  { word: "pencil", meaning: "鉛筆", category: "school", kk: "[ˋpɛns!]", tip: "pencil (鉛筆) KK: [ˋpɛns!]" },
+  { word: "eraser", meaning: "橡皮擦", category: "school", kk: "[ɪˋresɚ]", tip: "eraser (橡皮擦) KK: [ɪˋresɚ]" },
+  { word: "ruler", meaning: "尺", category: "school", kk: "[ˋrulɚ]", tip: "ruler (尺) KK: [ˋrulɚ]" },
+  { word: "marker", meaning: "彩色筆", category: "school", kk: "[ˋmɑrkɚ]", tip: "marker (彩色筆) KK: [ˋmɑrkɚ]" },
+  { word: "pencil case", meaning: "鉛筆盒", category: "school", kk: "[ˋpɛns! kes]", tip: "pencil case (鉛筆盒) KK: [ˋpɛns! kes]" },
 
-  // 7. 特質、情緒與描述形容詞
-  { word: "scary", meaning: "恐怖的", kk: "[ˋskɛrɪ]", tip: "scary (恐怖的) KK: [ˋskɛrɪ]" },
-  { word: "funny", meaning: "滑稽有趣的", kk: "[ˋfʌnɪ]", tip: "funny (有趣的) KK: [ˋfʌnɪ]" },
-  { word: "happy", meaning: "快樂的", kk: "[ˋhæpɪ]", tip: "happy (快樂的) KK: [ˋhæpɪ]" },
-  { word: "sad", meaning: "悲傷的", kk: "[sæd]", tip: "sad (悲傷的) KK: [sæd]" },
-  { word: "tired", meaning: "疲憊的", kk: "[taɪrd]", tip: "tired (疲憊的) KK: [taɪrd]" },
-  { word: "hungry", meaning: "飢餓的", kk: "[ˋhʌŋgrɪ]", tip: "hungry (飢餓的) KK: [ˋhʌŋgrɪ]" },
-  { word: "thirsty", meaning: "口渴的", kk: "[ˋθɝstɪ]", tip: "thirsty (口渴的) KK: [ˋθɝstɪ]" },
-  { word: "sick", meaning: "生病的", kk: "[sɪk]", tip: "sick (生病的) KK: [sɪk]" },
-  { word: "tall", meaning: "高的", kk: "[tɔl]", tip: "tall (高的) KK: [tɔl]" },
-  { word: "short", meaning: "矮的 / 短的", kk: "[ʃɔrt]", tip: "short (矮/短) KK: [ʃɔrt]" },
-  { word: "thin", meaning: "瘦的 / 薄的", kk: "[θɪn]", tip: "thin (瘦的) KK: [θɪn]" },
-  { word: "fat", meaning: "胖的", kk: "[fæt]", tip: "fat (胖的) KK: [fæt]" },
-  { word: "big", meaning: "大的", kk: "[bɪg]", tip: "big (大的) KK: [bɪg]" },
-  { word: "small", meaning: "小的", kk: "[smɔl]", tip: "small (小的) KK: [smɔl]" },
-  { word: "hot", meaning: "炎熱的", kk: "[hɑt]", tip: "hot (熱的) KK: [hɑt]" },
-  { word: "cold", meaning: "寒冷的", kk: "[kold]", tip: "cold (冷的) KK: [kold]" },
-  { word: "warm", meaning: "溫暖的", kk: "[wɔrm]", tip: "warm (溫暖的) KK: [wɔrm]" },
-  { word: "cool", meaning: "涼爽的 / 酷的", kk: "[kul]", tip: "cool (涼爽的) KK: [kul]" },
-  { word: "new", meaning: "新的", kk: "[nju]", tip: "new (新的) KK: [nju]" },
-  { word: "old", meaning: "舊的 / 年邁的", kk: "[old]", tip: "old (舊的/老的) KK: [old]" },
-  { word: "young", meaning: "年輕的", kk: "[jʌŋ]", tip: "young (年輕的) KK: [jʌŋ]" },
-  { word: "clean", meaning: "乾淨的", kk: "[klin]", tip: "clean (乾淨的) KK: [klin]" },
-  { word: "dirty", meaning: "骯髒的", kk: "[ˋdɝtɪ]", tip: "dirty (骯髒的) KK: [ˋdɝtɪ]" },
-  { word: "difficult", meaning: "困難的", kk: "[ˋdɪfək!t]", tip: "difficult (困難的) KK: [ˋdɪfək!t]" },
-  { word: "easy", meaning: "容易的", kk: "[ˋizɪ]", tip: "easy (容易的) KK: [ˋizɪ]" },
-  { word: "talented", meaning: "有天賦的", kk: "[ˋtæləntɪd]", tip: "talented (有天賦的) KK: [ˋtæləntɪd]" },
-  { word: "busy", meaning: "忙碌的", kk: "[ˋbɪzɪ]", tip: "busy (忙碌的) KK: [ˋbɪzɪ]" },
-  { word: "sweet", meaning: "甜的", kk: "[swit]", tip: "sweet (甜的) KK: [swit]" },
-  { word: "loud", meaning: "大聲的", kk: "[laʊd]", tip: "loud (大聲的) KK: [laʊd]" },
-  { word: "quiet", meaning: "安靜的", kk: "[ˋkwaɪət]", tip: "quiet (安靜的) KK: [ˋkwaɪət]" },
-  { word: "strong", meaning: "強壯的", kk: "[strɔŋ]", tip: "strong (強壯的) KK: [strɔŋ]" },
-  { word: "weak", meaning: "虛弱的", kk: "[wik]", tip: "weak (虛弱的) KK: [wik]" },
-  { word: "fast", meaning: "快速的", kk: "[fæst]", tip: "fast (快速的) KK: [fæst]" },
-  { word: "slow", meaning: "緩慢的", kk: "[slo]", tip: "slow (緩慢的) KK: [slo]" },
-  { word: "smart", meaning: "聰明的", kk: "[smɑrt]", tip: "smart (聰明的) KK: [smɑrt]" },
-  { word: "kind", meaning: "親切仁慈的", kk: "[kaɪnd]", tip: "kind (親切的) KK: [kaɪnd]" },
-  { word: "friendly", meaning: "友善的", kk: "[ˋfrɛndlɪ]", tip: "friendly (友善的) KK: [ˋfrɛndlɪ]" },
-  { word: "heavy", meaning: "沉重的", kk: "[ˋhɛvɪ]", tip: "heavy (重的) KK: [ˋhɛvɪ]" },
-  { word: "light", meaning: "輕巧的", kk: "[laɪt]", tip: "light (輕的) KK: [laɪt]" },
-  { word: "pretty", meaning: "漂亮的", kk: "[ˋprɪtɪ]", tip: "pretty (漂亮的) KK: [ˋprɪtɪ]" },
-  { word: "handsome", meaning: "英俊的", kk: "[ˋhænsəm]", tip: "handsome (英俊的) KK: [ˋhænsəm]" },
-  { word: "famous", meaning: "著名的", kk: "[ˋfeməs]", tip: "famous (著名的) KK: [ˋfeməs]" },
-  { word: "free", meaning: "免費的 / 空閒的", kk: "[fri]", tip: "free (免費/空閒) KK: [fri]" },
+  // 人物與親屬類 (people)
+  { word: "parents", meaning: "父母親", category: "people", kk: "[ˋpɛrənts]", tip: "parents (父母親) KK: [ˋpɛrənts]" },
+  { word: "grandparents", meaning: "祖父母", category: "people", kk: "[ˋgrænd͵pɛrənts]", tip: "grandparents (祖父母) KK: [ˋgrænd͵pɛrənts]" },
+  { word: "neighbor", meaning: "鄰居", category: "people", kk: "[ˋnebɚ]", tip: "neighbor (鄰居) KK: [ˋnebɚ]" },
+  { word: "police officer", meaning: "警察", category: "people", kk: "[pəˋlis ͵ɔfɪsɚ]", tip: "police officer (警察) KK: [pəˋlis ͵ɔfɪsɚ]" },
 
-  // 8. 時間、副詞與方位介系詞
-  { word: "second", meaning: "秒", kk: "[ˋsɛkənd]", tip: "second (秒) KK: [ˋsɛkənd]" },
-  { word: "minute", meaning: "分鐘", kk: "[ˋmɪnɪt]", tip: "minute (分鐘) KK: [ˋmɪnɪt]" },
-  { word: "hour", meaning: "小時", kk: "[aʊr]", tip: "hour (小時) KK: [aʊr]" },
-  { word: "quarter", meaning: "一刻鐘 (15分)", kk: "[ˋkwɔrtɚ]", tip: "quarter (一刻鐘) KK: [ˋkwɔrtɚ]" },
-  { word: "noon", meaning: "中午", kk: "[nun]", tip: "noon (中午) KK: [nun]" },
-  { word: "morning", meaning: "早晨", kk: "[ˋmɔrnɪŋ]", tip: "morning (早晨) KK: [ˋmɔrnɪŋ]" },
-  { word: "afternoon", meaning: "下午", kk: "[ˋæftɚˋnun]", tip: "afternoon (下午) KK: [ˋæftɚˋnun]" },
-  { word: "evening", meaning: "傍晚", kk: "[ˋivnɪŋ]", tip: "evening (傍晚) KK: [ˋivnɪŋ]" },
-  { word: "night", meaning: "夜晚", kk: "[naɪt]", tip: "night (夜晚) KK: [naɪt]" },
-  { word: "today", meaning: "今天", kk: "[təˋde]", tip: "today (今天) KK: [təˋde]" },
-  { word: "tomorrow", meaning: "明天", kk: "[təˋmɑro]", tip: "tomorrow (明天) KK: [təˋmɑro]" },
-  { word: "yesterday", meaning: "昨天", kk: "[ˋjɛstɚde]", tip: "yesterday (昨天) KK: [ˋjɛstɚde]" },
-  { word: "always", meaning: "總是 (100%)", kk: "[ˋɔlwez]", tip: "always (總是) KK: [ˋɔlwez]" },
-  { word: "usually", meaning: "通常 (80%)", kk: "[ˋjuʒʊəlɪ]", tip: "usually (通常) KK: [ˋjuʒʊəlɪ]" },
-  { word: "often", meaning: "經常 (60%)", kk: "[ˋɔfən]", tip: "often (經常) KK: [ˋɔfən]" },
-  { word: "sometimes", meaning: "有時 (40%)", kk: "[ˋsʌm͵taɪmz]", tip: "sometimes (有時) KK: [ˋsʌm͵taɪmz]" },
-  { word: "rarely", meaning: "很少 (10%)", kk: "[ˋrɛrlɪ]", tip: "rarely (很少) KK: [ˋrɛrlɪ]" },
-  { word: "never", meaning: "從未 (0%)", kk: "[ˋnɛvɚ]", tip: "never (從未) KK: [ˋnɛvɚ]" },
-  { word: "between", meaning: "在…兩者之間", kk: "[bɪˋtwin]", tip: "between (兩者之間) KK: [bɪˋtwin]" },
-  { word: "beside", meaning: "在…旁邊", kk: "[bɪˋsaɪd]", tip: "beside (旁邊) KK: [bɪˋsaɪd]" },
-  { word: "under", meaning: "在…下方", kk: "[ˋʌndɚ]", tip: "under (下方) KK: [ˋʌndɚ]" },
-  { word: "behind", meaning: "在…後面", kk: "[bɪˋhaɪnd]", tip: "behind (後面) KK: [bɪˋhaɪnd]" },
-  { word: "near", meaning: "在…附近", kk: "[nɪr]", tip: "near (附近) KK: [nɪr]" },
-  { word: "early", meaning: "提早地", kk: "[ˋɝlɪ]", tip: "early (早) KK: [ˋɝlɪ]" },
-  { word: "late", meaning: "遲到地", kk: "[let]", tip: "late (晚) KK: [let]" },
+  // 特徵形容詞類 (adjectives)
+  { word: "scary", meaning: "恐怖的", category: "adjectives", kk: "[ˋskɛrɪ]", tip: "scary (恐怖的) KK: [ˋskɛrɪ]" },
+  { word: "thin", meaning: "瘦的 / 薄的", category: "adjectives", kk: "[θɪn]", tip: "thin (瘦的) KK: [θɪn]" },
+  { word: "talented", meaning: "有天賦的", category: "adjectives", kk: "[ˋtæləntɪd]", tip: "talented (有天賦的) KK: [ˋtæləntɪd]" },
+  { word: "difficult", meaning: "困難的", category: "adjectives", kk: "[ˋdɪfək!t]", tip: "difficult (困難的) KK: [ˋdɪfək!t]" },
+  { word: "friendly", meaning: "友善的", category: "adjectives", kk: "[ˋfrɛndlɪ]", tip: "friendly (友善的) KK: [ˋfrɛndlɪ]" },
 
-  // 9. 身體部位
-  { word: "head", meaning: "頭部", kk: "[hɛd]", tip: "head (頭) KK: [hɛd]" },
-  { word: "hair", meaning: "頭髮", kk: "[hɛr]", tip: "hair (頭髮) KK: [hɛr]" },
-  { word: "eye", meaning: "眼睛", kk: "[aɪ]", tip: "eye (眼睛) KK: [aɪ]" },
-  { word: "ear", meaning: "耳朵", kk: "[ɪr]", tip: "ear (耳朵) KK: [ɪr]" },
-  { word: "nose", meaning: "鼻子", kk: "[noz]", tip: "nose (鼻子) KK: [noz]" },
-  { word: "mouth", meaning: "嘴巴", kk: "[maʊθ]", tip: "mouth (嘴巴) KK: [maʊθ]" },
-  { word: "face", meaning: "臉部", kk: "[fes]", tip: "face (臉) KK: [fes]" },
-  { word: "hand", meaning: "手掌", kk: "[hænd]", tip: "hand (手) KK: [hænd]" },
-  { word: "foot", meaning: "腳掌", kk: "[fʊt]", tip: "foot (腳掌) KK: [fʊt]" },
-  { word: "leg", meaning: "腿部", kk: "[lɛg]", tip: "leg (腿) KK: [lɛg]" },
-
-  // 10. 衣物配件
-  { word: "shirt", meaning: "襯衫", kk: "[ʃɝt]", tip: "shirt (襯衫) KK: [ʃɝt]" },
-  { word: "pants", meaning: "長褲", kk: "[pænts]", tip: "pants (長褲) KK: [pænts]" },
-  { word: "shorts", meaning: "短褲", kk: "[ʃɔrts]", tip: "shorts (短褲) KK: [ʃɔrts]" },
-  { word: "dress", meaning: "洋裝", kk: "[drɛs]", tip: "dress (洋裝) KK: [drɛs]" },
-  { word: "skirt", meaning: "裙子", kk: "[skɝt]", tip: "skirt (裙子) KK: [skɝt]" },
-  { word: "shoes", meaning: "鞋子", kk: "[ʃuz]", tip: "shoes (鞋子) KK: [ʃuz]" },
-  { word: "socks", meaning: "襪子", kk: "[sɑks]", tip: "socks (襪子) KK: [sɑks]" },
-  { word: "hat", meaning: "帽子", kk: "[hæt]", tip: "hat (帽子) KK: [hæt]" },
-
-  // 11. 交通工具
-  { word: "car", meaning: "汽車", kk: "[kɑr]", tip: "car (汽車) KK: [kɑr]" },
-  { word: "bus", meaning: "公車", kk: "[bʌs]", tip: "bus (公車) KK: [bʌs]" },
-  { word: "train", meaning: "火車", kk: "[tren]", tip: "train (火車) KK: [tren]" },
-  { word: "airplane", meaning: "飛機", kk: "[ˋɛr͵plen]", tip: "airplane (飛機) KK: [ˋɛr͵plen]" }
+  // 時間與頻率類 (time)
+  { word: "second", meaning: "秒", category: "time", kk: "[ˋsɛkənd]", tip: "second (秒) KK: [ˋsɛkənd]" },
+  { word: "minute", meaning: "分鐘", category: "time", kk: "[ˋmɪnɪt]", tip: "minute (分鐘) KK: [ˋmɪnɪt]" },
+  { word: "quarter", meaning: "一刻鐘 (15分)", category: "time", kk: "[ˋkwɔrtɚ]", tip: "quarter (一刻鐘) KK: [ˋkwɔrtɚ]" },
+  { word: "noon", meaning: "中午", category: "time", kk: "[nun]", tip: "noon (中午) KK: [nun]" },
+  { word: "always", meaning: "總是 (100%)", category: "time", kk: "[ˋɔlwez]", tip: "always (總是) KK: [ˋɔlwez]" },
+  { word: "usually", meaning: "通常 (80%)", category: "time", kk: "[ˋjuʒʊəlɪ]", tip: "usually (通常) KK: [ˋjuʒʊəlɪ]" },
+  { word: "rarely", meaning: "很少 (10%)", category: "time", kk: "[ˋrɛrlɪ]", tip: "rarely (很少) KK: [ˋrɛrlɪ]" },
+  { word: "never", meaning: "從未 (0%)", category: "time", kk: "[ˋnɛvɚ]", tip: "never (從未) KK: [ˋnɛvɚ]" },
+  { word: "between", meaning: "在…兩者之間", category: "time", kk: "[bɪˋtwin]", tip: "between (兩者之間) KK: [bɪˋtwin]" }
 ];
 
-// 單字動態出題產生器
+// 單字動態生成引擎 (雙向題型 + 同類別干擾)
 window.buildDynamicVocabQuiz = function(count, stageTitle) {
-  const pool = Array.isArray(window.bLevelVocabMasterPool) && window.bLevelVocabMasterPool.length > 0 ? window.bLevelVocabMasterPool : [];
-  const poolShuffled = pool.slice().sort(function() { return Math.random() - 0.5; });
+  const pool = Array.isArray(window.bLevelVocabMasterPool) && window.bLevelVocabMasterPool.length > 0 
+    ? window.bLevelVocabMasterPool 
+    : [];
+  
+  const poolShuffled = localShuffle(pool);
   const selectedTargets = poolShuffled.slice(0, Math.min(count, poolShuffled.length));
 
-  return selectedTargets.map(function(target) {
-    const distractors = pool
-      .filter(function(item) { return item.word !== target.word; })
-      .sort(function() { return Math.random() - 0.5; })
-      .slice(0, 3);
+  return selectedTargets.map(function(target, idx) {
+    let sameCategoryPool = pool.filter(item => item.category === target.category && item.word !== target.word);
+    if (sameCategoryPool.length < 3) {
+      sameCategoryPool = pool.filter(item => item.word !== target.word);
+    }
+    const distractors = localShuffle(sameCategoryPool).slice(0, 3);
+    const combinedOptions = localShuffle([target].concat(distractors));
+    const correctIdx = combinedOptions.findIndex(item => item.word === target.word);
 
-    const allOptions = [target].concat(distractors).sort(function() { return Math.random() - 0.5; });
-    const correctIdx = allOptions.findIndex(function(item) { return item.word === target.word; });
+    const isMeaningQuestion = (idx % 2 === 1);
 
-    return {
-      qId: generateQuestionHash("vocab_" + target.word),
-      part: stageTitle,
-      prompt: "🎧 請聽發音，選出正確的單字：",
-      word: target.word,
-      meaning: target.meaning,
-      options: allOptions.map(function(item) { return item.word; }),
-      meanings: allOptions.map(function(item) { return item.meaning; }),
-      kkList: allOptions.map(function(item) { return item.kk; }),
-      ans: correctIdx,
-      audioText: target.word,
-      tip: "💡 " + target.tip
-    };
+    if (isMeaningQuestion) {
+      return {
+        qId: generateQuestionHash("vocab_meaning_" + target.word),
+        part: stageTitle,
+        prompt: `📖 請問單字【 ${target.word} 】的中文意思是？`,
+        word: target.word,
+        meaning: target.meaning,
+        options: combinedOptions.map(item => item.meaning),
+        meanings: combinedOptions.map(item => item.meaning),
+        kkList: combinedOptions.map(item => item.kk),
+        ans: correctIdx,
+        audioText: target.word,
+        tip: `💡 【${target.word}】${target.kk} 中文為：${target.meaning}`
+      };
+    } else {
+      return {
+        qId: generateQuestionHash("vocab_audio_" + target.word),
+        part: stageTitle,
+        prompt: "🎧 請聽發音，選出正確的單字：",
+        word: target.word,
+        meaning: target.meaning,
+        options: combinedOptions.map(item => item.word),
+        meanings: combinedOptions.map(item => item.meaning),
+        kkList: combinedOptions.map(item => item.kk),
+        ans: correctIdx,
+        audioText: target.word,
+        tip: `💡 【${target.word}】${target.kk} 中文為：${target.meaning}`
+      };
+    }
   });
 };
 
-// 實例化全域單字題庫
 window.rawVocabBLevel = window.buildDynamicVocabQuiz(50, "⭐ B級全範圍綜合測驗 (50題)");
 
-// ==========================================
-// 4. Practice 1 真題資料庫 (全域唯一掛載)
-// ==========================================
+// =======================================================================
+// 4. Practice 1 真題資料庫
+// =======================================================================
 window.rawMockP1Data = [
   { part: "Part 1: Photographs", prompt: "Question 1", svgData: window.p1SvgImages.q1, sceneHint: "一位名叫 Julia 的小女孩正在洗手台前拿起牙刷刷牙。", audioText: "Look at the picture and choose the best answer. Statement A: Julia brushes her teeth. Statement B: Julia washes her face. Statement C: Julia's mother brushes her teeth.", options: ["Julia brushes her teeth.", "Julia washes her face.", "Julia's mother brushes her teeth."], ans: 0, tip: "💡【看圖選句】圖中小女孩手拿牙刷在刷牙（brushes her teeth），而不是洗臉（washes her face）。" },
   { part: "Part 1: Photographs", prompt: "Question 2", svgData: window.p1SvgImages.q2, sceneHint: "時鐘指向中午 12:00，Janice 正在餐桌享用午餐。", audioText: "Look at the picture and choose the best answer. Statement A: Janice drinks milk for breakfast. Statement B: Janice has lunch at noon. Statement C: Janice eats fruit for breakfast.", options: ["Janice drinks milk for breakfast.", "Janice has lunch at noon.", "Janice eats fruit for breakfast."], ans: 1, tip: "💡【看圖選句】時鐘指在 12:00 即中午（noon），因此 Janice has lunch at noon 為正確描述。" },
@@ -828,7 +796,7 @@ window.rawMockP1Data = [
   { part: "Part 4: Talks (35)", prompt: "Question 35: Why does Jerry feel the morning is difficult?", audioText: "From the talk, listen to Question 35: Why does Jerry feel the morning is difficult?", options: ["Because he can't use the bathroom.", "Because the bathroom is dirty.", "Because he does not want to go to school."], ans: 0, tip: "💡【原因推論】室友早上佔用浴室很久導致 Jerry 無法使用，因此覺得早上很困擾。" },
   { part: "Part 3/4: Conversation (36-37)", prompt: "Question 36: Whose birthday is coming?", audioText: "Listen to the conversation. Hello. This is Stephen. May I talk to Tina? Hold on, please. Hello, Stephen. This is Tina speaking. I am just calling to tell you that I can't go to your birthday party. I am really sorry. Why can't you come? My parents will go to Singapore for work. Now listen to Question 36: Whose birthday is coming?", options: ["Stephen's birthday is coming.", "Tina's birthday is coming.", "Steven's father's birthday is coming."], ans: 0, repeat: true, tip: "💡【人物關係】Tina 說 I can't go to YOUR birthday party，因此過生日的是 Stephen。" },
   { part: "Part 3/4: Conversation (37)", prompt: "Question 37: Why do Tina's parents need to go to Singapore?", audioText: "From the conversation, listen to Question 37: Why do Tina's parents need to go to Singapore?", options: ["Because they want to celebrate a birthday.", "Because they have to work in Singapore.", "Because they study in Singapore."], ans: 1, tip: "💡【原因細節】Tina 說明 My parents will go to Singapore for work。" },
-  { part: "Part 3/4: Conversation (38-40)", prompt: "Question 38: What does Stephen think of his parents?", audioText: "Listen to the conversation. Did you tell your parents that you don't want to go? I feel they never listen to me. I am afraid if I tell them, they will still want me to go to Singapore with them. If you stay here, who is going to take care of you? My grandparents live near us. I can live with them. Now listen to Question 38: What does Stephen think of his parents?", options: ["His parents usually listen to him.", "His parents sometimes listen to him.", "His parents never listen to him."], ans: 2, repeat: true, tip: "💡【頻率詞細節】對話中提到 I feel they NEVER listen to me。" },
+  { part: "Part 3/4: Conversation (38-40)", prompt: "Question 38: What does Stephen think of his parents?", audioText: "Listen to the conversation. Did you tell your parents that you don't want to go? I feel they never listen to me. I am afraid if I tell them, they will still want me to go to Singapore with them. If you stay here, who is going to take care of you? My grandparents live near us. I can live with them. Well, I think you should tell your parents about your plan anyway. Now listen to Question 38: What does Stephen think of his parents?", options: ["His parents usually listen to him.", "His parents sometimes listen to him.", "His parents never listen to him."], ans: 2, repeat: true, tip: "💡【頻率詞細節】對話中提到 I feel they NEVER listen to me。" },
   { part: "Part 3/4: Conversation (39)", prompt: "Question 39: Who does Stephen want to live with?", audioText: "From the conversation, listen to Question 39: Who does Stephen want to live with?", options: ["His parents.", "His brother.", "His grandparents."], ans: 2, tip: "💡【人物細節】Stephen 提到 My grandparents live near us. I can live with them。" },
   { part: "Part 3/4: Conversation (40)", prompt: "Question 40: What does Tina tell Stephen to do?", audioText: "From the conversation, listen to Question 40: What does Tina tell Stephen to do?", options: ["She tells Stephen to tell his parents about his plan.", "She tells Stephen not to tell his parents about his plan.", "She tells Stephen to tell his brother about his plan."], ans: 0, tip: "💡【建議抓取】Tina 建議 I think you should tell your parents about your plan。" }
 ];
@@ -837,9 +805,9 @@ window.rawMockP1 = window.rawMockP1Data.map(function(item, idx) {
   return Object.assign({}, item, { qId: generateQuestionHash("p1_" + idx + "_" + item.prompt) });
 });
 
-// ==========================================
-// 5. Practice 2 真題資料庫 (全域唯一掛載)
-// ==========================================
+// =======================================================================
+// 5. Practice 2 真題資料庫
+// =======================================================================
 window.rawMockP2Data = [
   { part: "Part 1: Photographs", prompt: "Question 1", svgData: window.p2SvgImages.q1, sceneHint: "房間裡的床上整齊擺放著兩顆枕頭（Two pillows on the bed）。", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 1, tip: "💡【看圖選句】床上清楚擺放著兩顆枕頭（two pillows on the bed）。" },
   { part: "Part 1: Photographs", prompt: "Question 2", svgData: window.p2SvgImages.q2, sceneHint: "一群人在櫃檯前依序排隊等待（Waiting in line）。", audioText: "Look at the picture and choose the best answer. Statement A: They are waiting in line. Statement B: They are in the movie theater. Statement C: They are shutting their eyes.", options: ["They are waiting in line.", "They are in the movie theater.", "They are shutting their eyes."], ans: 0, tip: "💡【片語辨析】圖中人們一個接著一個站著，代表在排隊（waiting in line）。" },
@@ -855,8 +823,8 @@ window.rawMockP2Data = [
   { part: "Part 2: Question Response", prompt: "Question 12: What time do you usually go to school?", audioText: "Question 12: What time do you usually go to school? Statement A: You usually go to school at 7:00. Statement B: I usually go to school at half past 7:00. Statement C: I usually go to school on time.", options: ["You usually go to school at 7:00.", "I usually go to school at half past 7:00.", "I usually go to school on time."], ans: 1, tip: "💡【時間問答】問具體幾點（What time），回答用 I usually go to school at half past 7:00 (7:30)。" },
   { part: "Part 2: Question Response", prompt: "Question 13: What is Sandy's favorite sport?", audioText: "Question 13: What is Sandy's favorite sport? Statement A: Her favorite food is vegetables. Statement B: Her favorite sport is bowling. Statement C: Her favorite fruit is strawberries.", options: ["Her favorite food is vegetables.", "Her favorite sport is bowling.", "Her favorite fruit is strawberries."], ans: 1, tip: "💡【主題詞辨析】問的是 favorite sport（最喜歡的運動），只有 bowling（保齡球）是運動項目。" },
   { part: "Part 2: Question Response", prompt: "Question 14: How many lamps can you see?", audioText: "Question 14: How many lamps can you see? Statement A: Yes, I do. Statement B: I can see three bags. Statement C: I can see five lamps.", options: ["Yes, I do.", "I can see three bags.", "I can see five lamps."], ans: 2, tip: "💡【數量問答】問能看見幾盞檯燈（lamps），回答需對應物品名稱（I can see five lamps）。" },
-  { part: "Part 2: Question Response", prompt: "Question 15: Where are you doing your homework?", audioText: "Question 15: Where are you doing your homework? Statement A: You are doing your homework in front of the television. Statement B: I am playing the piano in the dining room. Statement C: I am doing it at my desk in the bedroom.", options: ["You are doing your homework in front of the television.", "I am playing the piano in the dining room.", "I am doing it at my desk in the bedroom."], ans: 1, tip: "💡【地點問答】問你在哪裡做作業，回答用 I am doing it at my desk in the bedroom。" },
-  { part: "Part 2: Question Response", prompt: "Question 16: Are there any pictures on the wall?", audioText: "Question 20: Are there any pictures on the wall? Statement A: No, there are not any pictures. Statement B: He is looking for his pictures. Statement C: He is painting a picture.", options: ["No, there are not any pictures.", "He is looking for his pictures.", "He is painting a picture."], ans: 0, tip: "💡【存在句簡答】Are there any... 否定簡答為 No, there are not any pictures。" },
+  { part: "Part 2: Question Response", prompt: "Question 15: Where are you doing your homework?", audioText: "Question 15: Where are you doing your homework? Statement A: You are doing your homework in front of the television. Statement B: I am playing the piano in the dining room. Statement C: I am doing it at my desk in the bedroom.", options: ["You are doing your homework in front of the television.", "I am playing the piano in the dining room.", "I am doing it at my desk in the bedroom."], ans: 2, tip: "💡【地點問答】問你在哪裡做作業，回答用 I am doing it at my desk in the bedroom。" },
+  { part: "Part 2: Question Response", prompt: "Question 16: Are there any pictures on the wall?", audioText: "Question 16: Are there any pictures on the wall? Statement A: No, there are not any pictures. Statement B: He is looking for his pictures. Statement C: He is painting a picture.", options: ["No, there are not any pictures.", "He is looking for his pictures.", "He is painting a picture."], ans: 0, tip: "💡【存在句簡答】Are there any... 否定簡答為 No, there are not any pictures。" },
   { part: "Part 2: Question Response", prompt: "Question 17: Are you listening to me?", audioText: "Question 17: Are you listening to me? Statement A: Yes, you are listening to me. Statement B: Yes, I am listening to you. Statement C: No, he is not listening to us.", options: ["Yes, you are listening to me.", "Yes, I am listening to you.", "No, he is not listening to us."], ans: 1, tip: "💡【人稱呼應】問句是 Are you listening to me?，回答必須以第一人稱回覆：Yes, I am listening to you。" },
   { part: "Part 2: Question Response", prompt: "Question 18: What is she doing?", audioText: "Question 18: What is she doing? Statement A: She is playing the guitar. Statement B: You are cooking in the kitchen. Statement C: She does her homework every evening.", options: ["She is playing the guitar.", "You are cooking in the kitchen.", "She does her homework every evening."], ans: 0, tip: "💡【時態與人稱】問現在進行式（What is she doing），回答必須用 She is + V-ing（She is playing the guitar）。" },
   { part: "Part 2: Question Response", prompt: "Question 19: Do you have to go to school on time?", audioText: "Question 19: Do you have to go to school on time? Statement A: Yes, I have. Statement B: Yes, I can. Statement C: No, I don't.", options: ["Yes, I have.", "Yes, I can.", "No, I don't."], ans: 2, tip: "💡【助動詞簡答】Do you have to... 是一般動詞問句，否定簡答使用 No, I don't。" },
@@ -896,62 +864,6 @@ window.rawMockP2Data = [
 window.rawMockP1 = window.rawMockP1Data.map(function(item, idx) {
   return Object.assign({}, item, { qId: generateQuestionHash("p1_" + idx + "_" + item.prompt) });
 });
-
-// ==========================================
-// 5. Practice 2 真題資料庫 (全域唯一掛載)
-// ==========================================
-window.rawMockP2Data = [
-  { part: "Part 1: Photographs", prompt: "Question 1", svgData: window.p2SvgImages.q1, sceneHint: "房間裡的床上整齊擺放著兩顆枕頭（Two pillows on the bed）。", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 1, tip: "💡【看圖選句】床上清楚擺放著兩顆枕頭（two pillows on the bed）。" },
-  { part: "Part 1: Photographs", prompt: "Question 2", svgData: window.p2SvgImages.q2, sceneHint: "一群人在櫃檯前依序排隊等待（Waiting in line）。", audioText: "Look at the picture and choose the best answer. Statement A: They are waiting in line. Statement B: They are in the movie theater. Statement C: They are shutting their eyes.", options: ["They are waiting in line.", "They are in the movie theater.", "They are shutting their eyes."], ans: 0, tip: "💡【片語辨析】圖中人們一個接著一個站著，代表在排隊（waiting in line）。" },
-  { part: "Part 1: Photographs", prompt: "Question 3", svgData: window.p2SvgImages.q3, sceneHint: "街道地圖上，超級市場（Supermarket）緊鄰在郵局（Post office）的隔壁旁邊。", audioText: "Look at the picture and choose the best answer. Statement A: The hospital is beside the restaurant. Statement B: The supermarket is next to the post office. Statement C: The supermarket is between the hospital and the restaurant.", options: ["The hospital is beside the restaurant.", "The supermarket is next to the post office.", "The supermarket is between the hospital and the restaurant."], ans: 1, tip: "💡【空間介系詞】圖中超市與郵局緊緊相鄰，使用 next to（在旁邊）。" },
-  { part: "Part 1: Photographs", prompt: "Question 4", svgData: window.p2SvgImages.q4, sceneHint: "小女孩坐在電腦螢幕前抓著頭，一臉困惑完全不會操作電腦（Doesn't know how to use it）。", audioText: "Look at the picture and choose the best answer. Statement A: She doesn't know how to use the computer. Statement B: She can use the computer very well. Statement C: She is playing the computer games happily.", options: ["She doesn't know how to use the computer.", "She can use the computer very well.", "She is playing the computer games happily."], ans: 0, tip: "💡【情緒與能力】小女孩滿臉問號且困惑，代表她不會使用電腦（doesn't know how to use the computer）。" },
-  { part: "Part 1: Photographs", prompt: "Question 5", svgData: window.p2SvgImages.q5, sceneHint: "名叫 Tina 的女孩張開嘴巴打了一個大哈欠（Tina yawns）。", audioText: "Look at the picture and choose the best answer. Statement A: Tina yawns. Statement B: Jennifer yawns. Statement C: Tina stretches.", options: ["Tina yawns.", "Jennifer yawns.", "Tina stretches."], ans: 0, tip: "💡【動作單字】yawn 為打哈欠，stretch 為伸懶腰。圖中主角正在打哈欠。" },
-  { part: "Part 1: Photographs", prompt: "Question 6", svgData: window.p2SvgImages.q6, sceneHint: "時鐘指在 4 點 45 分（即差一刻鐘到 5 點：a quarter to 5）。", audioText: "Look at the picture and choose the best answer. Statement A: It's 10 past 5. Statement B: It's a quarter past 5. Statement C: It's a quarter to 5.", options: ["It's 10 past 5.", "It's a quarter past five.", "It's a quarter to five."], ans: 2, tip: "💡【時間讀法】4:45 代表『差一刻到 5 點』，表達為 a quarter to 5。" },
-  { part: "Part 1: Photographs", prompt: "Question 7", svgData: window.p2SvgImages.q7, sceneHint: "臥室的床邊擺放著一張舒適的沙發椅（Sofa in the bedroom）。", audioText: "Look at the picture and choose the best answer. Statement A: There is a radio on the table. Statement B: There is a hanger on the coffee table. Statement C: There is a sofa in the bedroom.", options: ["There is a radio on the table.", "There is a hanger on the coffee table.", "There is a sofa in the bedroom."], ans: 2, tip: "💡【家具與空間】房間裡除了床以外，還擺放著一張沙發（sofa in the bedroom）。" },
-  { part: "Part 1: Photographs", prompt: "Question 8", svgData: window.p2SvgImages.q8, sceneHint: "餐廳室內牆面上標記著醒目的紅色『禁止吸煙』告示牌。", audioText: "Look at the picture and choose the best answer. Statement A: Please don't speak too loud here. Statement B: Please don't smoke in the restaurant. Statement C: Please don't smoke outside.", options: ["Please don't speak too loud here.", "Please don't smoke in the restaurant.", "Please don't smoke outside."], ans: 1, tip: "💡【告示牌】餐廳內的禁菸標誌，選 Please don't smoke in the restaurant。" },
-  { part: "Part 1: Photographs", prompt: "Question 9", svgData: window.p2SvgImages.q9, sceneHint: "小男孩坐在桌子前拿著色筆專注地在紙上畫圖（The boy is drawing）。", audioText: "Look at the picture and choose the best answer. Statement A: The girl is watching television. Statement B: The boy is drawing. Statement C: The man is flying a kite.", options: ["The girl is watching television.", "The boy is drawing.", "The man is flying a kite."], ans: 1, tip: "💡【人物與動作】圖中是小男孩（boy）正在畫畫（drawing）。" },
-  { part: "Part 1: Photographs", prompt: "Question 10", svgData: window.p2SvgImages.q10, sceneHint: "餐桌上端著一碗熱騰騰冒煙的麵條，正是主角最愛的食物（Noodles）。", audioText: "Look at the picture and choose the best answer. Statement A: My favorite food is noodles. Statement B: My father's favorite food is hamburgers. Statement C: My mother's favorite food is sandwiches.", options: ["My favorite food is noodles.", "My father's favorite food is hamburgers.", "My mother's favorite food is sandwiches."], ans: 0, tip: "💡【食物單字】碗裡裝的是麵條（noodles），不是漢堡或三明治。" },
-  { part: "Part 2: Question Response", prompt: "Question 11: Do you have many friends here?", audioText: "Question 11: Do you have many friends here? Statement A: I often go swimming with my friends. Statement B: I am friendly. Statement C: No, I don't have many friends here.", options: ["I often go swimming with my friends.", "I am friendly.", "No, I don't have many friends here."], ans: 2, tip: "💡【一般疑問句簡答】Do you have... 提問，最適當的回答是 No, I don't have many friends here。" },
-  { part: "Part 2: Question Response", prompt: "Question 12: What time do you usually go to school?", audioText: "Question 12: What time do you usually go to school? Statement A: You usually go to school at 7:00. Statement B: I usually go to school at half past 7:00. Statement C: I usually go to school on time.", options: ["You usually go to school at 7:00.", "I usually go to school at half past 7:00.", "I usually go to school on time."], ans: 1, tip: "💡【時間問答】問具體幾點（What time），回答用 I usually go to school at half past 7:00 (7:30)。" },
-  { part: "Part 2: Question Response", prompt: "Question 13: What is Sandy's favorite sport?", audioText: "Question 13: What is Sandy's favorite sport? Statement A: Her favorite food is vegetables. Statement B: Her favorite sport is bowling. Statement C: Her favorite fruit is strawberries.", options: ["Her favorite food is vegetables.", "Her favorite sport is bowling.", "Her favorite fruit is strawberries."], ans: 1, tip: "💡【主題詞辨析】問的是 favorite sport（最喜歡的運動），只有 bowling（保齡球）是運動項目。" },
-  { part: "Part 2: Question Response", prompt: "Question 14: How many lamps can you see?", audioText: "Question 14: How many lamps can you see? Statement A: Yes, I do. Statement B: I can see three bags. Statement C: I can see five lamps.", options: ["Yes, I do.", "I can see three bags.", "I can see five lamps."], ans: 2, tip: "💡【數量問答】問能看見幾盞檯燈（lamps），回答需對應物品名稱（I can see five lamps）。" },
-  { part: "Part 2: Question Response", prompt: "Question 15: Where are you doing your homework?", audioText: "Question 15: Where are you doing your homework? Statement A: You are doing your homework in front of the television. Statement B: I am playing the piano in the dining room. Statement C: I am doing it at my desk in the bedroom.", options: ["You are doing your homework in front of the television.", "I am playing the piano in the dining room.", "I am doing it at my desk in the bedroom."], ans: 1, tip: "💡【地點問答】問你在哪裡做作業，回答用 I am doing it at my desk in the bedroom。" },
-  { part: "Part 2: Question Response", prompt: "Question 16: Are there any pictures on the wall?", audioText: "Question 20: Are there any pictures on the wall? Statement A: No, there are not any pictures. Statement B: He is looking for his pictures. Statement C: He is painting a picture.", options: ["No, there are not any pictures.", "He is looking for his pictures.", "He is painting a picture."], ans: 0, tip: "💡【存在句簡答】Are there any... 否定簡答為 No, there are not any pictures。" },
-  { part: "Part 2: Question Response", prompt: "Question 17: Are you listening to me?", audioText: "Question 17: Are you listening to me? Statement A: Yes, you are listening to me. Statement B: Yes, I am listening to you. Statement C: No, he is not listening to us.", options: ["Yes, you are listening to me.", "Yes, I am listening to you.", "No, he is not listening to us."], ans: 1, tip: "💡【人稱呼應】問句是 Are you listening to me?，回答必須以第一人稱回覆：Yes, I am listening to you。" },
-  { part: "Part 2: Question Response", prompt: "Question 18: What is she doing?", audioText: "Question 18: What is she doing? Statement A: She is playing the guitar. Statement B: You are cooking in the kitchen. Statement C: She does her homework every evening.", options: ["She is playing the guitar.", "You are cooking in the kitchen.", "She does her homework every evening."], ans: 0, tip: "💡【時態與人稱】問現在進行式（What is she doing），回答必須用 She is + V-ing（She is playing the guitar）。" },
-  { part: "Part 2: Question Response", prompt: "Question 19: Do you have to go to school on time?", audioText: "Question 19: Do you have to go to school on time? Statement A: Yes, I have. Statement B: Yes, I can. Statement C: No, I don't.", options: ["Yes, I have.", "Yes, I can.", "No, I don't."], ans: 2, tip: "💡【助動詞簡答】Do you have to... 是一般動詞問句，否定簡答使用 No, I don't。" },
-  { part: "Part 2: Question Response", prompt: "Question 20: Thank you very much.", audioText: "Question 20: Thank you very much. Statement A: No thanks. Statement B: You're welcome. Statement C: I think so.", options: ["No thanks.", "You're welcome.", "I think so."], ans: 1, tip: "💡【社交禮貌應答】別人道謝 Thank you 時，標準客氣回覆為 You're welcome（不客氣）。" },
-  { part: "Part 2: Question Response", prompt: "Question 21: May I borrow some money?", audioText: "Question 21: May I borrow some money? Statement A: Sure, how many do you want? Statement B: Sure, how much do you need? Statement C: No, I don't need money.", options: ["Sure, how many do you want?", "Sure. How much do you need?", "No, I don't need money."], ans: 1, tip: "💡【不可數名詞數量】money 為不可數，詢問數量要用 how much do you need。" },
-  { part: "Part 2: Question Response", prompt: "Question 22: What does Tina have?", audioText: "Question 22: What does Tina have? Statement A: She has a new car. Statement B: The books on her desk are mine. Statement C: She needs a bike.", options: ["She has a new car.", "The books on her desk are mine.", "She needs a bike."], ans: 0, tip: "💡【問答一致性】問 Tina 擁有什麼，回答為 She has a new car。" },
-  { part: "Part 2: Question Response", prompt: "Question 23: Is there a car in the garage?", audioText: "Question 23: Is there a car in the garage? Statement A: Yes, I am. Statement B: Yes, there is. Statement C: He is sick.", options: ["Yes, I am.", "Yes, there is.", "He is sick."], ans: 1, tip: "💡【存在句簡答】Is there... 肯定簡答為 Yes, there is。" },
-  { part: "Part 2: Question Response", prompt: "Question 24: Are Mike and Jason washing their cars?", audioText: "Question 24: Are Mike and Jason washing their cars? Statement A: No, he is not. Statement B: Yes, he is. Statement C: No, they aren't.", options: ["No, he is not.", "Yes, he is.", "No, they aren't."], ans: 2, tip: "💡【複數代名詞】Mike and Jason 為兩個人，否定簡答必須用 No, they aren't。" },
-  { part: "Part 2: Question Response", prompt: "Question 25: Can Tony do kung fu?", audioText: "Question 25: Can Tony do kung fu? Statement A: Yes, he can. Statement B: Yes, I do. Statement C: Yes, I can.", options: ["Yes, he can.", "Yes, I do.", "Yes, I can."], ans: 0, tip: "💡【情態助動詞簡答】Can Tony... 提問，肯定簡答使用 Yes, he can。" },
-  { part: "Part 2: Question Response", prompt: "Question 26: Is there any shampoo?", audioText: "Question 26: Is there any shampoo? Statement A: No, I don't. Statement B: Yes, there are. Statement C: Yes, there is.", options: ["No, I don't.", "Yes, there are.", "Yes, there is."], ans: 2, tip: "💡【不可數存在句】shampoo（洗髮精）為不可數名詞，be 動詞用單數，肯定簡答為 Yes, there is。" },
-  { part: "Part 2: Question Response", prompt: "Question 27: How much sugar do you want?", audioText: "Question 27: How much sugar do you want? Statement A: Just a little. Statement B: Too much. Statement C: Not many.", options: ["Just a little.", "Too much.", "Not many."], ans: 0, tip: "💡【不可數修飾詞】sugar（糖）不可數，數量少用 a little（一點點）回答，不能用 many。" },
-  { part: "Part 2: Question Response", prompt: "Question 28: What is Timmy doing?", audioText: "Question 28: What is Timmy doing? Statement A: He doesn't shut his eyes because the movie is scary. Statement B: He is shutting his eyes because of the scary movie. Statement C: He shuts his eyes at scary movies.", options: ["He doesn't shut his eyes because the movie is scary.", "He is shutting his eyes because of the scary movie.", "He shuts his eyes at scary movies."], ans: 1, tip: "💡【時態對齊】問 What is Timmy doing，回答需用進行式 He is shutting his eyes。" },
-  { part: "Part 2: Question Response", prompt: "Question 29: Do you always do your homework before dinner?", audioText: "Question 29: Do you always do your homework before dinner? Statement A: Yes, I never eat first. Statement B: Yes, it is always late when I do it. Statement C: Yes, always do my homework.", options: ["Yes, I never eat first.", "Yes, it is always late when I do it.", "Yes, always do my homework."], ans: 0, tip: "💡【邏輯常理】做完功課才吃晚餐，代表『從來不會先吃飯』（I never eat first）。" },
-  { part: "Part 2: Question Response", prompt: "Question 30: What is the girl doing?", audioText: "Question 30: What is the girl doing? Statement A: The girl is sick. Statement B: The girl is painting. Statement C: Her favorite sport is soccer.", options: ["The girl is sick.", "The girl is painting.", "Her favorite sport is soccer."], ans: 1, tip: "💡【動作進行式】問女孩正在做什麼，回答為 The girl is painting（正在畫畫）。" },
-  { part: "Part 3: Conversations (31-33)", prompt: "Question 31: What does Kevin's mom want him to do now?", audioText: "Listen to the conversation. Kevin, what are you doing? I'm playing a video game, Mom. Is your homework done? I can't do my homework now because I can't stop this game before I win. Then I can stop the game for you. Now do your homework before dinner. Now listen to Question 31: What does Kevin's mom want him to do now?", options: ["Do his homework.", "Win the game.", "Eat dinner first."], ans: 0, repeat: true, tip: "💡【媽媽要求】媽媽最後清楚命令：Now do your homework before dinner。" },
-  { part: "Part 3: Conversations (32)", prompt: "Question 32: What does Kevin want to do?", audioText: "From the previous conversation, listen to Question 32: What does Kevin want to do?", options: ["Do his homework.", "Win the game before stopping.", "Help his mom cook dinner."], ans: 1, tip: "💡【兒子想法】Kevin 說 I can't stop this game before I win（贏了才肯罷休）。" },
-  { part: "Part 3: Conversations (33)", prompt: "Question 33: Does Kevin finish his homework?", audioText: "From the previous conversation, listen to Question 33: Does Kevin finish his homework?", options: ["Yes, he does.", "No, he hasn't done it yet.", "He did it at school."], ans: 1, tip: "💡【作業狀態】Kevin 的作業根本還沒做，故選 No, he hasn't done it yet。" },
-  { part: "Part 3: Conversations (34-35)", prompt: "Question 34: How is Lucy?", audioText: "Listen to the conversation. How are you, Lucy? Not bad. What about you? Great. I haven't seen you for a week. You know, I lived with my parents, but they moved to London. So I live in a big house alone. Now listen to Question 34: How is Lucy?", options: ["Very sick.", "Not bad.", "Terrible."], ans: 1, repeat: true, tip: "💡【問候細節】Lucy 回答 Not bad（還不錯）。" },
-  { part: "Part 3: Conversations (35)", prompt: "Question 35: Who lives with Lucy?", audioText: "From the previous conversation, listen to Question 35: Who lives with Lucy?", options: ["Her parents.", "Her classmates.", "She lives alone."], ans: 2, tip: "💡【同住人物】父母搬去倫敦後，Lucy 說 So I live in a big house ALONE（獨自一人）。" },
-  { part: "Part 3: Conversations (36-38)", prompt: "Question 36: What does Lucy want?", audioText: "Listen to the conversation. Hi, Lucy, your birthday is coming. Do you want to have a birthday party? Sure. We can invite some friends. Who do you want to invite? Jerry, Susan, and Henry. Okay. Sounds good. I will help you prepare your birthday party. Thanks. I need the help. Now listen to Question 36: What does Lucy want?", options: ["To have a birthday party.", "To go to London.", "To study alone."], ans: 0, repeat: true, tip: "💡【活動目的】Lucy 想要辦生日派對（To have a birthday party）。" },
-  { part: "Part 3: Conversations (37)", prompt: "Question 37: Whose birthday is coming?", audioText: "From the previous conversation, listen to Question 37: Whose birthday is coming?", options: ["Jack's birthday.", "Lucy's birthday.", "Susan's birthday."], ans: 1, tip: "💡【壽星人物】開頭提到 Hi, Lucy, your birthday is coming，過生日的是 Lucy。" },
-  { part: "Part 3: Conversations (38)", prompt: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", audioText: "From the previous conversation, listen to Question 38: How many friends may go to the birthday party with Lucy and Jack?", options: ["2 friends.", "3 friends (Jerry, Susan, and Henry).", "5 friends."], ans: 1, tip: "💡【名單清點】Lucy 邀請了 Jerry, Susan, Henry 共 3 位朋友。" },
-  { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: "Listen to the conversation. Hi Helen. Where are you going? I am going to watch a movie. Really? What kind of movie are you going to watch? I want to see a science fiction movie. I have to run now. The movie is about to start. Okay, and I have to be home before lunch. See you. Now listen to Question 39: What kind of movies does Helen like?", options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, repeat: true, tip: "💡【喜好單字】Helen 想要看 science fiction movies（科幻電影）。" },
-  { part: "Part 4: Talks (40)", prompt: "Question 40: Why does Helen have to run?", audioText: "From the previous conversation, listen to Question 40: Why does Helen have to run?", options: ["She wants to exercise.", "She needs to catch a bus.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 The movie is about to start（電影即將開始）。" },
-  { part: "Part 4: Talks (41-42)", prompt: "Question 41: Where does Henry come from?", audioText: "Listen to the talk. Hello everyone, today I'd like to tell you something about my English studies. My name is Henry. I am from Japan. I am a student at Gram English. I like to study English very much, but my spoken English is not good. When I say R, I find it difficult to say it right. Now listen to Question 41: Where does Henry come from?", options: ["America.", "Singapore.", "Japan."], ans: 2, repeat: true, tip: "💡【國家細節】Henry 自我介紹提到 I am from Japan（日本）。" },
-  { part: "Part 4: Talks (42)", prompt: "Question 42: Where does he learn English?", audioText: "From the talk, listen to Question 42: Where does he learn English?", options: ["At Gram English.", "At school in Japan.", "At home by himself."], ans: 0, tip: "💡【機構名稱】Henry 說 I am a student at Gram English。" },
-  { part: "Part 4: Talks (43-45)", prompt: "Question 43: What can't Frank do?", audioText: "Listen to the talk. Frank and Maggie are my good friends. They can do many things. Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Maggie is very talented. She can sing and dance very well. She likes to practice Kung Fu on Mondays. We can all speak English very well. Now listen to Question 43: What can't Frank do?", options: ["Drive a car.", "Play the guitar.", "Ride a bicycle."], ans: 0, repeat: true, tip: "💡【否定情態轉折】Frank 會彈鋼琴、吉他、騎車，但 he CAN'T drive a car（不會開車）。" },
-  { part: "Part 4: Talks (44)", prompt: "Question 44: What do the three friends do together?", audioText: "From the talk, listen to Question 44: What do the three friends do together?", options: ["Practice kung fu on Mondays.", "Drive cars together.", "Do homework before dinner and play video games after dinner."], ans: 2, tip: "💡【共同活動】文章說明 We often do our homework together before dinner. Then, after dinner, we play video games。" },
-  { part: "Part 4: Talks (45)", prompt: "Question 45: What are they very good at?", audioText: "From the talk, listen to Question 45: What are they very good at?", options: ["They can all play violin.", "They can all speak English very well.", "They can all drive."], ans: 1, tip: "💡【全體能力】文章提到 We can all speak English very well。" },
-  { part: "Part 4: Talks (46-47)", prompt: "Question 46: Where does the speaker like to watch movies?", audioText: "Listen to the talk. People like to watch movies in different places. For example, some people like to watch movies in the theater, library, or restaurant. But I like to watch movies at home. People who like to watch movies in the theater like to be around many people. Now listen to Question 46: Where does the speaker like to watch movies?", options: ["In the theater.", "In the library.", "At home."], ans: 2, repeat: true, tip: "💡【講者偏好】講者說 But I like to watch movies AT HOME（在家看）。" },
-  { part: "Part 4: Talks (47)", prompt: "Question 47: Why do some people prefer to watch movies in the theater?", audioText: "From the talk, listen to Question 47: Why do some people prefer to watch movies in the theater?", options: ["Because tickets are free.", "Because the food is delicious.", "Because they like to be around many people."], ans: 2, tip: "💡【原因抓取】文章最後一句說明 People who like to watch movies in the theater like to be around many people。" },
-  { part: "Part 4: Talks (48-50)", prompt: "Question 48: Why does she have to study?", audioText: "Listen to the talk. Hi Jane, it's Sandy. I have to study for my English test and I need your help. Can you come to my house today? We can have dinner together at 6:00, and we can study at 6:30 until 8:00. Then we can watch TV. Thanks. Now listen to Question 48: Why does she have to study?", options: ["For her English test.", "For her math contest.", "For fun."], ans: 0, repeat: true, tip: "💡【讀書目的】Sandy 留言提到 I have to study for my English test。" },
-  { part: "Part 4: Talks (49)", prompt: "Question 49: What does Sandy want from Jane?", audioText: "From the talk, listen to Question 49: What does Sandy want from Jane?", options: ["To help her study for the English test.", "To buy her dinner.", "To lend her a TV."], ans: 0, tip: "💡【請求內容】Sandy 說 I need your help（需要 Jane 幫忙協助複習英語測驗）。" },
-  { part: "Part 4: Talks (50)", prompt: "Question 50: Where does Sandy want to study?", audioText: "From the talk, listen to Question 50: Where does Sandy want to study?", options: ["At Jane's house.", "At school.", "At Sandy's house."], ans: 2, tip: "💡【地點細節】Sandy 邀請對方 Can you come to MY HOUSE today?，故是在 Sandy 家複習。" }
-];
 
 window.rawMockP2 = window.rawMockP2Data.map(function(item, idx) {
   return Object.assign({}, item, { qId: generateQuestionHash("p2_" + idx + "_" + item.prompt) });
