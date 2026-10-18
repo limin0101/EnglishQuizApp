@@ -1,8 +1,8 @@
 /**
  * ===================================================================
  * @file questions.js
- * @description 格蘭英語 B 級全方位題庫 (30大文法矩陣深度擴充 + 去重抽題版)
- * @version 9.0.0
+ * @description 格蘭英語 B 級全方位題庫 (30大文法矩陣深度擴充 + 語意防呆 + 去重抽題版)
+ * @version 9.1.0
  * ===================================================================
  */
 
@@ -98,7 +98,7 @@ window.p2SvgImages = {
 };
 
 // =======================================================================
-// 1. 文法 500 題生成引擎 (30 大考點深度矩陣 + 多樣性詞庫)
+// 1. 文法 500 題生成引擎 (30 大考點深度矩陣 + 語意防呆詞庫)
 // =======================================================================
 function generate500GrammarQuestions() {
   const times = ["6:30 a.m.", "7:15 a.m.", "8:45 p.m.", "9:00 a.m.", "12:15 p.m.", "5:45 p.m.", "half past eight", "noon"];
@@ -111,9 +111,9 @@ function generate500GrammarQuestions() {
     { name: "My brother", pron: "He", obj: "him" },
     { name: "Susan", pron: "She", obj: "her" },
     { name: "Frank", pron: "He", obj: "him" },
-    { name: "The English teacher", pron: "She", obj: "her" },
-    { name: "Uncle David", pron: "He", obj: "him" },
-    { name: "Maggie", pron: "She", obj: "her" }
+    { name: "Maggie", pron: "She", obj: "her" },
+    { name: "Tina", pron: "She", obj: "her" },
+    { name: "Henry", pron: "He", obj: "him" }
   ];
 
   const pluralPeople = [
@@ -123,13 +123,19 @@ function generate500GrammarQuestions() {
     { name: "The students", pron: "They", obj: "them" }
   ];
 
-  const uncountables = [
-    { word: "sugar", hint: "糖", container: "a spoon of" },
-    { word: "milk", hint: "牛奶", container: "a glass of" },
-    { word: "shampoo", hint: "洗髮精", container: "a bottle of" },
-    { word: "money", hint: "金錢", container: "a lot of" },
-    { word: "soup", hint: "熱湯", container: "a bowl of" },
-    { word: "water", hint: "水", container: "a cup of" }
+  const cookingUncountables = [
+    { word: "sugar", hint: "糖" },
+    { word: "milk", hint: "牛奶" },
+    { word: "oil", hint: "食用油" },
+    { word: "butter", hint: "奶油" },
+    { word: "water", hint: "水" }
+  ];
+
+  const bottleUncountables = [
+    { word: "milk", hint: "牛奶" },
+    { word: "shampoo", hint: "洗髮精" },
+    { word: "water", hint: "水" },
+    { word: "juice", hint: "果汁" }
   ];
 
   const countables = [
@@ -141,31 +147,30 @@ function generate500GrammarQuestions() {
     { singular: "marker", plural: "markers", hint: "彩色筆" }
   ];
 
-  const irregularNouns = [
+  const personIrregularNouns = [
     { sing: "child", plur: "children", hint: "小孩" },
-    { sing: "tooth", plur: "teeth", hint: "牙齒" },
-    { sing: "foot", plur: "feet", hint: "腳" },
-    { sing: "man", plur: "men", hint: "男人" }
+    { sing: "man", plur: "men", hint: "男人" },
+    { sing: "woman", plur: "women", hint: "女人" }
   ];
 
   const activities = [
-    { base: "brush teeth", ing: "brushing teeth", s: "brushes teeth", past: "brushed teeth" },
-    { base: "play basketball", ing: "playing basketball", s: "plays basketball", past: "played basketball" },
     { base: "clean the room", ing: "cleaning the room", s: "cleans the room", past: "cleaned the room" },
-    { base: "listen to music", ing: "listening to music", s: "listens to music", past: "listened to music" },
+    { base: "practice English", ing: "practicing English", s: "practices English", past: "practiced English" },
     { base: "wash dishes", ing: "washing dishes", s: "washes dishes", past: "washed dishes" },
-    { base: "watch television", ing: "watching television", s: "watches television", past: "watched television" }
+    { base: "study hard", ing: "studying hard", s: "studies hard", past: "studied hard" },
+    { base: "play basketball", ing: "playing basketball", s: "plays basketball", past: "played basketball" },
+    { base: "listen to music", ing: "listening to music", s: "listens to music", past: "listened to music" }
   ];
 
-  const places = [
+  const streetPlaces = [
     "the supermarket", "the library", "the hospital", "the bakery", 
-    "the post office", "the bank", "the dining room", "the kitchen"
+    "the post office", "the bank", "the bookstore", "the park"
   ];
 
   const generated = [];
 
   for (let i = 0; i < 500; i++) {
-    const type = i % 30; // 擴展為 30 大考點
+    const type = i % 30;
     const vhc = vehicles[i % vehicles.length];
     const tm = times[i % times.length];
     const dy = days[i % days.length];
@@ -173,15 +178,16 @@ function generate500GrammarQuestions() {
     const mo = months[i % months.length];
     const sp = singlePeople[i % singlePeople.length];
     const pp = pluralPeople[i % pluralPeople.length];
-    const uncnt = uncountables[i % uncountables.length];
+    const cookUncnt = cookingUncountables[i % cookingUncountables.length];
+    const btlUncnt = bottleUncountables[i % bottleUncountables.length];
     const cnt = countables[i % countables.length];
-    const irr = irregularNouns[i % irregularNouns.length];
+    const irr = personIrregularNouns[i % personIrregularNouns.length];
     const act = activities[i % activities.length];
-    const p1 = places[i % places.length];
-    const p2 = places[(i + 2) % places.length];
-    const p3 = places[(i + 4) % places.length];
+    const p1 = streetPlaces[i % streetPlaces.length];
+    const p2 = streetPlaces[(i + 2) % streetPlaces.length];
+    const p3 = streetPlaces[(i + 4) % streetPlaces.length];
 
-    let item = { typeTag: type };
+    let item = { typeTag: type, module: "grammar" };
 
     switch (type) {
       case 0:
@@ -226,10 +232,10 @@ function generate500GrammarQuestions() {
 
       case 5:
         item.part = "不可數名詞數量疑問詞 (How much)";
-        item.prompt = `How ______ ${uncnt.word} does ${sp.name} need for cooking?`;
+        item.prompt = `How ______ ${cookUncnt.word} does ${sp.name} need for cooking?`;
         item.options = ["much", "many", "any", "little"];
         item.ans = 0;
-        item.tip = `💡【不可數名詞】${uncnt.word}（${uncnt.hint}）為不可數名詞，詢問數量一律用 How much。`;
+        item.tip = `💡【不可數名詞】${cookUncnt.word}（${cookUncnt.hint}）為不可數名詞，詢問數量一律用 How much。`;
         break;
 
       case 6:
@@ -250,7 +256,7 @@ function generate500GrammarQuestions() {
 
       case 8:
         item.part = "現在簡單式：第三人稱單數動詞加 s/es";
-        item.prompt = `${sp.name} always ______ on weekends because ${sp.pron.toLowerCase()} is diligent.`;
+        item.prompt = `${sp.name} always ______ on weekends.`;
         item.options = [act.s, act.base, act.ing, `is ${act.ing}`];
         item.ans = 0;
         item.tip = `💡【三單現在式】主詞 ${sp.name} 為第三人稱單數，一般動詞必須字尾加 s 或 es。`;
@@ -306,7 +312,7 @@ function generate500GrammarQuestions() {
 
       case 15:
         item.part = "不規則名詞複數變化";
-        item.prompt = `There are three ______ playing happily in the garden.`;
+        item.prompt = `There are three ______ talking happily in the garden.`;
         item.options = [irr.plur, irr.sing, `${irr.sing}s`, `${irr.plur}s`];
         item.ans = 0;
         item.tip = `💡【不規則複數】${irr.sing} 的複數形是不規則變化 ${irr.plur}，不可隨便加 s。`;
@@ -314,7 +320,7 @@ function generate500GrammarQuestions() {
 
       case 16:
         item.part = "量詞片語：不可數名詞計量";
-        item.prompt = `Mom bought two ______ ${uncnt.word} from the supermarket.`;
+        item.prompt = `Mom bought two ______ ${btlUncnt.word} from the supermarket.`;
         item.options = ["bottles of", "bottle of", "bottles", "bottle"];
         item.ans = 0;
         item.tip = `💡【不可數計量】不可數名詞前面加上量詞時，複數要加在容器量詞上（如 bottles of）。`;
@@ -426,7 +432,7 @@ function generate500GrammarQuestions() {
         break;
     }
 
-    item.qId = generateQuestionHash("g500_v4_" + i + "_" + item.prompt);
+    item.qId = generateQuestionHash("g500_v5_" + i + "_" + item.prompt);
     generated.push(item);
   }
 
@@ -439,7 +445,6 @@ window.rawGrammarQuestions = generate500GrammarQuestions();
 window.getDiverseGrammarQuiz = function(count = 25) {
   const pool = window.rawGrammarQuestions || generate500GrammarQuestions();
   
-  // 按考點 typeTag 分組 (0 ~ 29)
   const buckets = {};
   pool.forEach(q => {
     if (!buckets[q.typeTag]) buckets[q.typeTag] = [];
@@ -450,7 +455,6 @@ window.getDiverseGrammarQuiz = function(count = 25) {
   const shuffledTags = localShuffle(availableTags);
   const selectedQuiz = [];
 
-  // 每個考點最多只抽 1 題，抽滿 count 題
   for (let i = 0; i < count && i < shuffledTags.length; i++) {
     const tag = shuffledTags[i];
     const candidateList = buckets[tag];
@@ -462,14 +466,27 @@ window.getDiverseGrammarQuiz = function(count = 25) {
 };
 
 // =======================================================================
-// 2. 聽力考點 500 題生成引擎 (隨機地圖與多樣化建築)
+// 2. 聽力考點 500 題生成引擎 (隨機地圖 + 男女代名詞對齊 + Statement A/B/C 同步)
 // =======================================================================
 function generate500ListeningReviewQuestions() {
   const landmarks = [
     "SUPERMARKET", "HOSPITAL", "RESTAURANT", "LIBRARY", "BAKERY", 
     "POST OFFICE", "BANK", "POLICE STATION", "BOOKSTORE", "PARK"
   ];
-  const names = ["Andy", "Julia", "Janice", "Henry", "Susan", "Tina", "Frank", "Stephen", "Lucy", "Jerry", "Maggie", "Kathy"];
+  const peopleList = [
+    { name: "Andy", pron: "He" },
+    { name: "Julia", pron: "She" },
+    { name: "Janice", pron: "She" },
+    { name: "Henry", pron: "He" },
+    { name: "Susan", pron: "She" },
+    { name: "Tina", pron: "She" },
+    { name: "Frank", pron: "He" },
+    { name: "Stephen", pron: "He" },
+    { name: "Lucy", pron: "She" },
+    { name: "Jerry", pron: "He" },
+    { name: "Maggie", pron: "She" },
+    { name: "Kathy", pron: "She" }
+  ];
   const locations = [
     { place: "in the kitchen", label: "廚房" },
     { place: "in the living room", label: "客廳" },
@@ -482,104 +499,109 @@ function generate500ListeningReviewQuestions() {
     { word: "shampoo", hint: "洗髮精" },
     { word: "money", hint: "錢" }
   ];
-  const activities = [
+  const indoorActivities = [
     { base: "play the guitar", ing: "playing the guitar", third: "plays the guitar" },
     { base: "play the piano", ing: "playing the piano", third: "plays the piano" },
-    { base: "play badminton", ing: "playing badminton", third: "plays badminton" },
-    { base: "ride a bicycle", ing: "riding a bicycle", third: "rides a bicycle" }
+    { base: "read a book", ing: "reading a book", third: "reads a book" },
+    { base: "listen to music", ing: "listening to music", third: "listens to music" }
   ];
 
   const generated = [];
 
   for (let i = 0; i < 500; i++) {
     const type = i % 6;
-    const name1 = names[i % names.length];
+    const person = peopleList[i % peopleList.length];
     const loc = locations[i % locations.length];
     const uncnt = uncountables[i % uncountables.length];
-    const act = activities[i % activities.length];
+    const act = indoorActivities[i % indoorActivities.length];
     const hour = (i % 11) + 1;
     const nextHour = hour + 1;
+    const prevHour = hour === 1 ? 12 : hour - 1;
 
     const lShuffled = localShuffle(landmarks);
     const centerB = lShuffled[0];
     const leftB = lShuffled[1];
     const rightB = lShuffled[2];
 
-    let qObj = {};
+    let qObj = { module: "listening" };
     switch (type) {
       case 0:
-        qObj = {
-          part: "【考點 1】時間辨析 (Quarter past)",
-          prompt: "Question: Look at the clock. What time is it?",
-          svgData: generateClockSvg(hour, 15),
-          sceneHint: `時鐘短針指向 ${hour}，長針指向 3（即 ${hour}:15）。`,
-          audioText: `Look at the clock and choose the best statement. Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${hour}. Statement C: It's half past ${hour}.`,
-          options: [`It's a quarter past ${hour}. (${hour}:15)`, `It's a quarter to ${hour}. (${hour - 1}:45)`, `It's half past ${hour}. (${hour}:30)`],
-          ans: 0,
-          tip: `💡【時間讀法】a quarter past ${hour} 代表『過了一刻鐘』，即 ${hour}:15。`
-        };
+        qObj.part = "【考點 1】時間辨析 (Quarter past)";
+        qObj.prompt = "Question: Look at the clock. What time is it?";
+        qObj.svgData = generateClockSvg(hour, 15);
+        qObj.sceneHint = `時鐘短針指向 ${hour}，長針指向 3（即 ${hour}:15）。`;
+        qObj.audioText = `Look at the clock and choose the best statement. Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${hour}. Statement C: It's half past ${hour}.`;
+        qObj.options = [
+          `It's a quarter past ${hour}. (${hour}:15)`,
+          `It's a quarter to ${hour}. (${prevHour}:45)`,
+          `It's half past ${hour}. (${hour}:30)`
+        ];
+        qObj.ans = 0;
+        qObj.tip = `💡【時間讀法】a quarter past ${hour} 代表『過了一刻鐘』，即 ${hour}:15。`;
         break;
       case 1:
-        qObj = {
-          part: "【考點 1】時間辨析 (Quarter to)",
-          prompt: "Question: Look at the clock. What time is it?",
-          svgData: generateClockSvg(hour, 45),
-          sceneHint: `時鐘短針指向近 ${nextHour}，長針指向 9（即 ${hour}:45）。`,
-          audioText: `Look at the clock and choose the best statement. Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${nextHour}. Statement C: It's half past ${hour}.`,
-          options: [`It's a quarter past ${hour}. (${hour}:15)`, `It's a quarter to ${nextHour}. (${hour}:45)`, `It's half past ${hour}. (${hour}:30)`],
-          ans: 1,
-          tip: `💡【時間讀法】a quarter to ${nextHour} 代表『差一刻鐘到 ${nextHour} 點』，即 ${hour}:45。`
-        };
+        qObj.part = "【考點 1】時間辨析 (Quarter to)";
+        qObj.prompt = "Question: Look at the clock. What time is it?";
+        qObj.svgData = generateClockSvg(hour, 45);
+        qObj.sceneHint = `時鐘短針指向近 ${nextHour}，長針指向 9（即 ${hour}:45）。`;
+        qObj.audioText = `Look at the clock and choose the best statement. Statement A: It's a quarter past ${hour}. Statement B: It's a quarter to ${nextHour}. Statement C: It's half past ${hour}.`;
+        qObj.options = [
+          `It's a quarter past ${hour}. (${hour}:15)`,
+          `It's a quarter to ${nextHour}. (${hour}:45)`,
+          `It's half past ${hour}. (${hour}:30)`
+        ];
+        qObj.ans = 1;
+        qObj.tip = `💡【時間讀法】a quarter to ${nextHour} 代表『差一刻鐘到 ${nextHour} 點』，即 ${hour}:45。`;
         break;
       case 2:
-        qObj = {
-          part: "【考點 2】位置介系詞 (Between 隨機街景)",
-          prompt: `Question: Look at the map. Where is the ${centerB.toLowerCase()}?`,
-          svgData: generateMapSvg(centerB, leftB, rightB),
-          sceneHint: `地圖上，${centerB} 位於 ${leftB} 與 ${rightB} 的中間。`,
-          audioText: `Look at the map. Where is the ${centerB.toLowerCase()}? Statement A: It is beside the park. Statement B: It is between the ${leftB.toLowerCase()} and the ${rightB.toLowerCase()}. Statement C: It is behind the school.`,
-          options: [
-            "It is beside the park.",
-            `It is between the ${leftB.toLowerCase()} and the ${rightB.toLowerCase()}.`,
-            "It is behind the school."
-          ],
-          ans: 1,
-          tip: `💡【空間介系詞】between A and B 代表『在兩者之間』。圖中 ${centerB} 位於兩棟建築中間。`
-        };
+        qObj.part = "【考點 2】位置介系詞 (Between 隨機街景)";
+        qObj.prompt = `Question: Look at the map. Where is the ${centerB.toLowerCase()}?`;
+        qObj.svgData = generateMapSvg(centerB, leftB, rightB);
+        qObj.sceneHint = `地圖上，${centerB} 位於 ${leftB} 與 ${rightB} 的中間。`;
+        qObj.audioText = `Look at the map. Where is the ${centerB.toLowerCase()}? Statement A: It is beside the park. Statement B: It is between the ${leftB.toLowerCase()} and the ${rightB.toLowerCase()}. Statement C: It is behind the school.`;
+        qObj.options = [
+          "It is beside the park.",
+          `It is between the ${leftB.toLowerCase()} and the ${rightB.toLowerCase()}.`,
+          "It is behind the school."
+        ];
+        qObj.ans = 1;
+        qObj.tip = `💡【空間介系詞】between A and B 代表『在兩者之間』。圖中 ${centerB} 位於兩棟建築中間。`;
         break;
       case 3:
-        qObj = {
-          part: "【考點 4】疑問詞問答 (Where / 地點介系詞)",
-          prompt: `Question: Where does ${name1} ${act.base}?`,
-          audioText: `Where does ${name1} ${act.base}? A: He has a big bag. B: In the ${loc.label}. C: Yes, he does it every day.`,
-          options: ["He has a big bag.", `He does it ${loc.place}.`, "Yes, he does it every day."],
-          ans: 1,
-          tip: "💡【地點問答】聽到 Where 提問，核心回答為具體空間介系詞片語。"
-        };
+        qObj.part = "【考點 4】疑問詞問答 (Where / 地點介系詞)";
+        qObj.prompt = `Question: Where does ${person.name} ${act.base}?`;
+        qObj.audioText = `Where does ${person.name} ${act.base}? Statement A: ${person.pron} has a big bag. Statement B: ${person.pron} does it ${loc.place}. Statement C: Yes, ${person.pron.toLowerCase()} does it every day.`;
+        qObj.options = [
+          `${person.pron} has a big bag.`,
+          `${person.pron} does it ${loc.place}.`,
+          `Yes, ${person.pron.toLowerCase()} does it every day.`
+        ];
+        qObj.ans = 1;
+        qObj.tip = `💡【地點問答】聽到 Where 提問，核心回答為具體空間介系詞片語（${loc.place}：${loc.label}）。`;
         break;
       case 4:
-        qObj = {
-          part: "【考點 5】現在進行式 (What is ... doing?)",
-          prompt: `Question: What is ${name1} doing right now?`,
-          audioText: `What is ${name1} doing right now? A: She is ${act.ing}. B: She ${act.third} every Sunday. C: She can ${act.base}.`,
-          options: [`She is ${act.ing}.`, `She ${act.third} every Sunday.`, `She can ${act.base}.`],
-          ans: 0,
-          tip: "💡【現在進行式】問句包含 is ... doing，回答必須使用主詞 + be動詞 + V-ing。"
-        };
+        qObj.part = "【考點 5】現在進行式 (What is ... doing?)";
+        qObj.prompt = `Question: What is ${person.name} doing right now?`;
+        qObj.audioText = `What is ${person.name} doing right now? Statement A: ${person.pron} is ${act.ing}. Statement B: ${person.pron} ${act.third} every Sunday. Statement C: ${person.pron} can ${act.base}.`;
+        qObj.options = [
+          `${person.pron} is ${act.ing}.`,
+          `${person.pron} ${act.third} every Sunday.`,
+          `${person.pron} can ${act.base}.`
+        ];
+        qObj.ans = 0;
+        qObj.tip = "💡【現在進行式】問句包含 is ... doing，回答必須使用主詞 + be動詞 + V-ing。";
         break;
       case 5:
       default:
-        qObj = {
-          part: "【考點 6】數量疑問詞 (How much 不可數)",
-          prompt: `Question: How much ${uncnt.word} do you need?`,
-          audioText: `How much ${uncnt.word} do you need? A: Just a little. B: There are five. C: Not many.`,
-          options: ["Just a little.", "There are five.", "Not many."],
-          ans: 0,
-          tip: `💡【不可數名詞數量】${uncnt.word} 為不可數名詞，使用 How much 提問，回答用 a little 或 much。`
-        };
+        qObj.part = "【考點 6】數量疑問詞 (How much 不可數)";
+        qObj.prompt = `Question: How much ${uncnt.word} do you need?`;
+        qObj.audioText = `How much ${uncnt.word} do you need? Statement A: Just a little. Statement B: There are five. Statement C: Not many.`;
+        qObj.options = ["Just a little.", "There are five.", "Not many."];
+        qObj.ans = 0;
+        qObj.tip = `💡【不可數名詞數量】${uncnt.word}（${uncnt.hint}）為不可數名詞，使用 How much 提問，回答用 a little 或 much。`;
         break;
     }
-    qObj.qId = generateQuestionHash("l500_v3_" + i + "_" + qObj.prompt);
+    qObj.qId = generateQuestionHash("l500_v4_" + i + "_" + qObj.prompt);
     generated.push(qObj);
   }
   return generated;
@@ -588,7 +610,7 @@ function generate500ListeningReviewQuestions() {
 window.rawReviewQuestions = generate500ListeningReviewQuestions();
 
 // =======================================================================
-// 3. 官方 450+ 基礎單字母庫 (含 category 分類)
+// 3. 官方核心單字母庫 (含 category 分類)
 // =======================================================================
 window.bLevelVocabMasterPool = [
   // 家具生活類 (house)
@@ -701,7 +723,7 @@ window.bLevelVocabMasterPool = [
   { word: "between", meaning: "在…兩者之間", category: "time", kk: "[bɪˋtwin]", tip: "between (兩者之間) KK: [bɪˋtwin]" }
 ];
 
-// 單字動態生成引擎 (雙向題型 + 同類別干擾)
+// 單字動態生成引擎 (雙向題型 + 防洩題 + 同類別干擾)
 window.buildDynamicVocabQuiz = function(count, stageTitle) {
   const pool = Array.isArray(window.bLevelVocabMasterPool) && window.bLevelVocabMasterPool.length > 0 
     ? window.bLevelVocabMasterPool 
@@ -724,11 +746,14 @@ window.buildDynamicVocabQuiz = function(count, stageTitle) {
     if (isMeaningQuestion) {
       return {
         qId: generateQuestionHash("vocab_meaning_" + target.word),
+        module: "vocab",
+        isMeaningQuestion: true,
         part: stageTitle,
-        prompt: `📖 請問單字【 ${target.word} 】的中文意思是？`,
+        prompt: `📖 請問單字【 ${target.word} 】${target.kk} 的中文意思是？`,
         word: target.word,
         meaning: target.meaning,
         options: combinedOptions.map(item => item.meaning),
+        wordsList: combinedOptions.map(item => item.word),
         meanings: combinedOptions.map(item => item.meaning),
         kkList: combinedOptions.map(item => item.kk),
         ans: correctIdx,
@@ -738,11 +763,14 @@ window.buildDynamicVocabQuiz = function(count, stageTitle) {
     } else {
       return {
         qId: generateQuestionHash("vocab_audio_" + target.word),
+        module: "vocab",
+        isMeaningQuestion: false,
         part: stageTitle,
         prompt: "🎧 請聽發音，選出正確的單字：",
         word: target.word,
         meaning: target.meaning,
         options: combinedOptions.map(item => item.word),
+        wordsList: combinedOptions.map(item => item.word),
         meanings: combinedOptions.map(item => item.meaning),
         kkList: combinedOptions.map(item => item.kk),
         ans: correctIdx,
@@ -756,8 +784,16 @@ window.buildDynamicVocabQuiz = function(count, stageTitle) {
 window.rawVocabBLevel = window.buildDynamicVocabQuiz(50, "⭐ B級全範圍綜合測驗 (50題)");
 
 // =======================================================================
-// 4. Practice 1 真題資料庫
+// 4. Practice 1 真題資料庫 (子題內建完整對話音訊，支援獨立重聽與錯題重測)
 // =======================================================================
+const p1Conv23_24 = "Good evening, Tim. Good evening, Sally. How are you? I am fine. Thank you. And you? I am not feeling good. Why not? Because my parents will not come to my birthday party. Why won't they? They need to fly to America to work.";
+const p1Conv25_27 = "Hi Helen, where are you going? I'm going to watch a movie. Really, what kind of movie are you going to watch? I want to see a science fiction movie. I have to run now, the movie is about to start. Okay, and I have to be home before lunch. See you.";
+const p1Talk28_30 = "Kathy likes to read books. She reads many different kinds of books. Chinese books, science books, and of course, English books. She also likes sports. She can play basketball, football, and golf well. Now she is learning how to play badminton. Her favorite food is hamburgers, but she is not fat. She is thin because she runs in the park every day and doesn't eat too much. I like her very much.";
+const p1Talk31_32 = "In my free time, I like to swim. I am a good swimmer. I can also play the piano and the guitar very well. But I can't play the violin. If you want to be my friend, please tell me after class.";
+const p1Talk33_35 = "I live in a small apartment with my classmate. We share the kitchen and bathroom. It is very difficult in the morning. I like to take a shower in the morning, but my classmate often uses the bathroom for a long time.";
+const p1Conv36_37 = "Hello. This is Stephen. May I talk to Tina? Hold on, please. Hello, Stephen. This is Tina speaking. I am just calling to tell you that I can't go to your birthday party. I am really sorry. Why can't you come? My parents will go to Singapore for work.";
+const p1Conv38_40 = "Did you tell your parents that you don't want to go? I feel they never listen to me. I am afraid if I tell them, they will still want me to go to Singapore with them. If you stay here, who is going to take care of you? My grandparents live near us. I can live with them. Well, I think you should tell your parents about your plan anyway.";
+
 window.rawMockP1Data = [
   { part: "Part 1: Photographs", prompt: "Question 1", svgData: window.p1SvgImages.q1, sceneHint: "一位名叫 Julia 的小女孩正在洗手台前拿起牙刷刷牙。", audioText: "Look at the picture and choose the best answer. Statement A: Julia brushes her teeth. Statement B: Julia washes her face. Statement C: Julia's mother brushes her teeth.", options: ["Julia brushes her teeth.", "Julia washes her face.", "Julia's mother brushes her teeth."], ans: 0, tip: "💡【看圖選句】圖中小女孩手拿牙刷在刷牙（brushes her teeth），而不是洗臉（washes her face）。" },
   { part: "Part 1: Photographs", prompt: "Question 2", svgData: window.p1SvgImages.q2, sceneHint: "時鐘指向中午 12:00，Janice 正在餐桌享用午餐。", audioText: "Look at the picture and choose the best answer. Statement A: Janice drinks milk for breakfast. Statement B: Janice has lunch at noon. Statement C: Janice eats fruit for breakfast.", options: ["Janice drinks milk for breakfast.", "Janice has lunch at noon.", "Janice eats fruit for breakfast."], ans: 1, tip: "💡【看圖選句】時鐘指在 12:00 即中午（noon），因此 Janice has lunch at noon 為正確描述。" },
@@ -781,33 +817,42 @@ window.rawMockP1Data = [
   { part: "Part 2: Question Response", prompt: "Question 20: Are there any pictures on the wall?", audioText: "Question 20: Are there any pictures on the wall? Statement A: No, there are not any pictures. Statement B: He is looking for his pictures. Statement C: He is painting a picture.", options: ["No, there are not any pictures.", "He is looking for his pictures.", "He is painting a picture."], ans: 0, tip: "💡【存在句簡答】Are there any... 否定簡答為 No, there are not any pictures。" },
   { part: "Part 2: Question Response", prompt: "Question 21: Where are you going to watch the movie?", audioText: "Question 21: Where are you going to watch the movie? Statement A: I am doing homework at school. Statement B: At the movie theater. Statement C: I am going to watch TV at home.", options: ["I am doing homework at school.", "At the movie theater.", "I am going to watch TV at home."], ans: 1, tip: "💡【地點回答】問去哪裡看電影，最直接合適的地點回答是 At the movie theater。" },
   { part: "Part 2: Question Response", prompt: "Question 22: People are trembling in their seats in the movie theater.", audioText: "Question 22: People are trembling in their seats in the movie theater. Statement A: They are watching a horror movie. Statement B: They are watching an adventure movie. Statement C: They are dreaming.", options: ["They are watching a horror movie.", "They are watching an adventure movie.", "They are dreaming."], ans: 0, tip: "💡【單字因果推論】tremble 代表發抖打顫，在電影院裡發抖代表正在觀看恐怖電影（horror movie）。" },
-  { part: "Part 3: Conversations (23-24)", prompt: "Question 23: Is Sally sad?", audioText: "Listen to the conversation. Good evening, Tim. Good evening, Sally. How are you? I am fine. Thank you. And you? I am not feeling good. Why not? Because my parents will not come to my birthday party. Why won't they? They need to fly to America to work. Now listen to Question 23: Is Sally sad?", options: ["Yes, she is not sad.", "Yes, she is sad.", "No, she is happy."], ans: 1, repeat: true, tip: "💡【情意判斷】Sally 提到 I am not feeling good 且父母無法參加派對，因此 Yes, she is sad。" },
-  { part: "Part 3: Conversations (24)", prompt: "Question 24: Why can't Sally's parents go to her birthday party?", audioText: "Listen to the conversation again. Good evening, Tim. Good evening, Sally. How are you? I am fine. Thank you. And you? I am not feeling good. Why not? Because my parents will not come to my birthday party. Why won't they? They need to fly to America to work. Now listen to Question 24: Why can't Sally's parents go to her birthday party?", options: ["They will go to Sally's birthday party.", "They will go to work.", "They will come from America."], ans: 1, repeat: true, tip: "💡【因果細節】Sally 清楚說明 They need to fly to America to work，所以原因為 They will go to work。" },
-  { part: "Part 3: Conversations (25-27)", prompt: "Question 25: What kind of movies does Helen like?", audioText: "Listen to the conversation. Hi Helen, where are you going? I'm going to watch a movie. Really, what kind of movie are you going to watch? I want to see a science fiction movie. I have to run now, the movie is about to start. Okay, and I have to be home before lunch. See you. Now listen to Question 25: What kind of movies does Helen like?", options: ["She wants to watch a movie with Paul.", "She likes science fiction movies.", "She likes romance movies."], ans: 1, repeat: true, tip: "💡【喜好抓取】Helen 說 I want to see a science fiction movie（科幻電影）。" },
-  { part: "Part 3: Conversations (26)", prompt: "Question 26: Why does Helen have to run?", audioText: "From the previous conversation, listen to Question 26: Why does Helen have to run?", options: ["She likes to run.", "She likes science fiction movies.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 the movie is about to start（電影快要開演了）。" },
-  { part: "Part 3: Conversations (27)", prompt: "Question 27: Do Paul and Helen see the movie together?", audioText: "From the previous conversation, listen to Question 27: Do Paul and Helen see the movie together?", options: ["Yes, they do.", "No, they aren't.", "No, they don't."], ans: 2, tip: "💡【助動詞簡答】Paul 說自己中午前必須回家，兩人並未一起看電影，故用 No, they don't。" },
-  { part: "Part 4: Talks (28-30)", prompt: "Question 28: What kind of books does Kathy not read?", audioText: "Listen to the talk. Kathy likes to read books. She reads many different kinds of books. Chinese books, science books, and of course, English books. She also likes sports. She can play basketball, football, and golf well. Now she is learning how to play badminton. Her favorite food is hamburgers, but she is not fat. She is thin because she runs in the park every day and doesn't eat too much. I like her very much. Now listen to Question 28: What kind of books does Kathy not read in her free time?", options: ["Chinese books.", "Science books.", "Math books."], ans: 2, repeat: true, tip: "💡【反向細節】文章提到 Chinese, science, English books，唯獨沒有提到數學書（Math books）。" },
-  { part: "Part 4: Talks (29)", prompt: "Question 29: What kind of sport is Kathy learning now?", audioText: "From the talk, listen to Question 29: What kind of sport is Kathy learning now?", options: ["Basketball", "Badminton", "Football"], ans: 1, tip: "💡【現在進行細節】文章說明 Now she is learning how to play badminton（羽毛球）。" },
-  { part: "Part 4: Talks (30)", prompt: "Question 30: Why is Kathy thin?", audioText: "From the talk, listen to Question 30: Why is Kathy thin?", options: ["Because she runs a lot and eats a little.", "Because she doesn't eat.", "Because she likes eating hamburgers."], ans: 0, tip: "💡【因果細節】文章說明 She is thin because she runs in the park every day and doesn't eat too much。" },
-  { part: "Part 4: Talks (31-32)", prompt: "Question 31: What does Henry like to do in his free time?", audioText: "Listen to the talk. In my free time, I like to swim. I am a good swimmer. I can also play the piano and the guitar very well. But I can't play the violin. If you want to be my friend, please tell me after class. Now listen to Question 31: What does Henry like to do in his free time?", options: ["To swim", "To study English", "To play basketball"], ans: 0, repeat: true, tip: "💡【喜好辨析】Henry 開頭即說 In my free time, I like to swim。" },
-  { part: "Part 4: Talks (32)", prompt: "Question 32: Where is Henry now?", audioText: "From the talk, listen to Question 32: Where is Henry now?", options: ["In the living room.", "In the classroom.", "In the dining room."], ans: 1, tip: "💡【情境推理】結尾提到 please tell me after class，代表目前在教室（classroom）。" },
-  { part: "Part 4: Talks (33-35)", prompt: "Question 33: Who lives with Jerry?", audioText: "Listen to the talk. I live in a small apartment with my classmate. We share the kitchen and bathroom. It is very difficult in the morning. I like to take a shower in the morning, but my classmate often uses the bathroom for a long time. Now listen to Question 33: Who lives with Jerry?", options: ["Jerry lives with his parents.", "Jerry lives with his classmate.", "Jerry lives with his teammate."], ans: 1, repeat: true, tip: "💡【同住人物】Jerry 說 I live in a small apartment with my classmate。" },
-  { part: "Part 4: Talks (34)", prompt: "Question 34: How many bathrooms are there in Jerry's house?", audioText: "From the talk, listen to Question 34: How many bathrooms are there in Jerry's house?", options: ["2", "1", "0"], ans: 1, tip: "💡【數量細節】兩人必須共用浴室（share the bathroom），代表只有 1 間浴室。" },
-  { part: "Part 4: Talks (35)", prompt: "Question 35: Why does Jerry feel the morning is difficult?", audioText: "From the talk, listen to Question 35: Why does Jerry feel the morning is difficult?", options: ["Because he can't use the bathroom.", "Because the bathroom is dirty.", "Because he does not want to go to school."], ans: 0, tip: "💡【原因推論】室友早上佔用浴室很久導致 Jerry 無法使用，因此覺得早上很困擾。" },
-  { part: "Part 3/4: Conversation (36-37)", prompt: "Question 36: Whose birthday is coming?", audioText: "Listen to the conversation. Hello. This is Stephen. May I talk to Tina? Hold on, please. Hello, Stephen. This is Tina speaking. I am just calling to tell you that I can't go to your birthday party. I am really sorry. Why can't you come? My parents will go to Singapore for work. Now listen to Question 36: Whose birthday is coming?", options: ["Stephen's birthday is coming.", "Tina's birthday is coming.", "Steven's father's birthday is coming."], ans: 0, repeat: true, tip: "💡【人物關係】Tina 說 I can't go to YOUR birthday party，因此過生日的是 Stephen。" },
-  { part: "Part 3/4: Conversation (37)", prompt: "Question 37: Why do Tina's parents need to go to Singapore?", audioText: "From the conversation, listen to Question 37: Why do Tina's parents need to go to Singapore?", options: ["Because they want to celebrate a birthday.", "Because they have to work in Singapore.", "Because they study in Singapore."], ans: 1, tip: "💡【原因細節】Tina 說明 My parents will go to Singapore for work。" },
-  { part: "Part 3/4: Conversation (38-40)", prompt: "Question 38: What does Stephen think of his parents?", audioText: "Listen to the conversation. Did you tell your parents that you don't want to go? I feel they never listen to me. I am afraid if I tell them, they will still want me to go to Singapore with them. If you stay here, who is going to take care of you? My grandparents live near us. I can live with them. Well, I think you should tell your parents about your plan anyway. Now listen to Question 38: What does Stephen think of his parents?", options: ["His parents usually listen to him.", "His parents sometimes listen to him.", "His parents never listen to him."], ans: 2, repeat: true, tip: "💡【頻率詞細節】對話中提到 I feel they NEVER listen to me。" },
-  { part: "Part 3/4: Conversation (39)", prompt: "Question 39: Who does Stephen want to live with?", audioText: "From the conversation, listen to Question 39: Who does Stephen want to live with?", options: ["His parents.", "His brother.", "His grandparents."], ans: 2, tip: "💡【人物細節】Stephen 提到 My grandparents live near us. I can live with them。" },
-  { part: "Part 3/4: Conversation (40)", prompt: "Question 40: What does Tina tell Stephen to do?", audioText: "From the conversation, listen to Question 40: What does Tina tell Stephen to do?", options: ["She tells Stephen to tell his parents about his plan.", "She tells Stephen not to tell his parents about his plan.", "She tells Stephen to tell his brother about his plan."], ans: 0, tip: "💡【建議抓取】Tina 建議 I think you should tell your parents about your plan。" }
+  { part: "Part 3: Conversations (23-24)", prompt: "Question 23: Is Sally sad?", audioText: `Listen to the conversation. ${p1Conv23_24} Now listen to Question 23: Is Sally sad?`, options: ["Yes, she is not sad.", "Yes, she is sad.", "No, she is happy."], ans: 1, repeat: true, tip: "💡【情意判斷】Sally 提到 I am not feeling good 且父母無法參加派對，因此 Yes, she is sad。" },
+  { part: "Part 3: Conversations (23-24)", prompt: "Question 24: Why can't Sally's parents go to her birthday party?", audioText: `Listen to the conversation. ${p1Conv23_24} Now listen to Question 24: Why can't Sally's parents go to her birthday party?`, options: ["They will go to Sally's birthday party.", "They will go to work.", "They will come from America."], ans: 1, tip: "💡【因果細節】Sally 清楚說明 They need to fly to America to work，所以原因為 They will go to work。" },
+  { part: "Part 3: Conversations (25-27)", prompt: "Question 25: What kind of movies does Helen like?", audioText: `Listen to the conversation. ${p1Conv25_27} Now listen to Question 25: What kind of movies does Helen like?`, options: ["She wants to watch a movie with Paul.", "She likes science fiction movies.", "She likes romance movies."], ans: 1, repeat: true, tip: "💡【喜好抓取】Helen 說 I want to see a science fiction movie（科幻電影）。" },
+  { part: "Part 3: Conversations (25-27)", prompt: "Question 26: Why does Helen have to run?", audioText: `Listen to the conversation. ${p1Conv25_27} Now listen to Question 26: Why does Helen have to run?`, options: ["She likes to run.", "She likes science fiction movies.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 the movie is about to start（電影快要開演了）。" },
+  { part: "Part 3: Conversations (25-27)", prompt: "Question 27: Do Paul and Helen see the movie together?", audioText: `Listen to the conversation. ${p1Conv25_27} Now listen to Question 27: Do Paul and Helen see the movie together?`, options: ["Yes, they do.", "No, they aren't.", "No, they don't."], ans: 2, tip: "💡【助動詞簡答】Paul 說自己中午前必須回家，兩人並未一起看電影，故用 No, they don't。" },
+  { part: "Part 4: Talks (28-30)", prompt: "Question 28: What kind of books does Kathy not read?", audioText: `Listen to the talk. ${p1Talk28_30} Now listen to Question 28: What kind of books does Kathy not read in her free time?`, options: ["Chinese books.", "Science books.", "Math books."], ans: 2, repeat: true, tip: "💡【反向細節】文章提到 Chinese, science, English books，唯獨沒有提到數學書（Math books）。" },
+  { part: "Part 4: Talks (28-30)", prompt: "Question 29: What kind of sport is Kathy learning now?", audioText: `Listen to the talk. ${p1Talk28_30} Now listen to Question 29: What kind of sport is Kathy learning now?`, options: ["Basketball", "Badminton", "Football"], ans: 1, tip: "💡【現在進行細節】文章說明 Now she is learning how to play badminton（羽毛球）。" },
+  { part: "Part 4: Talks (28-30)", prompt: "Question 30: Why is Kathy thin?", audioText: `Listen to the talk. ${p1Talk28_30} Now listen to Question 30: Why is Kathy thin?`, options: ["Because she runs a lot and eats a little.", "Because she doesn't eat.", "Because she likes eating hamburgers."], ans: 0, tip: "💡【因果細節】文章說明 She is thin because she runs in the park every day and doesn't eat too much。" },
+  { part: "Part 4: Talks (31-32)", prompt: "Question 31: What does Henry like to do in his free time?", audioText: `Listen to the talk. ${p1Talk31_32} Now listen to Question 31: What does Henry like to do in his free time?`, options: ["To swim", "To study English", "To play basketball"], ans: 0, repeat: true, tip: "💡【喜好辨析】Henry 開頭即說 In my free time, I like to swim。" },
+  { part: "Part 4: Talks (31-32)", prompt: "Question 32: Where is Henry now?", audioText: `Listen to the talk. ${p1Talk31_32} Now listen to Question 32: Where is Henry now?`, options: ["In the living room.", "In the classroom.", "In the dining room."], ans: 1, tip: "💡【情境推理】結尾提到 please tell me after class，代表目前在教室（classroom）。" },
+  { part: "Part 4: Talks (33-35)", prompt: "Question 33: Who lives with Jerry?", audioText: `Listen to the talk. ${p1Talk33_35} Now listen to Question 33: Who lives with Jerry?`, options: ["Jerry lives with his parents.", "Jerry lives with his classmate.", "Jerry lives with his teammate."], ans: 1, repeat: true, tip: "💡【同住人物】Jerry 說 I live in a small apartment with my classmate。" },
+  { part: "Part 4: Talks (33-35)", prompt: "Question 34: How many bathrooms are there in Jerry's house?", audioText: `Listen to the talk. ${p1Talk33_35} Now listen to Question 34: How many bathrooms are there in Jerry's house?`, options: ["2", "1", "0"], ans: 1, tip: "💡【數量細節】兩人必須共用浴室（share the bathroom），代表只有 1 間浴室。" },
+  { part: "Part 4: Talks (33-35)", prompt: "Question 35: Why does Jerry feel the morning is difficult?", audioText: `Listen to the talk. ${p1Talk33_35} Now listen to Question 35: Why does Jerry feel the morning is difficult?`, options: ["Because he can't use the bathroom.", "Because the bathroom is dirty.", "Because he does not want to go to school."], ans: 0, tip: "💡【原因推論】室友早上佔用浴室很久導致 Jerry 無法使用，因此覺得早上很困擾。" },
+  { part: "Part 3/4: Conversation (36-37)", prompt: "Question 36: Whose birthday is coming?", audioText: `Listen to the conversation. ${p1Conv36_37} Now listen to Question 36: Whose birthday is coming?`, options: ["Stephen's birthday is coming.", "Tina's birthday is coming.", "Steven's father's birthday is coming."], ans: 0, repeat: true, tip: "💡【人物關係】Tina 說 I can't go to YOUR birthday party，因此過生日的是 Stephen。" },
+  { part: "Part 3/4: Conversation (36-37)", prompt: "Question 37: Why do Tina's parents need to go to Singapore?", audioText: `Listen to the conversation. ${p1Conv36_37} Now listen to Question 37: Why do Tina's parents need to go to Singapore?`, options: ["Because they want to celebrate a birthday.", "Because they have to work in Singapore.", "Because they study in Singapore."], ans: 1, tip: "💡【原因細節】Tina 說明 My parents will go to Singapore for work。" },
+  { part: "Part 3/4: Conversation (38-40)", prompt: "Question 38: What does Stephen think of his parents?", audioText: `Listen to the conversation. ${p1Conv38_40} Now listen to Question 38: What does Stephen think of his parents?`, options: ["His parents usually listen to him.", "His parents sometimes listen to him.", "His parents never listen to him."], ans: 2, repeat: true, tip: "💡【頻率詞細節】對話中提到 I feel they NEVER listen to me。" },
+  { part: "Part 3/4: Conversation (38-40)", prompt: "Question 39: Who does Stephen want to live with?", audioText: `Listen to the conversation. ${p1Conv38_40} Now listen to Question 39: Who does Stephen want to live with?`, options: ["His parents.", "His brother.", "His grandparents."], ans: 2, tip: "💡【人物細節】Stephen 提到 My grandparents live near us. I can live with them。" },
+  { part: "Part 3/4: Conversation (38-40)", prompt: "Question 40: What does Tina tell Stephen to do?", audioText: `Listen to the conversation. ${p1Conv38_40} Now listen to Question 40: What does Tina tell Stephen to do?`, options: ["She tells Stephen to tell his parents about his plan.", "She tells Stephen not to tell his parents about his plan.", "She tells Stephen to tell his brother about his plan."], ans: 0, tip: "💡【建議抓取】Tina 建議 I think you should tell your parents about your plan。" }
 ];
 
 window.rawMockP1 = window.rawMockP1Data.map(function(item, idx) {
-  return Object.assign({}, item, { qId: generateQuestionHash("p1_" + idx + "_" + item.prompt) });
+  return Object.assign({}, item, { module: "listening", qId: generateQuestionHash("p1_" + idx + "_" + item.prompt) });
 });
 
 // =======================================================================
-// 5. Practice 2 真題資料庫
+// 5. Practice 2 真題資料庫 (補齊第 43-44 題漏句 + 子題內建完整對話音訊)
 // =======================================================================
+const p2Conv31_33 = "Kevin, what are you doing? I'm playing a video game, Mom. Is your homework done? I can't do my homework now because I can't stop this game before I win. Then I can stop the game for you. Now do your homework before dinner.";
+const p2Conv34_35 = "How are you, Lucy? Not bad. What about you? Great. I haven't seen you for a week. You know, I lived with my parents, but they moved to London. So I live in a big house alone.";
+const p2Conv36_38 = "Hi, Lucy, your birthday is coming. Do you want to have a birthday party? Sure. We can invite some friends. Who do you want to invite? Jerry, Susan, and Henry. Okay. Sounds good. I will help you prepare your birthday party. Thanks. I need the help.";
+const p2Conv39_40 = "Hi Helen. Where are you going? I am going to watch a movie. Really? What kind of movie are you going to watch? I want to see a science fiction movie. I have to run now. The movie is about to start. Okay, and I have to be home before lunch. See you.";
+const p2Talk41_42 = "Hello everyone, today I'd like to tell you something about my English studies. My name is Henry. I am from Japan. I am a student at Gram English. I like to study English very much, but my spoken English is not good. When I say R, I find it difficult to say it right.";
+const p2Talk43_45 = "Frank and Maggie are my good friends. They can do many things. Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Maggie is very talented. She can sing and dance very well. She likes to practice Kung Fu on Mondays. We often do our homework together before dinner. Then, after dinner, we play video games. We can all speak English very well.";
+const p2Talk46_47 = "People like to watch movies in different places. For example, some people like to watch movies in the theater, library, or restaurant. But I like to watch movies at home. People who like to watch movies in the theater like to be around many people.";
+const p2Talk48_50 = "Hi Jane, it's Sandy. I have to study for my English test and I need your help. Can you come to my house today? We can have dinner together at 6:00, and we can study at 6:30 until 8:00. Then we can watch TV. Thanks.";
+
 window.rawMockP2Data = [
   { part: "Part 1: Photographs", prompt: "Question 1", svgData: window.p2SvgImages.q1, sceneHint: "房間裡的床上整齊擺放著兩顆枕頭（Two pillows on the bed）。", audioText: "Look at the picture and choose the best answer. Statement A: There is a shirt in the closet. Statement B: There are two pillows on the bed. Statement C: There is a clock on the wall.", options: ["There is a shirt in the closet.", "There are two pillows on the bed.", "There is a clock on the wall."], ans: 1, tip: "💡【看圖選句】床上清楚擺放著兩顆枕頭（two pillows on the bed）。" },
   { part: "Part 1: Photographs", prompt: "Question 2", svgData: window.p2SvgImages.q2, sceneHint: "一群人在櫃檯前依序排隊等待（Waiting in line）。", audioText: "Look at the picture and choose the best answer. Statement A: They are waiting in line. Statement B: They are in the movie theater. Statement C: They are shutting their eyes.", options: ["They are waiting in line.", "They are in the movie theater.", "They are shutting their eyes."], ans: 0, tip: "💡【片語辨析】圖中人們一個接著一個站著，代表在排隊（waiting in line）。" },
@@ -839,32 +884,28 @@ window.rawMockP2Data = [
   { part: "Part 2: Question Response", prompt: "Question 28: What is Timmy doing?", audioText: "Question 28: What is Timmy doing? Statement A: He doesn't shut his eyes because the movie is scary. Statement B: He is shutting his eyes because of the scary movie. Statement C: He shuts his eyes at scary movies.", options: ["He doesn't shut his eyes because the movie is scary.", "He is shutting his eyes because of the scary movie.", "He shuts his eyes at scary movies."], ans: 1, tip: "💡【時態對齊】問 What is Timmy doing，回答需用進行式 He is shutting his eyes。" },
   { part: "Part 2: Question Response", prompt: "Question 29: Do you always do your homework before dinner?", audioText: "Question 29: Do you always do your homework before dinner? Statement A: Yes, I never eat first. Statement B: Yes, it is always late when I do it. Statement C: Yes, always do my homework.", options: ["Yes, I never eat first.", "Yes, it is always late when I do it.", "Yes, always do my homework."], ans: 0, tip: "💡【邏輯常理】做完功課才吃晚餐，代表『從來不會先吃飯』（I never eat first）。" },
   { part: "Part 2: Question Response", prompt: "Question 30: What is the girl doing?", audioText: "Question 30: What is the girl doing? Statement A: The girl is sick. Statement B: The girl is painting. Statement C: Her favorite sport is soccer.", options: ["The girl is sick.", "The girl is painting.", "Her favorite sport is soccer."], ans: 1, tip: "💡【動作進行式】問女孩正在做什麼，回答為 The girl is painting（正在畫畫）。" },
-  { part: "Part 3: Conversations (31-33)", prompt: "Question 31: What does Kevin's mom want him to do now?", audioText: "Listen to the conversation. Kevin, what are you doing? I'm playing a video game, Mom. Is your homework done? I can't do my homework now because I can't stop this game before I win. Then I can stop the game for you. Now do your homework before dinner. Now listen to Question 31: What does Kevin's mom want him to do now?", options: ["Do his homework.", "Win the game.", "Eat dinner first."], ans: 0, repeat: true, tip: "💡【媽媽要求】媽媽最後清楚命令：Now do your homework before dinner。" },
-  { part: "Part 3: Conversations (32)", prompt: "Question 32: What does Kevin want to do?", audioText: "From the previous conversation, listen to Question 32: What does Kevin want to do?", options: ["Do his homework.", "Win the game before stopping.", "Help his mom cook dinner."], ans: 1, tip: "💡【兒子想法】Kevin 說 I can't stop this game before I win（贏了才肯罷休）。" },
-  { part: "Part 3: Conversations (33)", prompt: "Question 33: Does Kevin finish his homework?", audioText: "From the previous conversation, listen to Question 33: Does Kevin finish his homework?", options: ["Yes, he does.", "No, he hasn't done it yet.", "He did it at school."], ans: 1, tip: "💡【作業狀態】Kevin 的作業根本還沒做，故選 No, he hasn't done it yet。" },
-  { part: "Part 3: Conversations (34-35)", prompt: "Question 34: How is Lucy?", audioText: "Listen to the conversation. How are you, Lucy? Not bad. What about you? Great. I haven't seen you for a week. You know, I lived with my parents, but they moved to London. So I live in a big house alone. Now listen to Question 34: How is Lucy?", options: ["Very sick.", "Not bad.", "Terrible."], ans: 1, repeat: true, tip: "💡【問候細節】Lucy 回答 Not bad（還不錯）。" },
-  { part: "Part 3: Conversations (35)", prompt: "Question 35: Who lives with Lucy?", audioText: "From the previous conversation, listen to Question 35: Who lives with Lucy?", options: ["Her parents.", "Her classmates.", "She lives alone."], ans: 2, tip: "💡【同住人物】父母搬去倫敦後，Lucy 說 So I live in a big house ALONE（獨自一人）。" },
-  { part: "Part 3: Conversations (36-38)", prompt: "Question 36: What does Lucy want?", audioText: "Listen to the conversation. Hi, Lucy, your birthday is coming. Do you want to have a birthday party? Sure. We can invite some friends. Who do you want to invite? Jerry, Susan, and Henry. Okay. Sounds good. I will help you prepare your birthday party. Thanks. I need the help. Now listen to Question 36: What does Lucy want?", options: ["To have a birthday party.", "To go to London.", "To study alone."], ans: 0, repeat: true, tip: "💡【活動目的】Lucy 想要辦生日派對（To have a birthday party）。" },
-  { part: "Part 3: Conversations (37)", prompt: "Question 37: Whose birthday is coming?", audioText: "From the previous conversation, listen to Question 37: Whose birthday is coming?", options: ["Jack's birthday.", "Lucy's birthday.", "Susan's birthday."], ans: 1, tip: "💡【壽星人物】開頭提到 Hi, Lucy, your birthday is coming，過生日的是 Lucy。" },
-  { part: "Part 3: Conversations (38)", prompt: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", audioText: "From the previous conversation, listen to Question 38: How many friends may go to the birthday party with Lucy and Jack?", options: ["2 friends.", "3 friends (Jerry, Susan, and Henry).", "5 friends."], ans: 1, tip: "💡【名單清點】Lucy 邀請了 Jerry, Susan, Henry 共 3 位朋友。" },
-  { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: "Listen to the conversation. Hi Helen. Where are you going? I am going to watch a movie. Really? What kind of movie are you going to watch? I want to see a science fiction movie. I have to run now. The movie is about to start. Okay, and I have to be home before lunch. See you. Now listen to Question 39: What kind of movies does Helen like?", options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, repeat: true, tip: "💡【喜好單字】Helen 想要看 science fiction movies（科幻電影）。" },
-  { part: "Part 4: Talks (40)", prompt: "Question 40: Why does Helen have to run?", audioText: "From the previous conversation, listen to Question 40: Why does Helen have to run?", options: ["She wants to exercise.", "She needs to catch a bus.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 The movie is about to start（電影即將開始）。" },
-  { part: "Part 4: Talks (41-42)", prompt: "Question 41: Where does Henry come from?", audioText: "Listen to the talk. Hello everyone, today I'd like to tell you something about my English studies. My name is Henry. I am from Japan. I am a student at Gram English. I like to study English very much, but my spoken English is not good. When I say R, I find it difficult to say it right. Now listen to Question 41: Where does Henry come from?", options: ["America.", "Singapore.", "Japan."], ans: 2, repeat: true, tip: "💡【國家細節】Henry 自我介紹提到 I am from Japan（日本）。" },
-  { part: "Part 4: Talks (42)", prompt: "Question 42: Where does he learn English?", audioText: "From the talk, listen to Question 42: Where does he learn English?", options: ["At Gram English.", "At school in Japan.", "At home by himself."], ans: 0, tip: "💡【機構名稱】Henry 說 I am a student at Gram English。" },
-  { part: "Part 4: Talks (43-45)", prompt: "Question 43: What can't Frank do?", audioText: "Listen to the talk. Frank and Maggie are my good friends. They can do many things. Frank can play the piano and guitar. He can also ride a bicycle, but he can't drive a car. Maggie is very talented. She can sing and dance very well. She likes to practice Kung Fu on Mondays. We can all speak English very well. Now listen to Question 43: What can't Frank do?", options: ["Drive a car.", "Play the guitar.", "Ride a bicycle."], ans: 0, repeat: true, tip: "💡【否定情態轉折】Frank 會彈鋼琴、吉他、騎車，但 he CAN'T drive a car（不會開車）。" },
-  { part: "Part 4: Talks (44)", prompt: "Question 44: What do the three friends do together?", audioText: "From the talk, listen to Question 44: What do the three friends do together?", options: ["Practice kung fu on Mondays.", "Drive cars together.", "Do homework before dinner and play video games after dinner."], ans: 2, tip: "💡【共同活動】文章說明 We often do our homework together before dinner. Then, after dinner, we play video games。" },
-  { part: "Part 4: Talks (45)", prompt: "Question 45: What are they very good at?", audioText: "From the talk, listen to Question 45: What are they very good at?", options: ["They can all play violin.", "They can all speak English very well.", "They can all drive."], ans: 1, tip: "💡【全體能力】文章提到 We can all speak English very well。" },
-  { part: "Part 4: Talks (46-47)", prompt: "Question 46: Where does the speaker like to watch movies?", audioText: "Listen to the talk. People like to watch movies in different places. For example, some people like to watch movies in the theater, library, or restaurant. But I like to watch movies at home. People who like to watch movies in the theater like to be around many people. Now listen to Question 46: Where does the speaker like to watch movies?", options: ["In the theater.", "In the library.", "At home."], ans: 2, repeat: true, tip: "💡【講者偏好】講者說 But I like to watch movies AT HOME（在家看）。" },
-  { part: "Part 4: Talks (47)", prompt: "Question 47: Why do some people prefer to watch movies in the theater?", audioText: "From the talk, listen to Question 47: Why do some people prefer to watch movies in the theater?", options: ["Because tickets are free.", "Because the food is delicious.", "Because they like to be around many people."], ans: 2, tip: "💡【原因抓取】文章最後一句說明 People who like to watch movies in the theater like to be around many people。" },
-  { part: "Part 4: Talks (48-50)", prompt: "Question 48: Why does she have to study?", audioText: "Listen to the talk. Hi Jane, it's Sandy. I have to study for my English test and I need your help. Can you come to my house today? We can have dinner together at 6:00, and we can study at 6:30 until 8:00. Then we can watch TV. Thanks. Now listen to Question 48: Why does she have to study?", options: ["For her English test.", "For her math contest.", "For fun."], ans: 0, repeat: true, tip: "💡【讀書目的】Sandy 留言提到 I have to study for my English test。" },
-  { part: "Part 4: Talks (49)", prompt: "Question 49: What does Sandy want from Jane?", audioText: "From the talk, listen to Question 49: What does Sandy want from Jane?", options: ["To help her study for the English test.", "To buy her dinner.", "To lend her a TV."], ans: 0, tip: "💡【請求內容】Sandy 說 I need your help（需要 Jane 幫忙協助複習英語測驗）。" },
-  { part: "Part 4: Talks (50)", prompt: "Question 50: Where does Sandy want to study?", audioText: "From the talk, listen to Question 50: Where does Sandy want to study?", options: ["At Jane's house.", "At school.", "At Sandy's house."], ans: 2, tip: "💡【地點細節】Sandy 邀請對方 Can you come to MY HOUSE today?，故是在 Sandy 家複習。" }
+  { part: "Part 3: Conversations (31-33)", prompt: "Question 31: What does Kevin's mom want him to do now?", audioText: `Listen to the conversation. ${p2Conv31_33} Now listen to Question 31: What does Kevin's mom want him to do now?`, options: ["Do his homework.", "Win the game.", "Eat dinner first."], ans: 0, repeat: true, tip: "💡【媽媽要求】媽媽最後清楚命令：Now do your homework before dinner。" },
+  { part: "Part 3: Conversations (31-33)", prompt: "Question 32: What does Kevin want to do?", audioText: `Listen to the conversation. ${p2Conv31_33} Now listen to Question 32: What does Kevin want to do?`, options: ["Do his homework.", "Win the game before stopping.", "Help his mom cook dinner."], ans: 1, tip: "💡【兒子想法】Kevin 說 I can't stop this game before I win（贏了才肯罷休）。" },
+  { part: "Part 3: Conversations (31-33)", prompt: "Question 33: Does Kevin finish his homework?", audioText: `Listen to the conversation. ${p2Conv31_33} Now listen to Question 33: Does Kevin finish his homework?`, options: ["Yes, he does.", "No, he hasn't done it yet.", "He did it at school."], ans: 1, tip: "💡【作業狀態】Kevin 的作業根本還沒做，故選 No, he hasn't done it yet。" },
+  { part: "Part 3: Conversations (34-35)", prompt: "Question 34: How is Lucy?", audioText: `Listen to the conversation. ${p2Conv34_35} Now listen to Question 34: How is Lucy?`, options: ["Very sick.", "Not bad.", "Terrible."], ans: 1, repeat: true, tip: "💡【問候細節】Lucy 回答 Not bad（還不錯）。" },
+  { part: "Part 3: Conversations (34-35)", prompt: "Question 35: Who lives with Lucy?", audioText: `Listen to the conversation. ${p2Conv34_35} Now listen to Question 35: Who lives with Lucy?`, options: ["Her parents.", "Her classmates.", "She lives alone."], ans: 2, tip: "💡【同住人物】父母搬去倫敦後，Lucy 說 So I live in a big house ALONE（獨自一人）。" },
+  { part: "Part 3: Conversations (36-38)", prompt: "Question 36: What does Lucy want?", audioText: `Listen to the conversation. ${p2Conv36_38} Now listen to Question 36: What does Lucy want?`, options: ["To have a birthday party.", "To go to London.", "To study alone."], ans: 0, repeat: true, tip: "💡【活動目的】Lucy 想要辦生日派對（To have a birthday party）。" },
+  { part: "Part 3: Conversations (36-38)", prompt: "Question 37: Whose birthday is coming?", audioText: `Listen to the conversation. ${p2Conv36_38} Now listen to Question 37: Whose birthday is coming?`, options: ["Jack's birthday.", "Lucy's birthday.", "Susan's birthday."], ans: 1, tip: "💡【壽星人物】開頭提到 Hi, Lucy, your birthday is coming，過生日的是 Lucy。" },
+  { part: "Part 3: Conversations (36-38)", prompt: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", audioText: `Listen to the conversation. ${p2Conv36_38} Now listen to Question 38: How many friends may go to the birthday party with Lucy and Jack?`, options: ["2 friends.", "3 friends (Jerry, Susan, and Henry).", "5 friends."], ans: 1, tip: "💡【名單清點】Lucy 邀請了 Jerry, Susan, Henry 共 3 位朋友。" },
+  { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: `Listen to the conversation. ${p2Conv39_40} Now listen to Question 39: What kind of movies does Helen like?`, options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, repeat: true, tip: "💡【喜好單字】Helen 想要看 science fiction movies（科幻電影）。" },
+  { part: "Part 3: Conversations (39-40)", prompt: "Question 40: Why does Helen have to run?", audioText: `Listen to the conversation. ${p2Conv39_40} Now listen to Question 40: Why does Helen have to run?`, options: ["She wants to exercise.", "She needs to catch a bus.", "The movie is about to start."], ans: 2, tip: "💡【原因細節】Helen 說 The movie is about to start（電影即將開始）。" },
+  { part: "Part 4: Talks (41-42)", prompt: "Question 41: Where does Henry come from?", audioText: `Listen to the talk. ${p2Talk41_42} Now listen to Question 41: Where does Henry come from?`, options: ["America.", "Singapore.", "Japan."], ans: 2, repeat: true, tip: "💡【國家細節】Henry 自我介紹提到 I am from Japan（日本）。" },
+  { part: "Part 4: Talks (41-42)", prompt: "Question 42: Where does he learn English?", audioText: `Listen to the talk. ${p2Talk41_42} Now listen to Question 42: Where does he learn English?`, options: ["At Gram English.", "At school in Japan.", "At home by himself."], ans: 0, tip: "💡【機構名稱】Henry 說 I am a student at Gram English。" },
+  { part: "Part 4: Talks (43-45)", prompt: "Question 43: What can't Frank do?", audioText: `Listen to the talk. ${p2Talk43_45} Now listen to Question 43: What can't Frank do?`, options: ["Drive a car.", "Play the guitar.", "Ride a bicycle."], ans: 0, repeat: true, tip: "💡【否定情態轉折】Frank 會彈鋼琴、吉他、騎車，但 he CAN'T drive a car（不會開車）。" },
+  { part: "Part 4: Talks (43-45)", prompt: "Question 44: What do the three friends do together?", audioText: `Listen to the talk. ${p2Talk43_45} Now listen to Question 44: What do the three friends do together?`, options: ["Practice kung fu on Mondays.", "Drive cars together.", "Do homework before dinner and play video games after dinner."], ans: 2, tip: "💡【共同活動】文章說明 We often do our homework together before dinner. Then, after dinner, we play video games。" },
+  { part: "Part 4: Talks (43-45)", prompt: "Question 45: What are they very good at?", audioText: `Listen to the talk. ${p2Talk43_45} Now listen to Question 45: What are they very good at?`, options: ["They can all play violin.", "They can all speak English very well.", "They can all drive."], ans: 1, tip: "💡【全體能力】文章提到 We can all speak English very well。" },
+  { part: "Part 4: Talks (46-47)", prompt: "Question 46: Where does the speaker like to watch movies?", audioText: `Listen to the talk. ${p2Talk46_47} Now listen to Question 46: Where does the speaker like to watch movies?`, options: ["In the theater.", "In the library.", "At home."], ans: 2, repeat: true, tip: "💡【講者偏好】講者說 But I like to watch movies AT HOME（在家看）。" },
+  { part: "Part 4: Talks (46-47)", prompt: "Question 47: Why do some people prefer to watch movies in the theater?", audioText: `Listen to the talk. ${p2Talk46_47} Now listen to Question 47: Why do some people prefer to watch movies in the theater?`, options: ["Because tickets are free.", "Because the food is delicious.", "Because they like to be around many people."], ans: 2, tip: "💡【原因抓取】文章最後一句說明 People who like to watch movies in the theater like to be around many people。" },
+  { part: "Part 4: Talks (48-50)", prompt: "Question 48: Why does she have to study?", audioText: `Listen to the talk. ${p2Talk48_50} Now listen to Question 48: Why does she have to study?`, options: ["For her English test.", "For her math contest.", "For fun."], ans: 0, repeat: true, tip: "💡【讀書目的】Sandy 留言提到 I have to study for my English test。" },
+  { part: "Part 4: Talks (48-50)", prompt: "Question 49: What does Sandy want from Jane?", audioText: `Listen to the talk. ${p2Talk48_50} Now listen to Question 49: What does Sandy want from Jane?`, options: ["To help her study for the English test.", "To buy her dinner.", "To lend her a TV."], ans: 0, tip: "💡【請求內容】Sandy 說 I need your help（需要 Jane 幫忙協助複習英語測驗）。" },
+  { part: "Part 4: Talks (48-50)", prompt: "Question 50: Where does Sandy want to study?", audioText: `Listen to the talk. ${p2Talk48_50} Now listen to Question 50: Where does Sandy want to study?`, options: ["At Jane's house.", "At school.", "At Sandy's house."], ans: 2, tip: "💡【地點細節】Sandy 邀請對方 Can you come to MY HOUSE today?，故是在 Sandy 家複習。" }
 ];
 
-window.rawMockP1 = window.rawMockP1Data.map(function(item, idx) {
-  return Object.assign({}, item, { qId: generateQuestionHash("p1_" + idx + "_" + item.prompt) });
-});
-
 window.rawMockP2 = window.rawMockP2Data.map(function(item, idx) {
-  return Object.assign({}, item, { qId: generateQuestionHash("p2_" + idx + "_" + item.prompt) });
+  return Object.assign({}, item, { module: "listening", qId: generateQuestionHash("p2_" + idx + "_" + item.prompt) });
 });

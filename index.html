@@ -1,15 +1,16 @@
 <!--
 ===================================================================
 格蘭英語 B 級全方位學習測驗 App - 更新歷史記錄 (Changelog)
-最後更新日期：2026-10-01
-版本號：v4.4.0 (雙向防呆完全無錯版)
+最後更新日期：2026-10-18
+版本號：v4.5.0 (全模組防呆與錯題重測完美修復版)
 
 【核心修復與優化清單】：
-1. 修正單字測驗發音與計時銜接，加掛 1.5 秒超時保底，絕不再卡在「聆聽中...」。
-2. 單字答題後安全展開中文標籤與 KK 音標，杜絕 undefined 錯誤。
-3. 文法測驗徹底隔離單字庫，文法題 100% 只抽文法題，並直接啟動 6 秒倒數。
-4. 引用檔名統一為 questions.js。
-5. 解決重聽音訊與暫停的 Race Condition，確保暫停中計時器絕不偷跑。
+1. 修正單字測驗發音與計時銜接，並區分「聽音選字」與「看字選義」，杜絕作答前洩題與中文重複顯示。
+2. 修正文法測驗抽題邏輯，正式接通 getDiverseGrammarQuiz(25)，保證 25 題涵蓋不同文法考點。
+3. 保護 Practice 1 / Practice 2 模擬考題號與長篇題組順序，並同步 Statement A/B/C 語音與選項。
+4. 徹底修復「錯題專項重測」模式：依各題原始模組 (vocab/grammar/listening) 自動切換 UI、計時與音訊規則。
+5. 修正超時未答 (handleTimeOut) 的鎖定狀態與「聆聽中暫停」後繼續播放音訊的銜接邏輯。
+6. 補齊「聽力八大核心考點精華」完整 8 張複習卡片與錯題庫「官方聽力」篩選按鈕。
 ===================================================================
 -->
 <!DOCTYPE html>
@@ -583,10 +584,13 @@
 
     .guide-card-list {
       width: 100%;
+      max-height: 440px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
       gap: 14px;
       margin-top: 8px;
+      padding-right: 4px;
       text-align: left;
     }
     .guide-item {
@@ -695,7 +699,7 @@
 
     <div class="guide-screen" id="guide-screen">
       <div class="start-title">🎧 聽力檢定：八大核心考點精華</div>
-      <div class="start-desc">涵蓋 B 級官方檢定最常見的 8 大聽力陷阱。每點提供 3 句實戰示範與易錯提示，點擊喇叭即可聆聽純正發音！</div>
+      <div class="start-desc">涵蓋 B 級官方檢定最常見的 8 大聽力陷阱。點擊喇叭即可聆聽純正發音示範！</div>
       
       <div class="guide-card-list">
         <div class="guide-item">
@@ -711,7 +715,119 @@
               <button class="play-sample-btn" onclick="playSpeech('It is a quarter to 11.')">🔊 聽示範</button>
             </div>
           </div>
-          <div class="guide-trap-box">⚠️ 常見陷阱：聽到 to 代表還沒到那個鐘頭！</div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：聽到 to 代表還沒到那個鐘頭！例如 a quarter to 5 是 4:45，不是 5:15。</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 2：空間位置介系詞 (Between / Next to)</div>
+          <div class="guide-item-desc">地圖題核心字彙：<b>between A and B</b> 代表「在 A 與 B 兩者之間」；<b>next to / beside</b> 代表「在旁邊」。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "The supermarket is next to the post office."</span>
+              <button class="play-sample-btn" onclick="playSpeech('The supermarket is next to the post office.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "The bank is between the library and the bakery."</span>
+              <button class="play-sample-btn" onclick="playSpeech('The bank is between the library and the bakery.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：注意題目問的是中間那棟建築，還是左右兩側的建築！</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 3：頻率副詞強度 (Always / Rarely / Never)</div>
+          <div class="guide-item-desc">頻率高低依序為：<b>always (100%)</b> &gt; <b>usually (80%)</b> &gt; <b>sometimes (50%)</b> &gt; <b>rarely (10% 很少)</b> &gt; <b>never (0% 從不)</b>。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Andy rarely plays the guitar." (很少彈吉他)</span>
+              <button class="play-sample-btn" onclick="playSpeech('Andy rarely plays the guitar.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "His parents never listen to him." (從不聽他說話)</span>
+              <button class="play-sample-btn" onclick="playSpeech('His parents never listen to him.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：rarely 代表「極少但還是有（例如一年一次）」，不要與 never (0次) 搞混！</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 4：疑問詞與場所應答 (Where / What floor)</div>
+          <div class="guide-item-desc">聽到 <b>Where</b> 必須尋找地點介系詞（in / at / on）；聽到 <b>What floor</b> 則搭配序數（on the 2nd floor）。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Where do you cook? I cook in the kitchen."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Where do you cook? I cook in the kitchen.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "What floor do your parents live on? They live on the second floor."</span>
+              <button class="play-sample-btn" onclick="playSpeech('What floor do your parents live on? They live on the second floor.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：問 Where do you cook? 不能選 I have a big kitchen（答非所問）。</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 5：現在進行式對齊 (What is ... doing?)</div>
+          <div class="guide-item-desc">問句若為 <b>be + V-ing</b>（正在做什麼），回答也必須維持 <b>am / is / are + V-ing</b>。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "What is she doing? She is playing the guitar."</span>
+              <button class="play-sample-btn" onclick="playSpeech('What is she doing? She is playing the guitar.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "He is shutting his eyes because of the scary movie."</span>
+              <button class="play-sample-btn" onclick="playSpeech('He is shutting his eyes because of the scary movie.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：注意問句主詞是 you、he 還是 she，回答時人稱代名詞必須一致！</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 6：可數與不可數數量 (How many / How much)</div>
+          <div class="guide-item-desc"><b>money, sugar, milk, shampoo, corn</b> 為不可數名詞，用 <b>How much / a little / is</b>；可數複數名詞則用 <b>How many / are</b>。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "May I borrow some money? Sure, how much do you need?"</span>
+              <button class="play-sample-btn" onclick="playSpeech('May I borrow some money? Sure, how much do you need?')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "How much sugar do you want? Just a little."</span>
+              <button class="play-sample-btn" onclick="playSpeech('How much sugar do you want? Just a little.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：Is there any shampoo? 回答必須用單數 Yes, there is.（不可選 Yes, there are）。</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 7：存在句與助動詞簡答 (Is there / Do you have to)</div>
+          <div class="guide-item-desc">問句用什麼助動詞或存在句開頭，簡答就用對應字收尾：<b>Do you have to... &rarr; No, I don't.</b>；<b>Are there any... &rarr; No, there aren't.</b></div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Do you have to go to school on time? No, I don't."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Do you have to go to school on time? No, I do not.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "Are Mike and Jason washing their cars? No, they aren't."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Are Mike and Jason washing their cars? No, they are not.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：Do you have to... 絕對不能回答 Yes, I have，必須回答 Yes, I do / No, I don't！</div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-item-title">考點 8：禁止標誌與祈使句 (Please don't...)</div>
+          <div class="guide-item-desc">看到紅色斜線禁止標誌時，搭配否定祈使句 <b>Please don't + 原形動詞</b>，並注意場所（inside vs. outside）。</div>
+          <div class="guide-samples-group">
+            <div class="guide-item-sample">
+              <span>🗣️ 1. "Please don't smoke in the restaurant."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Please do not smoke in the restaurant.')">🔊 聽示範</button>
+            </div>
+            <div class="guide-item-sample">
+              <span>🗣️ 2. "Please don't speak too loud here."</span>
+              <button class="play-sample-btn" onclick="playSpeech('Please do not speak too loud here.')">🔊 聽示範</button>
+            </div>
+          </div>
+          <div class="guide-trap-box">⚠️ 常見陷阱：仔細聽句尾是 smoke in the restaurant（在餐廳內）還是 smoke outside（在戶外）！</div>
         </div>
       </div>
     </div>
@@ -761,6 +877,7 @@
         <button class="tag-filter-btn active" onclick="setMistakeFilter('all', this)">全部顯示</button>
         <button class="tag-filter-btn" onclick="setMistakeFilter('vocab', this)">核心單字</button>
         <button class="tag-filter-btn" onclick="setMistakeFilter('grammar', this)">重點文法</button>
+        <button class="tag-filter-btn" onclick="setMistakeFilter('listening', this)">官方聽力</button>
         <button class="tag-filter-btn" onclick="setMistakeFilter('timeout', this)">⏰ 超時未答</button>
       </div>
 
@@ -833,6 +950,7 @@
   <script>
     let isQuizActive = false;
     let isAnswering = false;
+    let isAudioPlayingPhase = false;
 
     window.addEventListener("beforeunload", (e) => {
       if (isQuizActive) {
@@ -847,13 +965,14 @@
       return confirm("⚠️ 目前測驗正在進行中，離開將會遺失當前作答進度，確定要中途退出嗎？");
     }
 
-    // 安全切換主模組：切換前強制停用所有計時器與自動跳題
     function selectMainModuleSafe(mod) {
       if (isQuizActive && !confirmLeaveCurrentQuiz()) return;
 
       isQuizActive = false;
       isAnswering = false;
       isPaused = false;
+      isAudioPlayingPhase = false;
+      document.getElementById("pause-overlay").style.display = "none";
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -864,13 +983,30 @@
     function switchVocabStageSafe(stage) {
       if (!confirmLeaveCurrentQuiz()) return;
       isQuizActive = false;
+      isAnswering = false;
+      isPaused = false;
+      isAudioPlayingPhase = false;
+      document.getElementById("pause-overlay").style.display = "none";
       switchVocabStage(stage);
     }
 
     function switchListeningStageSafe(stage) {
       if (!confirmLeaveCurrentQuiz()) return;
       isQuizActive = false;
+      isAnswering = false;
+      isPaused = false;
+      isAudioPlayingPhase = false;
+      document.getElementById("pause-overlay").style.display = "none";
       switchListeningStage(stage);
+    }
+
+    // 取得題目的實際所屬模組（支援錯題重測模式）
+    function getEffectiveModule(q) {
+      if (q && q.module) return q.module;
+      if (currentModule !== "analysis") return currentModule;
+      if (q && q.kkList && q.kkList.length > 0) return "vocab";
+      if (q && q.audioText) return "listening";
+      return "grammar";
     }
 
     let audioCtx = null;
@@ -1257,7 +1393,7 @@
     }
 
     function togglePauseQuiz() {
-      if (!isQuizActive) return;
+      if (!isQuizActive || isAnswering) return;
 
       const overlay = document.getElementById("pause-overlay");
       const pauseBtn = document.getElementById("pause-btn");
@@ -1279,6 +1415,20 @@
 
         if (isPreviewPhase) {
           resumePreviewCountdown();
+        } else if (isAudioPlayingPhase) {
+          const badgeElem = document.getElementById("timer-badge");
+          if (badgeElem) {
+            badgeElem.classList.remove("preview", "warning", "danger");
+            badgeElem.classList.add("waiting");
+            badgeElem.textContent = "🎧 聆聽中...";
+          }
+          playCurrentAudio(() => {
+            isAudioPlayingPhase = false;
+            if (!isPaused && isQuizActive && !isAnswering) {
+              updateAudioReplayButton();
+              startQuestionTimer();
+            }
+          });
         } else {
           resumeQuestionTimer();
         }
@@ -1306,6 +1456,7 @@
           clearInterval(previewTimer);
           previewTimer = null;
           isPreviewPhase = false;
+          isAudioPlayingPhase = true;
           
           if (badgeElem) {
             badgeElem.classList.remove("preview");
@@ -1313,7 +1464,9 @@
             badgeElem.textContent = "🎧 聆聽中...";
           }
           playCurrentAudio(() => {
-            if (!isPaused && isQuizActive) {
+            isAudioPlayingPhase = false;
+            if (!isPaused && isQuizActive && !isAnswering) {
+              updateAudioReplayButton();
               startQuestionTimer();
             }
           });
@@ -1400,6 +1553,7 @@
     function startQuestionTimer() {
       stopQuestionTimer();
       isPreviewPhase = false;
+      isAudioPlayingPhase = false;
       timeLeft = TOTAL_TIME;
       pausedTimeLeft = timeLeft;
       const barElem = document.getElementById("timer-bar");
@@ -1426,7 +1580,31 @@
       }, 1000);
     }
 
+    function expandVocabOptionButtons(q) {
+      const letters = ["A", "B", "C", "D"];
+      q.options.forEach((opt, idx) => {
+        const btn = document.getElementById(`opt-btn-${idx}`);
+        if (!btn) return;
+        const kk = (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "";
+        const mean = (q.meanings && q.meanings[idx]) ? q.meanings[idx] : "";
+        const engWord = (q.wordsList && q.wordsList[idx]) ? q.wordsList[idx] : "";
+        const kkHtml = kk ? `<span class="kk-badge">${kk}</span>` : "";
+
+        if (q.isMeaningQuestion) {
+          const wordBadge = engWord ? `<span class="meaning-badge">英文：${engWord}</span>` : "";
+          btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${wordBadge} ${kkHtml}`;
+        } else {
+          const meanHtml = mean ? `<span class="meaning-badge">中文：${mean}</span>` : "";
+          btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml} ${meanHtml}`;
+        }
+      });
+    }
+
     function handleTimeOut() {
+      if (isAnswering) return;
+      isAnswering = true;
+      isAudioPlayingPhase = false;
+
       stopAllAudio();
       cancelAutoNextTimer();
       comboStreak = 0;
@@ -1436,49 +1614,48 @@
       const buttons = document.querySelectorAll(".opt-btn");
       buttons.forEach(b => b.disabled = true);
 
+      const playBtn = document.getElementById("play-audio-btn");
+      if (playBtn) playBtn.disabled = true;
+
       const letters = ["A", "B", "C", "D"];
       const feedback = document.getElementById("feedback");
       const q = currentQuestions[currentIdx];
+      const qMod = getEffectiveModule(q);
 
-      if (currentModule === "vocab") {
-        q.options.forEach((opt, idx) => {
-          const btn = document.getElementById(`opt-btn-${idx}`);
-          if (btn) {
-            const kk = (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "";
-            const mean = (q.meanings && q.meanings[idx]) ? q.meanings[idx] : "";
-            const kkHtml = kk ? `<span class="kk-badge">${kk}</span>` : "";
-            const meanHtml = mean ? `<span class="meaning-badge">中文：${mean}</span>` : "";
-            btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml} ${meanHtml}`;
-          }
-        });
+      if (qMod === "vocab") {
+        expandVocabOptionButtons(q);
       }
 
-      const correctWord = q.options[q.ans];
-      const correctMeaning = (currentModule === "vocab" && q.meanings) ? q.meanings[q.ans] : (q.meaning || "");
+      const correctOptText = q.options[q.ans];
+      const correctEngWord = (q.wordsList && q.wordsList[q.ans]) ? q.wordsList[q.ans] : (q.word || correctOptText);
+      const correctMeaning = (qMod === "vocab" && q.meanings) ? q.meanings[q.ans] : (q.meaning || "");
 
-      feedback.textContent = `⏰ 時間到！正確答案是 (${letters[q.ans]}) ${correctWord} ${correctMeaning ? '(' + correctMeaning + ')' : ''}`;
+      if (qMod === "vocab") {
+        feedback.textContent = `⏰ 時間到！正確答案是 (${letters[q.ans]}) 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
+      } else {
+        feedback.textContent = `⏰ 時間到！正確答案是 (${letters[q.ans]}) ${correctOptText}`;
+      }
       feedback.style.color = "#dc2626";
 
       if (buttons[q.ans]) {
         buttons[q.ans].classList.add("correct");
       }
 
-      let moduleCategory = currentModule;
       let moduleTitle = "核心單字";
-      if (currentModule === "grammar") moduleTitle = "重點文法";
-      if (currentModule === "listening") {
+      if (qMod === "grammar") moduleTitle = "重點文法";
+      else if (qMod === "listening") {
         if (currentListeningStage === "review_quiz") moduleTitle = "聽力考點專練";
         else moduleTitle = "官方聽力";
       }
 
       saveMistake({
         qId: q.qId,
-        module: moduleCategory,
+        module: qMod,
         moduleName: moduleTitle,
         promptText: q.prompt,
         selectedWord: "⏰ 時間到 (未作答)",
-        correctWord: correctWord,
-        correctMeaning: correctMeaning,
+        correctWord: correctOptText,
+        correctMeaning: qMod === "vocab" && !q.isMeaningQuestion ? correctMeaning : "",
         tip: q.tip || "",
         rawQuestion: JSON.parse(JSON.stringify(q))
       });
@@ -1492,7 +1669,7 @@
         tipBox.style.display = "block";
       }
 
-      if ((currentModule === "vocab" || isMistakeMode) && q.audioText) {
+      if (qMod === "vocab" && q.audioText) {
         audioTimer = setTimeout(() => {
           playSpeech(q.audioText);
         }, 350);
@@ -1536,6 +1713,7 @@
       cancelAutoNextTimer();
       stopQuestionTimer();
       isPaused = false;
+      isAudioPlayingPhase = false;
       document.getElementById("pause-overlay").style.display = "none";
       comboStreak = 0;
       updateComboBanner();
@@ -1551,6 +1729,7 @@
 
     function setupStartScreen() {
       isQuizActive = false;
+      isAudioPlayingPhase = false;
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -1567,26 +1746,27 @@
 
       if (currentModule === "vocab") {
         titleElem.textContent = "⭐ 核心單字：B 級綜合測驗 (25題)";
-        descElem.textContent = "從 450+ 官方大綱字彙庫隨機出題 25 題。單字發音結束後展開 6 秒倒數，答對將自動跳題，支援中途暫停！";
+        descElem.textContent = "從官方核心字彙庫隨機出題 25 題（含聽音選字與看字選義）。發音結束後展開 6 秒倒數，答對將自動跳題！";
       } else if (currentModule === "grammar") {
-        titleElem.textContent = "📖 重點文法測驗 (500題隨機題庫)";
-        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，進入每題限時 6 秒！隨機抽樣 25 題練習。";
+        titleElem.textContent = "📖 重點文法測驗 (30大考點不重複抽題)";
+        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，保證 25 題涵蓋不同文法考點，每題限時 6 秒！";
       } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
           titleElem.textContent = "🎯 聽力八大考點專練 (500題題庫)";
           descElem.textContent = "先給予 3 秒審題預覽，音訊結束後才開始 6 秒倒數！選項與 Statement A/B/C 完全對齊。";
         } else if (currentListeningStage === "p1") {
-          titleElem.textContent = "🎯 Practice 1 全真模擬測驗";
-          descElem.textContent = "共 40 題，Part 1 看圖題附彩色情境圖，具備 3 秒審題時間與答對自動跳題。";
+          titleElem.textContent = "🎯 Practice 1 全真模擬測驗 (40題)";
+          descElem.textContent = "依官方題號順序應試，Part 1 看圖題附彩色情境圖，具備 3 秒審題時間與答對自動跳題。";
         } else if (currentListeningStage === "p2") {
-          titleElem.textContent = "🎯 Practice 2 全真模擬測驗";
-          descElem.textContent = "共 50 題，Part 1 看圖題附彩色情境圖，長篇對話朗讀兩次，審題 3 秒後開始播音。";
+          titleElem.textContent = "🎯 Practice 2 全真模擬測驗 (50題)";
+          descElem.textContent = "依官方題號順序應試，Part 1 看圖題附彩色情境圖，長篇對話支援重聽，審題 3 秒後開始播音。";
         }
       }
     }
 
     function renderGuideScreen() {
       isQuizActive = false;
+      isAudioPlayingPhase = false;
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -1599,6 +1779,7 @@
 
     function renderAnalysisScreen() {
       isQuizActive = false;
+      isAudioPlayingPhase = false;
       stopAllAudio();
       cancelAutoNextTimer();
       stopQuestionTimer();
@@ -1617,6 +1798,7 @@
       let filtered = list;
       if (currentMistakeFilter === "vocab") filtered = list.filter(m => m.module === "vocab");
       else if (currentMistakeFilter === "grammar") filtered = list.filter(m => m.module === "grammar");
+      else if (currentMistakeFilter === "listening") filtered = list.filter(m => m.module === "listening");
       else if (currentMistakeFilter === "timeout") filtered = list.filter(m => m.selectedWord && m.selectedWord.includes("時間到"));
 
       const container = document.getElementById("mistake-list-container");
@@ -1654,18 +1836,31 @@
         return;
       }
 
+      getAudioContext();
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.resume();
+      }
+
       isMistakeMode = true;
       isQuizActive = true;
       isAnswering = false;
+      isPaused = false;
+      isAudioPlayingPhase = false;
+      document.getElementById("pause-overlay").style.display = "none";
       comboStreak = 0;
       updateComboBanner();
       cancelAutoNextTimer();
       sessionSentMistakes.clear();
       document.getElementById("analysis-screen").style.display = "none";
+      document.getElementById("result-screen").style.display = "none";
       document.getElementById("quiz-active-area").style.display = "block";
 
       const reviewTargets = shuffleArray(list).slice(0, 20);
-      currentQuestions = reviewTargets.map(m => buildSyncedQuestion(JSON.parse(JSON.stringify(m.rawQuestion))));
+      currentQuestions = reviewTargets.map(m => {
+        const rawQ = JSON.parse(JSON.stringify(m.rawQuestion));
+        if (!rawQ.module && m.module) rawQ.module = m.module;
+        return buildSyncedQuestion(rawQ);
+      });
 
       currentIdx = 0;
       correctCount = 0;
@@ -1681,12 +1876,14 @@
       }
     }
 
+    // 同步洗牌選項與語音（去除選項後方的括號提示如 (1:15) 避免 TTS 唸出答案提示）
     function buildSyncedQuestion(q) {
       if (!q.options || q.options.length === 0) return Object.assign({}, q);
 
       const letters = ["A", "B", "C", "D"];
       const combined = q.options.map((opt, idx) => ({
         opt: opt,
+        word: (q.wordsList && q.wordsList[idx]) ? q.wordsList[idx] : "",
         meaning: (q.meanings && q.meanings[idx]) ? q.meanings[idx] : (q.meaning || ""),
         kk: (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "",
         isCorrect: idx === q.ans
@@ -1694,6 +1891,7 @@
 
       const shuffled = shuffleArray(combined);
       const newOptions = shuffled.map(c => c.opt);
+      const newWordsList = shuffled.map(c => c.word);
       const newMeanings = shuffled.map(c => c.meaning);
       const newKkList = shuffled.map(c => c.kk);
       const newAns = shuffled.findIndex(c => c.isCorrect);
@@ -1704,13 +1902,15 @@
         const introText = matchIntro ? matchIntro[1].trim() : "Look at the picture and choose the best answer.";
         const parts = [introText];
         newOptions.forEach((opt, idx) => {
-          parts.push(`Statement ${letters[idx]}: ${opt}`);
+          const cleanOptForSpeech = opt.replace(/\s*\([^)]*\)/g, "").trim();
+          parts.push(`Statement ${letters[idx]}: ${cleanOptForSpeech}`);
         });
         newAudioText = parts.join(" ");
       }
 
       return Object.assign({}, q, {
         options: newOptions,
+        wordsList: newWordsList,
         meanings: newMeanings,
         kkList: newKkList,
         ans: newAns,
@@ -1722,6 +1922,7 @@
       isMistakeMode = false;
       isQuizActive = true;
       isAnswering = false;
+      isAudioPlayingPhase = false;
       comboStreak = 0;
       updateComboBanner();
       cancelAutoNextTimer();
@@ -1734,17 +1935,20 @@
       document.getElementById("quiz-active-area").style.display = "block";
 
       let source = [];
+      let shouldShuffleQuestions = true;
 
-      // 嚴格依據當前模組獨立取題，100% 杜絕交叉污染
       if (currentModule === "vocab") {
         if (typeof buildDynamicVocabQuiz === 'function') {
           source = buildDynamicVocabQuiz(25, "⭐ B級綜合測驗 (25題)");
+          shouldShuffleQuestions = false;
         } else if (typeof rawVocabBLevel !== 'undefined') {
           source = rawVocabBLevel.slice(0, 25);
         }
       } else if (currentModule === "grammar") {
-        // 文法題：嚴格只取文法題庫
-        if (typeof rawGrammarQuestions !== 'undefined' && rawGrammarQuestions.length > 0) {
+        if (typeof getDiverseGrammarQuiz === 'function') {
+          source = getDiverseGrammarQuiz(25);
+          shouldShuffleQuestions = false;
+        } else if (typeof rawGrammarQuestions !== 'undefined' && rawGrammarQuestions.length > 0) {
           source = shuffleArray(rawGrammarQuestions).slice(0, 25);
         } else if (typeof generate500GrammarQuestions === 'function') {
           source = shuffleArray(generate500GrammarQuestions()).slice(0, 25);
@@ -1753,13 +1957,17 @@
         if (currentListeningStage === "review_quiz") {
           if (typeof rawReviewQuestions !== 'undefined' && rawReviewQuestions.length > 0) {
             source = shuffleArray(rawReviewQuestions).slice(0, 25);
+            shouldShuffleQuestions = false;
           } else if (typeof generate500ListeningReviewQuestions === 'function') {
             source = shuffleArray(generate500ListeningReviewQuestions()).slice(0, 25);
+            shouldShuffleQuestions = false;
           }
         } else if (currentListeningStage === "p1") {
           source = (typeof rawMockP1 !== 'undefined') ? rawMockP1 : [];
+          shouldShuffleQuestions = false; // 保護 Practice 1 題號與題組順序
         } else if (currentListeningStage === "p2") {
           source = (typeof rawMockP2 !== 'undefined') ? rawMockP2 : [];
+          shouldShuffleQuestions = false; // 保護 Practice 2 題號與題組順序
         }
       }
 
@@ -1769,8 +1977,8 @@
         return;
       }
 
-      // 深拷貝，完全阻斷引用污染
-      currentQuestions = shuffleArray(source).map(q => buildSyncedQuestion(JSON.parse(JSON.stringify(q))));
+      const finalPool = shouldShuffleQuestions ? shuffleArray(source) : source.slice();
+      currentQuestions = finalPool.map(q => buildSyncedQuestion(JSON.parse(JSON.stringify(q))));
 
       currentIdx = 0;
       correctCount = 0;
@@ -1795,7 +2003,6 @@
       const audioControls = document.getElementById("audio-ctrl-group");
       const listenHint = document.getElementById("listen-hint");
 
-      // 切換模組時必定回到準備畫面
       document.getElementById("quiz-active-area").style.display = "none";
       document.getElementById("result-screen").style.display = "none";
       document.getElementById("analysis-screen").style.display = "none";
@@ -1925,7 +2132,7 @@
     }
 
     function playCurrentAudioUser() {
-      if (audioReplayRemaining <= 0 || isPaused || isAnswering) return;
+      if (audioReplayRemaining <= 0 || isPaused || isAnswering || isPreviewPhase || isAudioPlayingPhase) return;
 
       audioReplayRemaining--;
       updateAudioReplayButton();
@@ -1933,6 +2140,7 @@
       pausedTimeLeft = timeLeft;
       stopQuestionTimer();
       cancelAutoNextTimer();
+      isAudioPlayingPhase = true;
 
       const badgeElem = document.getElementById("timer-badge");
       if (badgeElem) {
@@ -1942,7 +2150,9 @@
       }
 
       playCurrentAudio(() => {
-        if (!isPaused && isQuizActive) {
+        isAudioPlayingPhase = false;
+        if (!isPaused && isQuizActive && !isAnswering) {
+          updateAudioReplayButton();
           resumeQuestionTimer();
         }
       });
@@ -1951,6 +2161,11 @@
     function updateAudioReplayButton() {
       const btn = document.getElementById("play-audio-btn");
       if (!btn) return;
+      if (isAnswering || isPreviewPhase || isAudioPlayingPhase) {
+        btn.disabled = true;
+        btn.textContent = audioReplayRemaining > 0 ? `🔊 重聽音訊 (剩餘: ${audioReplayRemaining}次)` : "🔇 重聽次數已用完";
+        return;
+      }
       if (audioReplayRemaining > 0) {
         btn.disabled = false;
         btn.textContent = `🔊 重聽音訊 (剩餘: ${audioReplayRemaining}次)`;
@@ -1995,19 +2210,35 @@
       stopQuestionTimer();
 
       isAnswering = false;
+      isPreviewPhase = false;
+      isAudioPlayingPhase = false;
 
       if ('speechSynthesis' in window && window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
-
-      audioReplayRemaining = 1;
-      updateAudioReplayButton();
 
       if (!currentQuestions || currentQuestions.length === 0 || !currentQuestions[currentIdx]) {
         return;
       }
 
       const q = currentQuestions[currentIdx];
+      const qMod = getEffectiveModule(q);
+
+      audioReplayRemaining = 1;
+
+      const audioControls = document.getElementById("audio-ctrl-group");
+      const listenHint = document.getElementById("listen-hint");
+      if (qMod === "grammar") {
+        audioControls.style.display = "none";
+        listenHint.textContent = "✏️ 請閱讀題目，選出最適當的答案：";
+      } else if (qMod === "vocab") {
+        audioControls.style.display = "flex";
+        listenHint.textContent = "🔊 進入題目自動發音，也可手動點擊：";
+      } else {
+        audioControls.style.display = "flex";
+        listenHint.textContent = "🎧 聽力播放中，請注意聆聽：";
+      }
+
       document.getElementById("q-index").textContent = currentIdx + 1;
       document.getElementById("total-q").textContent = currentQuestions.length;
       document.getElementById("display-prompt").textContent = q.prompt;
@@ -2026,7 +2257,7 @@
         imgContainer.innerHTML = "";
         imgContainer.style.display = "none";
         if (q.sceneHint) {
-          sceneBox.textContent = `🖼️️ 畫面提示：${q.sceneHint}`;
+          sceneBox.textContent = `🖼 畫面提示：${q.sceneHint}`;
           sceneBox.style.display = "block";
         } else {
           sceneBox.style.display = "none";
@@ -2043,7 +2274,8 @@
         btn.id = `opt-btn-${idx}`;
         
         let kkHtml = "";
-        if (currentModule === "vocab" && q.kkList && q.kkList[idx]) {
+        // 僅在「聽音選英文字」時先顯示各選項 KK 音標；「看英文字選中文」作答前不顯示，避免洩題
+        if (qMod === "vocab" && !q.isMeaningQuestion && q.kkList && q.kkList[idx]) {
           kkHtml = `<span class="kk-badge">${q.kkList[idx]}</span>`;
         }
 
@@ -2052,9 +2284,12 @@
         container.appendChild(btn);
       });
 
-      // 依當前模組啟動計時與播放流程
-      if (currentModule === "listening") {
+      // 依題目所屬模組啟動計時與播放流程
+      if (qMod === "listening") {
+        updateAudioReplayButton();
         startPreviewCountdown(() => {
+          isAudioPlayingPhase = true;
+          updateAudioReplayButton();
           const badgeElem = document.getElementById("timer-badge");
           if (badgeElem) {
             badgeElem.classList.remove("preview");
@@ -2062,12 +2297,16 @@
             badgeElem.textContent = "🎧 聆聽中...";
           }
           playCurrentAudio(() => {
-            if (!isPaused && isQuizActive) {
+            isAudioPlayingPhase = false;
+            if (!isPaused && isQuizActive && !isAnswering) {
+              updateAudioReplayButton();
               startQuestionTimer();
             }
           });
         });
-      } else if (currentModule === "vocab" || (isMistakeMode && q.audioText)) {
+      } else if (qMod === "vocab") {
+        isAudioPlayingPhase = true;
+        updateAudioReplayButton();
         const badgeElem = document.getElementById("timer-badge");
         if (badgeElem) {
           badgeElem.classList.remove("preview", "warning", "danger");
@@ -2079,12 +2318,13 @@
         const triggerTimer = () => {
           if (hasStartedTimer) return;
           hasStartedTimer = true;
-          if (!isPaused && isQuizActive) {
+          isAudioPlayingPhase = false;
+          if (!isPaused && isQuizActive && !isAnswering) {
+            updateAudioReplayButton();
             startQuestionTimer();
           }
         };
 
-        // 播放單字語音，並加掛 1.5 秒防呆超時保底，確保計時器一定會接續啟動
         playCurrentAudio(() => {
           triggerTimer();
         });
@@ -2093,7 +2333,7 @@
         }, 1500);
 
       } else {
-        // 文法測驗：無音訊直接啟動 6 秒作答倒數，拔除 waiting 樣式
+        // 文法題：直接啟動 6 秒作答倒數
         const badgeElem = document.getElementById("timer-badge");
         if (badgeElem) {
           badgeElem.classList.remove("waiting", "preview");
@@ -2105,6 +2345,8 @@
     function checkAnswer(selectedIdx, targetBtn, correctIdx) {
       if (isPaused || isAnswering) return;
       isAnswering = true;
+      isPreviewPhase = false;
+      isAudioPlayingPhase = false;
 
       stopAllAudio();
       cancelAutoNextTimer();
@@ -2119,23 +2361,15 @@
       const letters = ["A", "B", "C", "D"];
       const feedback = document.getElementById("feedback");
       const q = currentQuestions[currentIdx];
+      const qMod = getEffectiveModule(q);
 
-      // 安全展開中文標籤與 KK 音標
-      if (currentModule === "vocab") {
-        q.options.forEach((opt, idx) => {
-          const btn = document.getElementById(`opt-btn-${idx}`);
-          if (btn) {
-            const kk = (q.kkList && q.kkList[idx]) ? q.kkList[idx] : "";
-            const mean = (q.meanings && q.meanings[idx]) ? q.meanings[idx] : "";
-            const kkHtml = kk ? `<span class="kk-badge">${kk}</span>` : "";
-            const meanHtml = mean ? `<span class="meaning-badge">中文：${mean}</span>` : "";
-            btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml} ${meanHtml}`;
-          }
-        });
+      if (qMod === "vocab") {
+        expandVocabOptionButtons(q);
       }
 
-      const correctWord = q.options[correctIdx];
-      const correctMeaning = (currentModule === "vocab" && q.meanings) ? q.meanings[correctIdx] : (q.meaning || "");
+      const correctOptText = q.options[correctIdx];
+      const correctEngWord = (q.wordsList && q.wordsList[correctIdx]) ? q.wordsList[correctIdx] : (q.word || correctOptText);
+      const correctMeaning = (qMod === "vocab" && q.meanings) ? q.meanings[correctIdx] : (q.meaning || "");
 
       if (selectedIdx === correctIdx) {
         correctCount++;
@@ -2144,8 +2378,8 @@
         playSfxCorrect(comboStreak);
         targetBtn.classList.add("correct");
         
-        if (currentModule === "vocab") {
-          feedback.textContent = `答對了！Very Good! 🎉 英文: ${correctWord} ，中文: ${correctMeaning}`;
+        if (qMod === "vocab") {
+          feedback.textContent = `答對了！Very Good! 🎉 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
         } else {
           feedback.textContent = "答對了！Very Good! 🎉";
         }
@@ -2155,7 +2389,7 @@
           recordMistakeCorrectMastery(q.qId);
         }
 
-        const delayTime = ((currentModule === "vocab" || isMistakeMode) && q.audioText) ? 1800 : 1200;
+        const delayTime = (qMod === "vocab" && q.audioText) ? 1800 : 1200;
         autoNextTimer = setTimeout(() => {
           nextQuestion();
         }, delayTime);
@@ -2165,30 +2399,29 @@
         updateComboBanner();
         playSfxWrong();
         targetBtn.classList.add("wrong");
-        if (currentModule === "vocab") {
-          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) 英文: ${correctWord} ，中文: ${correctMeaning}`;
+        if (qMod === "vocab") {
+          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
         } else {
-          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]})`;
+          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) ${correctOptText}`;
         }
         feedback.style.color = "#b91c1c";
         if (buttons[correctIdx]) buttons[correctIdx].classList.add("correct");
 
-        let moduleCategory = currentModule;
         let moduleTitle = "核心單字";
-        if (currentModule === "grammar") moduleTitle = "重點文法";
-        if (currentModule === "listening") {
+        if (qMod === "grammar") moduleTitle = "重點文法";
+        else if (qMod === "listening") {
           if (currentListeningStage === "review_quiz") moduleTitle = "聽力考點專練";
           else moduleTitle = "官方聽力";
         }
 
         saveMistake({
           qId: q.qId,
-          module: moduleCategory,
+          module: qMod,
           moduleName: moduleTitle,
           promptText: q.prompt,
           selectedWord: q.options[selectedIdx],
-          correctWord: correctWord,
-          correctMeaning: correctMeaning,
+          correctWord: correctOptText,
+          correctMeaning: qMod === "vocab" && !q.isMeaningQuestion ? correctMeaning : "",
           tip: q.tip || "",
           rawQuestion: JSON.parse(JSON.stringify(q))
         });
@@ -2205,7 +2438,7 @@
         tipBox.style.display = "block";
       }
 
-      if ((currentModule === "vocab" || isMistakeMode) && q.audioText) {
+      if (qMod === "vocab" && q.audioText) {
         audioTimer = setTimeout(() => {
           playSpeech(q.audioText);
         }, 350);
@@ -2222,6 +2455,7 @@
         loadQuestion();
       } else {
         isQuizActive = false;
+        isAudioPlayingPhase = false;
         document.getElementById("quiz-active-area").style.display = "none";
         const finalScore = Math.round((correctCount / currentQuestions.length) * 100);
         document.getElementById("final-score").textContent = finalScore;
