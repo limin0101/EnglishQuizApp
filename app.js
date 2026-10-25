@@ -31,14 +31,85 @@
       selectMainModule(mod);
     }
 
-    function switchVocabStageSafe(stage) {
-      if (!confirmLeaveCurrentQuiz()) return;
-      isQuizActive = false;
-      isAnswering = false;
-      isPaused = false;
-      isAudioPlayingPhase = false;
-      document.getElementById("pause-overlay").style.display = "none";
-      switchVocabStage(stage);
+    function playSpeech(text, callback) {
+      if (!('speechSynthesis' in window)) {
+        if (callback) callback();
+        return;
+      }
+
+      if (ttsWatchdogTimer) {
+        clearTimeout(ttsWatchdogTimer);
+        ttsWatchdogTimer = null;
+      }
+
+      window.speechSynthesis.cancel();
+      // 在 iOS 上，切換發音前必須稍微延遲，否則容易被吃字
+      setTimeout(() => {
+        const utter = new SpeechSynthesisUtterance(text);
+        window.currentActiveUtterance = utter;
+
+        const speedSelect = document.getElementById("speed-select");
+        const volumeRange = document.getElementById("volume-range");
+        const currentRate = speedSelect ? parseFloat(speedSelect.value) : 0.85;
+        const currentVol = volumeRange ? parseFloat(volumeRange.value) : 1.0;
+
+        utter.lang = 'en-US';
+        utter.rate = currentRate;
+        utter.volume = currentVol;
+        utter.pitch = 1.0;
+
+        // 確保重新抓取最新語音清單 (解決 Android 延遲載入問題)
+        cachedVoices = window.speechSynthesis.getVoices();
+
+        // 建立跨平台「高品質優質語音」白名單 (優先權由上到下)
+        const preferredVoices = [
+          "Samantha",         // iOS 非常自然的女聲
+          "Alex",             // iOS 高品質男聲
+          "Google US English",// Android Chrome 專屬高品質美式
+          "Victoria",         // 其他優質美音
+          "en-US"             // 最後底線
+        ];
+
+        let selectedVoice = null;
+        for (let pref of preferredVoices) {
+          selectedVoice = cachedVoices.find(v => v.name.includes(pref) || v.lang === pref);
+          if (selectedVoice) break;
+        }
+
+        // 如果白名單都找不到，找任何美式英文；再沒有，找任何英文
+        if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en-US'));
+        if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en'));
+        
+        if (selectedVoice) {
+          utter.voice = selectedVoice;
+        }
+
+        let hasHandled = false;
+        const finishExecution = () => {
+          if (hasHandled) return;
+          hasHandled = true;
+          if (ttsWatchdogTimer) {
+            clearTimeout(ttsWatchdogTimer);
+            ttsWatchdogTimer = null;
+          }
+          window.currentActiveUtterance = null;
+          if (callback) callback();
+        };
+
+        utter.onend = finishExecution;
+        utter.onerror = (err) => {
+          if (err && err.error === 'interrupted') return;
+          finishExecution();
+        };
+
+        const wordsCount = text.split(/\s+/).length;
+        const expectedTimeMs = Math.max(4000, (wordsCount / currentRate) * 1200 + 4000);
+        ttsWatchdogTimer = setTimeout(() => {
+          finishExecution();
+        }, expectedTimeMs);
+
+        window.speechSynthesis.speak(utter);
+      }, 50); // 50ms 的緩衝能解決 iOS Safari 自動播放吃字的問題
     }
 
     function switchListeningStageSafe(stage) {
