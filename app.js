@@ -1,5 +1,4 @@
-
-    let isQuizActive = false;
+let isQuizActive = false;
     let isAnswering = false;
     let isAudioPlayingPhase = false;
 
@@ -31,85 +30,14 @@
       selectMainModule(mod);
     }
 
-    function playSpeech(text, callback) {
-      if (!('speechSynthesis' in window)) {
-        if (callback) callback();
-        return;
-      }
-
-      if (ttsWatchdogTimer) {
-        clearTimeout(ttsWatchdogTimer);
-        ttsWatchdogTimer = null;
-      }
-
-      window.speechSynthesis.cancel();
-      // 在 iOS 上，切換發音前必須稍微延遲，否則容易被吃字
-      setTimeout(() => {
-        const utter = new SpeechSynthesisUtterance(text);
-        window.currentActiveUtterance = utter;
-
-        const speedSelect = document.getElementById("speed-select");
-        const volumeRange = document.getElementById("volume-range");
-        const currentRate = speedSelect ? parseFloat(speedSelect.value) : 0.85;
-        const currentVol = volumeRange ? parseFloat(volumeRange.value) : 1.0;
-
-        utter.lang = 'en-US';
-        utter.rate = currentRate;
-        utter.volume = currentVol;
-        utter.pitch = 1.0;
-
-        // 確保重新抓取最新語音清單 (解決 Android 延遲載入問題)
-        cachedVoices = window.speechSynthesis.getVoices();
-
-        // 建立跨平台「高品質優質語音」白名單 (優先權由上到下)
-        const preferredVoices = [
-          "Samantha",         // iOS 非常自然的女聲
-          "Alex",             // iOS 高品質男聲
-          "Google US English",// Android Chrome 專屬高品質美式
-          "Victoria",         // 其他優質美音
-          "en-US"             // 最後底線
-        ];
-
-        let selectedVoice = null;
-        for (let pref of preferredVoices) {
-          selectedVoice = cachedVoices.find(v => v.name.includes(pref) || v.lang === pref);
-          if (selectedVoice) break;
-        }
-
-        // 如果白名單都找不到，找任何美式英文；再沒有，找任何英文
-        if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en-US'));
-        if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en'));
-        
-        if (selectedVoice) {
-          utter.voice = selectedVoice;
-        }
-
-        let hasHandled = false;
-        const finishExecution = () => {
-          if (hasHandled) return;
-          hasHandled = true;
-          if (ttsWatchdogTimer) {
-            clearTimeout(ttsWatchdogTimer);
-            ttsWatchdogTimer = null;
-          }
-          window.currentActiveUtterance = null;
-          if (callback) callback();
-        };
-
-        utter.onend = finishExecution;
-        utter.onerror = (err) => {
-          if (err && err.error === 'interrupted') return;
-          finishExecution();
-        };
-
-        const wordsCount = text.split(/\s+/).length;
-        const expectedTimeMs = Math.max(4000, (wordsCount / currentRate) * 1200 + 4000);
-        ttsWatchdogTimer = setTimeout(() => {
-          finishExecution();
-        }, expectedTimeMs);
-
-        window.speechSynthesis.speak(utter);
-      }, 50); // 50ms 的緩衝能解決 iOS Safari 自動播放吃字的問題
+    function switchVocabStageSafe(stage) {
+      if (!confirmLeaveCurrentQuiz()) return;
+      isQuizActive = false;
+      isAnswering = false;
+      isPaused = false;
+      isAudioPlayingPhase = false;
+      document.getElementById("pause-overlay").style.display = "none";
+      switchVocabStage(stage);
     }
 
     function switchListeningStageSafe(stage) {
@@ -722,6 +650,122 @@
       });
     }
 
+    // ==== 核心作答檢查：支援針對性選項回饋 (2 號方案) ====
+    function checkAnswer(selectedIdx, targetBtn, correctIdx) {
+      if (isPaused || isAnswering) return;
+      isAnswering = true;
+      isPreviewPhase = false;
+      isAudioPlayingPhase = false;
+
+      stopAllAudio();
+      cancelAutoNextTimer();
+      stopQuestionTimer();
+
+      const buttons = document.querySelectorAll(".opt-btn");
+      buttons.forEach(b => b.disabled = true);
+
+      const playBtn = document.getElementById("play-audio-btn");
+      if (playBtn) playBtn.disabled = true;
+
+      const letters = ["A", "B", "C", "D"];
+      const feedback = document.getElementById("feedback");
+      const q = currentQuestions[currentIdx];
+      const qMod = getEffectiveModule(q);
+
+      if (qMod === "vocab") {
+        expandVocabOptionButtons(q);
+      }
+
+      const correctOptText = q.options[correctIdx];
+      const selectedOptText = q.options[selectedIdx];
+      const correctEngWord = (q.wordsList && q.wordsList[correctIdx]) ? q.wordsList[correctIdx] : (q.word || correctOptText);
+      const correctMeaning = (qMod === "vocab" && q.meanings) ? q.meanings[correctIdx] : (q.meaning || "");
+
+      // 取得干擾選項專屬盲點解析 (若無則使用標準提示)
+      const specificFeedback = (q.dynamicTips && q.dynamicTips[selectedOptText]) ? q.dynamicTips[selectedOptText] : null;
+
+      if (selectedIdx === correctIdx) {
+        correctCount++;
+        comboStreak++;
+        updateComboBanner();
+        playSfxCorrect(comboStreak);
+        targetBtn.classList.add("correct");
+        
+        if (qMod === "vocab") {
+          feedback.textContent = `答對了！Very Good! 🎉 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
+        } else {
+          feedback.textContent = "答對了！Very Good! 🎉";
+        }
+        feedback.style.color = "#15803d";
+
+        if (isMistakeMode) {
+          recordMistakeCorrectMastery(q.qId);
+        }
+
+        const delayTime = (qMod === "vocab" && q.audioText) ? 1800 : 1200;
+        autoNextTimer = setTimeout(() => {
+          nextQuestion();
+        }, delayTime);
+
+      } else {
+        comboStreak = 0;
+        updateComboBanner();
+        playSfxWrong();
+        targetBtn.classList.add("wrong");
+        if (qMod === "vocab") {
+          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
+        } else {
+          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) ${correctOptText}`;
+        }
+        feedback.style.color = "#b91c1c";
+        if (buttons[correctIdx]) buttons[correctIdx].classList.add("correct");
+
+        let moduleTitle = "核心單字";
+        if (qMod === "grammar") moduleTitle = "重點文法";
+        else if (qMod === "listening") {
+          if (currentListeningStage === "review_quiz") moduleTitle = "聽力考點專練";
+          else moduleTitle = "官方聽力";
+        }
+
+        saveMistake({
+          qId: q.qId,
+          module: qMod,
+          moduleName: moduleTitle,
+          promptText: q.prompt,
+          selectedWord: selectedOptText,
+          correctWord: correctOptText,
+          correctMeaning: qMod === "vocab" && !q.isMeaningQuestion ? correctMeaning : "",
+          tip: q.tip || "",
+          rawQuestion: JSON.parse(JSON.stringify(q))
+        });
+
+        document.getElementById("next-btn").style.display = "inline-block";
+      }
+
+      const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
+      document.getElementById("score").textContent = currentScore;
+
+      // 呈現提示區：若有專屬盲點分析則優先高亮顯示
+      const tipBox = document.getElementById("tip-box");
+      if (tipBox) {
+        if (selectedIdx !== correctIdx && specificFeedback) {
+          tipBox.innerHTML = `<div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 6px 10px; border-radius: 4px; margin-bottom: 6px; color: #991b1b; font-weight: 600;">⚠️ 選擇盲點診斷：${specificFeedback}</div><div>${q.tip || ""}</div>`;
+          tipBox.style.display = "block";
+        } else if (q.tip) {
+          tipBox.innerHTML = q.tip;
+          tipBox.style.display = "block";
+        } else {
+          tipBox.style.display = "none";
+        }
+      }
+
+      if (qMod === "vocab" && q.audioText) {
+        audioTimer = setTimeout(() => {
+          playSpeech(q.audioText);
+        }, 350);
+      }
+    }
+
     function handleTimeOut() {
       if (isAnswering) return;
       isAnswering = true;
@@ -787,7 +831,7 @@
 
       if (q.tip) {
         const tipBox = document.getElementById("tip-box");
-        tipBox.textContent = q.tip;
+        tipBox.innerHTML = q.tip;
         tipBox.style.display = "block";
       }
 
@@ -871,17 +915,17 @@
         descElem.textContent = "從官方核心字彙庫隨機出題 25 題（含聽音選字與看字選義）。發音結束後展開 6 秒倒數，答對將自動跳題！";
       } else if (currentModule === "grammar") {
         titleElem.textContent = "📖 重點文法測驗 (30大考點不重複抽題)";
-        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞，保證 25 題涵蓋不同文法考點，每題限時 6 秒！";
+        descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞。具備選項專屬盲點診斷功能，每題限時 6 秒！";
       } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
           titleElem.textContent = "🎯 聽力八大考點專練 (500題題庫)";
           descElem.textContent = "先給予 3 秒審題預覽，音訊結束後才開始 6 秒倒數！選項與 Statement A/B/C 完全對齊。";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗 (40題)";
-          descElem.textContent = "依官方題號順序應試，Part 1 看圖題附彩色情境圖，具備 3 秒審題時間與答對自動跳題。";
+          descElem.textContent = "依官方題號順序應試，Part 1 看圖題採用動態防背題技術，具備 3 秒審題時間與答對自動跳題。";
         } else if (currentListeningStage === "p2") {
           titleElem.textContent = "🎯 Practice 2 全真模擬測驗 (50題)";
-          descElem.textContent = "依官方題號順序應試，Part 1 看圖題附彩色情境圖，長篇對話支援重聽，審題 3 秒後開始播音。";
+          descElem.textContent = "依官方題號順序應試，Part 1 看圖題採用動態時鐘與地圖生成，長篇對話支援重聽，審題 3 秒後開始播音。";
         }
       }
     }
@@ -998,7 +1042,7 @@
       }
     }
 
-    // 同步洗牌選項與語音（去除選項後方的括號提示如 (1:15) 避免 TTS 唸出答案提示）
+    // 同步洗牌選項與語音
     function buildSyncedQuestion(q) {
       if (!q.options || q.options.length === 0) return Object.assign({}, q);
 
@@ -1040,6 +1084,7 @@
       });
     }
 
+    // ==== 每次開始測驗時動態產生最新題庫 (3 號方案) ====
     function startCurrentQuiz() {
       isMistakeMode = false;
       isQuizActive = true;
@@ -1085,11 +1130,13 @@
             shouldShuffleQuestions = false;
           }
         } else if (currentListeningStage === "p1") {
-          source = (typeof rawMockP1 !== 'undefined') ? rawMockP1 : [];
-          shouldShuffleQuestions = false; // 保護 Practice 1 題號與題組順序
+          // 動態呼叫 Practice 1 題庫生成器 (避免背題)
+          source = (typeof buildDynamicMockP1 === 'function') ? buildDynamicMockP1() : ((typeof rawMockP1 !== 'undefined') ? rawMockP1 : []);
+          shouldShuffleQuestions = false;
         } else if (currentListeningStage === "p2") {
-          source = (typeof rawMockP2 !== 'undefined') ? rawMockP2 : [];
-          shouldShuffleQuestions = false; // 保護 Practice 2 題號與題組順序
+          // 動態呼叫 Practice 2 題庫生成器 (避免背題)
+          source = (typeof buildDynamicMockP2 === 'function') ? buildDynamicMockP2() : ((typeof rawMockP2 !== 'undefined') ? rawMockP2 : []);
+          shouldShuffleQuestions = false;
         }
       }
 
@@ -1191,6 +1238,7 @@
       }
     }
 
+    // ==== 行動裝置優化版語音引擎 (支援 Samantha / Alex / Google US English) ====
     function playSpeech(text, callback) {
       if (!('speechSynthesis' in window)) {
         if (callback) callback();
@@ -1203,54 +1251,73 @@
       }
 
       window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
+      // 在 iOS 上，切換發音前必須稍微延遲，否則容易被吃字
+      setTimeout(() => {
+        const utter = new SpeechSynthesisUtterance(text);
+        window.currentActiveUtterance = utter;
 
-      const utter = new SpeechSynthesisUtterance(text);
-      window.currentActiveUtterance = utter;
+        const speedSelect = document.getElementById("speed-select");
+        const volumeRange = document.getElementById("volume-range");
+        const currentRate = speedSelect ? parseFloat(speedSelect.value) : 0.85;
+        const currentVol = volumeRange ? parseFloat(volumeRange.value) : 1.0;
 
-      const speedSelect = document.getElementById("speed-select");
-      const volumeRange = document.getElementById("volume-range");
-      const currentRate = speedSelect ? parseFloat(speedSelect.value) : 0.85;
-      const currentVol = volumeRange ? parseFloat(volumeRange.value) : 1.0;
+        utter.lang = 'en-US';
+        utter.rate = currentRate;
+        utter.volume = currentVol;
+        utter.pitch = 1.0;
 
-      utter.lang = 'en-US';
-      utter.rate = currentRate;
-      utter.volume = currentVol;
-      utter.pitch = 1.0;
-
-      if (cachedVoices.length === 0) {
+        // 確保重新抓取最新語音清單 (解決 Android 延遲載入問題)
         cachedVoices = window.speechSynthesis.getVoices();
-      }
-      const englishVoice = cachedVoices.find(v => v.lang && (v.lang.startsWith('en-US') || v.lang.startsWith('en')));
-      if (englishVoice) {
-        utter.voice = englishVoice;
-      }
 
-      let hasHandled = false;
-      const finishExecution = () => {
-        if (hasHandled) return;
-        hasHandled = true;
-        if (ttsWatchdogTimer) {
-          clearTimeout(ttsWatchdogTimer);
-          ttsWatchdogTimer = null;
+        // 建立跨平台「高品質優質語音」白名單 (優先權由上到下)
+        const preferredVoices = [
+          "Samantha",         // iOS 非常自然的女聲
+          "Alex",             // iOS 高品質男聲
+          "Google US English",// Android Chrome 專屬高品質美式
+          "Victoria",         // 其他優質美音
+          "en-US"             // 最後底線
+        ];
+
+        let selectedVoice = null;
+        for (let pref of preferredVoices) {
+          selectedVoice = cachedVoices.find(v => v.name.includes(pref) || v.lang === pref);
+          if (selectedVoice) break;
         }
-        window.currentActiveUtterance = null;
-        if (callback) callback();
-      };
 
-      utter.onend = finishExecution;
-      utter.onerror = (err) => {
-        if (err && err.error === 'interrupted') return;
-        finishExecution();
-      };
+        // 如果白名單都找不到，找任何美式英文；再沒有，找任何英文
+        if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en-US'));
+        if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en'));
+        
+        if (selectedVoice) {
+          utter.voice = selectedVoice;
+        }
 
-      const wordsCount = text.split(/\s+/).length;
-      const expectedTimeMs = Math.max(4000, (wordsCount / currentRate) * 1200 + 4000);
-      ttsWatchdogTimer = setTimeout(() => {
-        finishExecution();
-      }, expectedTimeMs);
+        let hasHandled = false;
+        const finishExecution = () => {
+          if (hasHandled) return;
+          hasHandled = true;
+          if (ttsWatchdogTimer) {
+            clearTimeout(ttsWatchdogTimer);
+            ttsWatchdogTimer = null;
+          }
+          window.currentActiveUtterance = null;
+          if (callback) callback();
+        };
 
-      window.speechSynthesis.speak(utter);
+        utter.onend = finishExecution;
+        utter.onerror = (err) => {
+          if (err && err.error === 'interrupted') return;
+          finishExecution();
+        };
+
+        const wordsCount = text.split(/\s+/).length;
+        const expectedTimeMs = Math.max(4000, (wordsCount / currentRate) * 1200 + 4000);
+        ttsWatchdogTimer = setTimeout(() => {
+          finishExecution();
+        }, expectedTimeMs);
+
+        window.speechSynthesis.speak(utter);
+      }, 50); // 50ms 緩衝
     }
 
     function playCurrentAudioUser() {
@@ -1396,7 +1463,6 @@
         btn.id = `opt-btn-${idx}`;
         
         let kkHtml = "";
-        // 僅在「聽音選英文字」時先顯示各選項 KK 音標；「看英文字選中文」作答前不顯示，避免洩題
         if (qMod === "vocab" && !q.isMeaningQuestion && q.kkList && q.kkList[idx]) {
           kkHtml = `<span class="kk-badge">${q.kkList[idx]}</span>`;
         }
@@ -1406,7 +1472,6 @@
         container.appendChild(btn);
       });
 
-      // 依題目所屬模組啟動計時與播放流程
       if (qMod === "listening") {
         updateAudioReplayButton();
         startPreviewCountdown(() => {
@@ -1455,115 +1520,11 @@
         }, 1500);
 
       } else {
-        // 文法題：直接啟動 6 秒作答倒數
         const badgeElem = document.getElementById("timer-badge");
         if (badgeElem) {
           badgeElem.classList.remove("waiting", "preview");
         }
         startQuestionTimer();
-      }
-    }
-
-    function checkAnswer(selectedIdx, targetBtn, correctIdx) {
-      if (isPaused || isAnswering) return;
-      isAnswering = true;
-      isPreviewPhase = false;
-      isAudioPlayingPhase = false;
-
-      stopAllAudio();
-      cancelAutoNextTimer();
-      stopQuestionTimer();
-
-      const buttons = document.querySelectorAll(".opt-btn");
-      buttons.forEach(b => b.disabled = true);
-
-      const playBtn = document.getElementById("play-audio-btn");
-      if (playBtn) playBtn.disabled = true;
-
-      const letters = ["A", "B", "C", "D"];
-      const feedback = document.getElementById("feedback");
-      const q = currentQuestions[currentIdx];
-      const qMod = getEffectiveModule(q);
-
-      if (qMod === "vocab") {
-        expandVocabOptionButtons(q);
-      }
-
-      const correctOptText = q.options[correctIdx];
-      const correctEngWord = (q.wordsList && q.wordsList[correctIdx]) ? q.wordsList[correctIdx] : (q.word || correctOptText);
-      const correctMeaning = (qMod === "vocab" && q.meanings) ? q.meanings[correctIdx] : (q.meaning || "");
-
-      if (selectedIdx === correctIdx) {
-        correctCount++;
-        comboStreak++;
-        updateComboBanner();
-        playSfxCorrect(comboStreak);
-        targetBtn.classList.add("correct");
-        
-        if (qMod === "vocab") {
-          feedback.textContent = `答對了！Very Good! 🎉 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
-        } else {
-          feedback.textContent = "答對了！Very Good! 🎉";
-        }
-        feedback.style.color = "#15803d";
-
-        if (isMistakeMode) {
-          recordMistakeCorrectMastery(q.qId);
-        }
-
-        const delayTime = (qMod === "vocab" && q.audioText) ? 1800 : 1200;
-        autoNextTimer = setTimeout(() => {
-          nextQuestion();
-        }, delayTime);
-
-      } else {
-        comboStreak = 0;
-        updateComboBanner();
-        playSfxWrong();
-        targetBtn.classList.add("wrong");
-        if (qMod === "vocab") {
-          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) 英文: ${correctEngWord} ，中文: ${correctMeaning}`;
-        } else {
-          feedback.textContent = `答錯囉！正確答案是 (${letters[correctIdx]}) ${correctOptText}`;
-        }
-        feedback.style.color = "#b91c1c";
-        if (buttons[correctIdx]) buttons[correctIdx].classList.add("correct");
-
-        let moduleTitle = "核心單字";
-        if (qMod === "grammar") moduleTitle = "重點文法";
-        else if (qMod === "listening") {
-          if (currentListeningStage === "review_quiz") moduleTitle = "聽力考點專練";
-          else moduleTitle = "官方聽力";
-        }
-
-        saveMistake({
-          qId: q.qId,
-          module: qMod,
-          moduleName: moduleTitle,
-          promptText: q.prompt,
-          selectedWord: q.options[selectedIdx],
-          correctWord: correctOptText,
-          correctMeaning: qMod === "vocab" && !q.isMeaningQuestion ? correctMeaning : "",
-          tip: q.tip || "",
-          rawQuestion: JSON.parse(JSON.stringify(q))
-        });
-
-        document.getElementById("next-btn").style.display = "inline-block";
-      }
-
-      const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
-      document.getElementById("score").textContent = currentScore;
-
-      if (q.tip) {
-        const tipBox = document.getElementById("tip-box");
-        tipBox.textContent = q.tip;
-        tipBox.style.display = "block";
-      }
-
-      if (qMod === "vocab" && q.audioText) {
-        audioTimer = setTimeout(() => {
-          playSpeech(q.audioText);
-        }, 350);
       }
     }
 
