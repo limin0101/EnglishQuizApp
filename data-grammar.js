@@ -1,7 +1,7 @@
 /**
  * ===================================================================
  * @file data-grammar.js
- * @description 文法 500 題生成引擎 (30 大考點深度矩陣 + 針對性干擾項診斷)
+ * @description 文法 500 題生成引擎 (修正拼字錯誤與不規則複數自然語境)
  * ===================================================================
  */
 
@@ -28,6 +28,22 @@ function generate500GrammarQuestions() {
     { name: "The students", pron: "They", obj: "them" }
   ];
 
+  // 擴充進行式單數主詞與動作池 (4種情境)
+  const dynamicProgressiveSingularPool = [
+    { subject: "The baby", actIng: "crying", actS: "cries", actBase: "cry", label: "嬰兒正在哭泣" },
+    { subject: "The puppy", actIng: "sleeping", actS: "sleeps", actBase: "sleep", label: "小狗正在睡覺" },
+    { subject: "The singer", actIng: "singing", actS: "sings", actBase: "sing", label: "歌手正在唱歌" },
+    { subject: "The kitten", actIng: "playing", actS: "plays", actBase: "play", label: "小貓正在玩耍" }
+  ];
+
+  // 修正 4：否定祈使句場景池 (定義明確動詞變化，避免 makeing/runing 拼字錯誤與 No V-ing 標語爭議)
+  const dynamicImperativePool = [
+    { promptSuffix: "loud noise here. People are studying inside.", verb: "make", verbS: "Makes", toVerb: "To make", correct: "Don't make", hint: "勸阻製造噪音" },
+    { promptSuffix: "in the hallway! It is very dangerous.", verb: "run", verbS: "Runs", toVerb: "To run", correct: "Don't run", hint: "勸阻在走廊奔跑" },
+    { promptSuffix: "snacks during the English class.", verb: "eat", verbS: "Eats", toVerb: "To eat", correct: "Don't eat", hint: "勸阻課堂飲食" },
+    { promptSuffix: "trash on the ground in the park.", verb: "throw", verbS: "Throws", toVerb: "To throw", correct: "Don't throw", hint: "勸阻亂丟垃圾" }
+  ];
+
   const cookingUncountables = [
     { word: "sugar", hint: "糖" },
     { word: "milk", hint: "牛奶" },
@@ -52,10 +68,13 @@ function generate500GrammarQuestions() {
     { singular: "marker", plural: "markers", hint: "彩色筆" }
   ];
 
+  // 修正 5：為不規則複數名詞配備各自合乎邏輯的自然語境句
   const personIrregularNouns = [
-    { sing: "child", plur: "children", hint: "小孩" },
-    { sing: "man", plur: "men", hint: "男人" },
-    { sing: "woman", plur: "women", hint: "女人" }
+    { sing: "child", plur: "children", hint: "小孩", prompt: "There are three ______ playing happily in the park." },
+    { sing: "man", plur: "men", hint: "男人", prompt: "There are two tall ______ talking in front of the bank." },
+    { sing: "woman", plur: "women", hint: "女人", prompt: "Three ______ are shopping together in the supermarket." },
+    { sing: "tooth", plur: "teeth", hint: "牙齒", prompt: "The cute baby has two new white ______ now." },
+    { sing: "foot", plur: "feet", hint: "腳", prompt: "We stand and walk with our two ______ every day." }
   ];
 
   const activities = [
@@ -76,6 +95,8 @@ function generate500GrammarQuestions() {
 
   for (let i = 0; i < 500; i++) {
     const type = i % 30;
+    const k = Math.floor(i / 30);
+
     const vhc = vehicles[i % vehicles.length];
     const tm = times[i % times.length];
     const dy = days[i % days.length];
@@ -86,8 +107,10 @@ function generate500GrammarQuestions() {
     const cookUncnt = cookingUncountables[i % cookingUncountables.length];
     const btlUncnt = bottleUncountables[i % bottleUncountables.length];
     const cnt = countables[i % countables.length];
-    const irr = personIrregularNouns[i % personIrregularNouns.length];
+    const irr = personIrregularNouns[k % personIrregularNouns.length];
     const act = activities[i % activities.length];
+    const progSing = dynamicProgressiveSingularPool[k % dynamicProgressiveSingularPool.length];
+    const imper = dynamicImperativePool[k % dynamicImperativePool.length];
     const p1 = streetPlaces[i % streetPlaces.length];
     const p2 = streetPlaces[(i + 2) % streetPlaces.length];
     const p3 = streetPlaces[(i + 4) % streetPlaces.length];
@@ -115,7 +138,7 @@ function generate500GrammarQuestions() {
         item.ans = 0;
         item.dynamicTips = {
           "at": "at 只用於具體時刻（at 8:00）或特定短暫時間（at night/noon）。",
-          "in": "若單純寫 in the morning 可用 in，但前面冠上特定星期（${dy} morning）必須改用 on！",
+          "in": `若單純寫 in the morning 可用 in，但前面冠上特定星期（${dy} morning）必須改用 on！`,
           "with": "with 表示『伴隨』或『使用工具』，不可當作時間介系詞。"
         };
         item.tip = `💡【特定日子】特定星期或某一天的早晨/下午（如 ${dy} morning），一律用 on。`;
@@ -136,15 +159,15 @@ function generate500GrammarQuestions() {
 
       case 3:
         item.part = "現在進行式：提示詞與正在發生 (is + V-ing)";
-        item.prompt = `Listen! The baby ______ in the bedroom. Please shut the door.`;
-        item.options = ["is crying", "cries", "crying", "cry"];
+        item.prompt = `Listen! ${progSing.subject} ______ in the room. Please shut the door.`;
+        item.options = [`is ${progSing.actIng}`, progSing.actS, progSing.actIng, progSing.actBase];
         item.ans = 0;
         item.dynamicTips = {
-          "cries": "cries 是現在簡單式（表常態習慣），但 Listen! 代表此時此刻正在發生！",
-          "crying": "現在進行式必須包含 be 動詞，缺少 is 不能單獨使用 crying。",
-          "cry": "原形動詞不能直接作第三人稱單數主詞的謂語，且無法表達進行中。"
+          [progSing.actS]: `${progSing.actS} 是現在簡單式（表常態習慣），但 Listen! 代表此時此刻正在發生！`,
+          [progSing.actIng]: "現在進行式必須包含 be 動詞，缺少 is 不能單獨使用 V-ing。",
+          [progSing.actBase]: "原形動詞不能直接作第三人稱單數主詞的謂語，且無法表達進行中。"
         };
-        item.tip = "💡【現在進行式】以 Look! 或 Listen! 開頭代表當前正在發生，單數主詞搭配 is + V-ing。";
+        item.tip = `💡【現在進行式】以 Look! 或 Listen! 開頭代表當前正在發生，單數主詞搭配 is + V-ing（${progSing.label}）。`;
         break;
 
       case 4:
@@ -166,7 +189,7 @@ function generate500GrammarQuestions() {
         item.options = ["much", "many", "any", "little"];
         item.ans = 0;
         item.dynamicTips = {
-          "many": `${cookUncnt.word}（${cookUncnt.hint}）是不可數名詞，詢問數量不可用 many（many 接複數可數名詞）。`,
+          "many": `${cookUncnt.word}（${cookUncnt.hint}）是不可數名詞，詢問數量不可用 many。`,
           "any": "any 不能與 How 組成詢問數量的特殊疑問詞片語。",
           "little": "How little 不是用來詢問需求數量的標準句型。"
         };
@@ -231,7 +254,7 @@ function generate500GrammarQuestions() {
         item.options = ["between", "next to", "behind", "in front"];
         item.ans = 0;
         item.dynamicTips = {
-          "next to": "next to 後面只接一個地點（如 next to the park），不搭配 ... and ... 句型。",
+          "next to": "next to 後面只接一個地點，不搭配 ... and ... 句型。",
           "behind": "behind（在...後面）只接單一參照物，不搭配 ... and ... 兩棟建築物。",
           "in front": "表位置應為 in front of，且同樣不搭配 ... and ... 句型。"
         };
@@ -240,15 +263,15 @@ function generate500GrammarQuestions() {
 
       case 11:
         item.part = "否定祈使句：Don't + 原形動詞";
-        item.prompt = `______ loud noise here. People are studying inside.`;
-        item.options = ["Don't make", "Not make", "No making", "Doesn't make"];
+        item.prompt = `______ ${imper.promptSuffix}`;
+        item.options = [imper.correct, `Not ${imper.verb}`, `Doesn't ${imper.verb}`, imper.toVerb];
         item.ans = 0;
         item.dynamicTips = {
-          "Not make": "英文祈使句的否定形式必須使用助動詞 Don't 開頭，不能直接用 Not。",
-          "No making": "告示標語雖有 No + V-ing，但一般祈使句勸阻指令一律使用 Don't + 原形動詞。",
-          "Doesn't make": "祈使句的對象是聽話者（第二人稱 you），助動詞不可使用第三人稱單數的 Doesn't。"
+          [`Not ${imper.verb}`]: "英文祈使句的否定形式必須使用助動詞 Don't 開頭，不能直接用 Not。",
+          [`Doesn't ${imper.verb}`]: "祈使句的對象是聽話者（第二人稱 you），助動詞不可使用第三人稱單數的 Doesn't。",
+          [imper.toVerb]: "不定詞 To + V 不能單獨在句首當作否定祈使句使用。"
         };
-        item.tip = "💡【否定祈使句】勸阻或命令他人不要做某事，句首使用 Don't + 原形動詞。";
+        item.tip = `💡【否定祈使句】${imper.hint}，句首使用 Don't + 原形動詞。`;
         break;
 
       case 12:
@@ -292,15 +315,15 @@ function generate500GrammarQuestions() {
 
       case 15:
         item.part = "不規則名詞複數變化";
-        item.prompt = `There are three ______ talking happily in the garden.`;
+        item.prompt = irr.prompt;
         item.options = [irr.plur, irr.sing, `${irr.sing}s`, `${irr.plur}s`];
         item.ans = 0;
         item.dynamicTips = {
-          [irr.sing]: `前面有數量詞 three，不可使用單數形 ${irr.sing}。`,
+          [irr.sing]: `前面有複數數量詞（two / three），不可使用單數形 ${irr.sing}。`,
           [`${irr.sing}s`]: `${irr.sing} 的複數是不規則變化（${irr.plur}），絕對不能直接加 s！`,
           [`${irr.plur}s`]: `${irr.plur} 自身已經是不規則複數名詞，不可重複在字尾加 s。`
         };
-        item.tip = `💡【不規則複數】${irr.sing} 的複數形是不規則變化 ${irr.plur}，不可隨便加 s。`;
+        item.tip = `💡【不規則複數】${irr.sing}（${irr.hint}）的複數形是不規則變化 ${irr.plur}，不可隨便加 s。`;
         break;
 
       case 16:
@@ -311,7 +334,7 @@ function generate500GrammarQuestions() {
         item.dynamicTips = {
           "bottle of": "前面數量詞是 two，容器量詞 bottle 必須加 s 變為複數 bottles of！",
           "bottles": "量詞後面連接不可數名詞時，中間缺少了介系詞 of。",
-          "bottle": "數量為 two 時，單數 bottle 與缺少介系詞 of 皆屬嚴重語病。"
+          "bottle": "數量為 two 時，單數 bottle 與缺少介系詞 of 皆屬語病。"
         };
         item.tip = `💡【不可數計量】不可數名詞前面加上量詞時，複數要加在容器量詞上（如 bottles of）。`;
         break;
@@ -387,7 +410,7 @@ function generate500GrammarQuestions() {
         item.options = ["because", "so", "but", "although"];
         item.ans = 0;
         item.dynamicTips = {
-          "so": "so 代表『所以』，後方接結果；本題後方句子是導致 Sally 難過的『原因』，應使用 because。",
+          "so": "so 代表『所以』，後方接結果；本題後方句子是導致難過的『原因』，應使用 because。",
           "but": "but 表轉折對比，無法表達後句為前句原因的因果關係。",
           "although": "although 代表『雖然』，放入句中語意邏輯不符。"
         };
@@ -414,7 +437,7 @@ function generate500GrammarQuestions() {
         item.ans = 0;
         item.dynamicTips = {
           "for": "give 的授與對象介系詞固定搭配 to（buy, make, cook 等動詞才搭配 for）。",
-          "with": "with 代表『伴隨/和...一起』，不符合授與動詞將物品交給對象的方向性句型。",
+          "with": "with 代表『伴隨/和...一起』，不符合授與動詞將物品交給對象的句型。",
           "at": "at 代表定點，不能作為授與對象的介系詞。"
         };
         item.tip = "💡【授與動詞介系詞】give + 物品 + to + 對象，搭配介系詞 to。";
@@ -487,7 +510,7 @@ function generate500GrammarQuestions() {
         break;
     }
 
-    item.qId = generateQuestionHash("g500_v7_" + i + "_" + item.prompt);
+    item.qId = generateQuestionHash("g500_v9_" + i + "_" + item.prompt);
     generated.push(item);
   }
 
@@ -496,10 +519,8 @@ function generate500GrammarQuestions() {
 
 window.rawGrammarQuestions = generate500GrammarQuestions();
 
-// 專為文法測驗設計的「防重複題型桶抽取器」（保證 25 題題型完全不同）
 window.getDiverseGrammarQuiz = function(count = 25) {
   const pool = window.rawGrammarQuestions || generate500GrammarQuestions();
-  
   const buckets = {};
   pool.forEach(q => {
     if (!buckets[q.typeTag]) buckets[q.typeTag] = [];
@@ -513,8 +534,7 @@ window.getDiverseGrammarQuiz = function(count = 25) {
   for (let i = 0; i < count && i < shuffledTags.length; i++) {
     const tag = shuffledTags[i];
     const candidateList = buckets[tag];
-    const randomPick = candidateList[Math.floor(Math.random() * candidateList.length)];
-    selectedQuiz.push(randomPick);
+    selectedQuiz.push(candidateList[Math.floor(Math.random() * candidateList.length)]);
   }
 
   return localShuffle(selectedQuiz);

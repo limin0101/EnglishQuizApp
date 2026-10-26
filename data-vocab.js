@@ -1,11 +1,10 @@
 /**
  * ===================================================================
  * @file data-vocab.js
- * @description 題庫共用工具函式與官方核心單字母庫
+ * @description 題庫共用工具函式與官方核心單字母庫 (各類別擴充與嚴格同類干擾版)
  * ===================================================================
  */
 
-// 輕量 Hash 產生器：為題目產生唯一 qId
 function generateQuestionHash(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -15,7 +14,6 @@ function generateQuestionHash(str) {
   return "q_" + Math.abs(hash).toString(36);
 }
 
-// 陣列洗牌工具
 function localShuffle(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -27,9 +25,6 @@ function localShuffle(arr) {
   return a;
 }
 
-// =======================================================================
-// 官方核心單字母庫 (含 category 分類)
-// =======================================================================
 window.bLevelVocabMasterPool = [
   // 家具生活類 (house)
   { word: "closet", meaning: "衣櫥 / 衣櫃", category: "house", kk: "[ˋklɑzɪt]", tip: "closet (衣櫥) KK: [ˋklɑzɪt]" },
@@ -82,7 +77,7 @@ window.bLevelVocabMasterPool = [
   { word: "invite", meaning: "邀請", category: "action", kk: "[ɪnˋvaɪt]", tip: "invite (邀請) KK: [ɪnˋvaɪt]" },
   { word: "touch", meaning: "碰觸", category: "action", kk: "[tʌtʃ]", tip: "touch (碰觸) KK: [tʌtʃ]" },
 
-  // 運動與休閒類 (sports)
+  // 運動休閒類 (sports) - 補足至 10 字
   { word: "badminton", meaning: "羽毛球", category: "sports", kk: "[ˋbædmɪntən]", tip: "badminton (羽毛球) KK: [ˋbædmɪntən]" },
   { word: "bowling", meaning: "保齡球", category: "sports", kk: "[ˋbolɪŋ]", tip: "bowling (保齡球) KK: [ˋbolɪŋ]" },
   { word: "basketball", meaning: "籃球", category: "sports", kk: "[ˋbæskɪt͵bɔl]", tip: "basketball (籃球) KK: [ˋbæskɪt͵bɔl]" },
@@ -116,20 +111,27 @@ window.bLevelVocabMasterPool = [
   { word: "marker", meaning: "彩色筆", category: "school", kk: "[ˋmɑrkɚ]", tip: "marker (彩色筆) KK: [ˋmɑrkɚ]" },
   { word: "pencil case", meaning: "鉛筆盒", category: "school", kk: "[ˋpɛns! kes]", tip: "pencil case (鉛筆盒) KK: [ˋpɛns! kes]" },
 
-  // 人物與親屬類 (people)
+  // 人物與親屬類 (people) - 補足至 8 字 (保證同類干擾)
   { word: "parents", meaning: "父母親", category: "people", kk: "[ˋpɛrənts]", tip: "parents (父母親) KK: [ˋpɛrənts]" },
   { word: "grandparents", meaning: "祖父母", category: "people", kk: "[ˋgrænd͵pɛrənts]", tip: "grandparents (祖父母) KK: [ˋgrænd͵pɛrənts]" },
   { word: "neighbor", meaning: "鄰居", category: "people", kk: "[ˋnebɚ]", tip: "neighbor (鄰居) KK: [ˋnebɚ]" },
   { word: "police officer", meaning: "警察", category: "people", kk: "[pəˋlis ͵ɔfɪsɚ]", tip: "police officer (警察) KK: [pəˋlis ͵ɔfɪsɚ]" },
+  { word: "doctor", meaning: "醫生", category: "people", kk: "[ˋdɑktɚ]", tip: "doctor (醫生) KK: [ˋdɑktɚ]" },
+  { word: "nurse", meaning: "護理師", category: "people", kk: "[nɝs]", tip: "nurse (護理師) KK: [nɝs]" },
+  { word: "driver", meaning: "司機", category: "people", kk: "[ˋdraɪvɚ]", tip: "driver (司機) KK: [ˋdraɪvɚ]" },
+  { word: "teacher", meaning: "老師", category: "people", kk: "[ˋtitʃɚ]", tip: "teacher (老師) KK: [ˋtitʃɚ]" },
 
-  // 特徵形容詞類 (adjectives)
+  // 特徵形容詞類 (adjectives) - 補足至 8 字 (保證同類干擾)
   { word: "scary", meaning: "恐怖的", category: "adjectives", kk: "[ˋskɛrɪ]", tip: "scary (恐怖的) KK: [ˋskɛrɪ]" },
   { word: "thin", meaning: "瘦的 / 薄的", category: "adjectives", kk: "[θɪn]", tip: "thin (瘦的) KK: [θɪn]" },
   { word: "talented", meaning: "有天賦的", category: "adjectives", kk: "[ˋtæləntɪd]", tip: "talented (有天賦的) KK: [ˋtæləntɪd]" },
   { word: "difficult", meaning: "困難的", category: "adjectives", kk: "[ˋdɪfək!t]", tip: "difficult (困難的) KK: [ˋdɪfək!t]" },
   { word: "friendly", meaning: "友善的", category: "adjectives", kk: "[ˋfrɛndlɪ]", tip: "friendly (友善的) KK: [ˋfrɛndlɪ]" },
+  { word: "polite", meaning: "有禮貌的", category: "adjectives", kk: "[pəˋlaɪt]", tip: "polite (有禮貌的) KK: [pəˋlaɪt]" },
+  { word: "quiet", meaning: "安靜的", category: "adjectives", kk: "[ˋkwaɪət]", tip: "quiet (安靜的) KK: [ˋkwaɪət]" },
+  { word: "famous", meaning: "著名的", category: "adjectives", kk: "[ˋfeməs]", tip: "famous (著名的) KK: [ˋfeməs]" },
 
-  // 時間與頻率類 (time)
+  // 時間與頻率類 (time) - 補足至 9 字
   { word: "second", meaning: "秒", category: "time", kk: "[ˋsɛkənd]", tip: "second (秒) KK: [ˋsɛkənd]" },
   { word: "minute", meaning: "分鐘", category: "time", kk: "[ˋmɪnɪt]", tip: "minute (分鐘) KK: [ˋmɪnɪt]" },
   { word: "quarter", meaning: "一刻鐘 (15分)", category: "time", kk: "[ˋkwɔrtɚ]", tip: "quarter (一刻鐘) KK: [ˋkwɔrtɚ]" },
@@ -141,7 +143,7 @@ window.bLevelVocabMasterPool = [
   { word: "between", meaning: "在…兩者之間", category: "time", kk: "[bɪˋtwin]", tip: "between (兩者之間) KK: [bɪˋtwin]" }
 ];
 
-// 單字動態生成引擎 (雙向題型 + 防洩題 + 同類別干擾)
+// 單字動態生成引擎 (真隨機題型 + 100% 同類別干擾項保護)
 window.buildDynamicVocabQuiz = function(count, stageTitle) {
   const pool = Array.isArray(window.bLevelVocabMasterPool) && window.bLevelVocabMasterPool.length > 0 
     ? window.bLevelVocabMasterPool 
@@ -150,7 +152,8 @@ window.buildDynamicVocabQuiz = function(count, stageTitle) {
   const poolShuffled = localShuffle(pool);
   const selectedTargets = poolShuffled.slice(0, Math.min(count, poolShuffled.length));
 
-  return selectedTargets.map(function(target, idx) {
+  return selectedTargets.map(function(target) {
+    // 嚴格鎖定同類別詞彙抽取干擾項
     let sameCategoryPool = pool.filter(item => item.category === target.category && item.word !== target.word);
     if (sameCategoryPool.length < 3) {
       sameCategoryPool = pool.filter(item => item.word !== target.word);
@@ -159,7 +162,8 @@ window.buildDynamicVocabQuiz = function(count, stageTitle) {
     const combinedOptions = localShuffle([target].concat(distractors));
     const correctIdx = combinedOptions.findIndex(item => item.word === target.word);
 
-    const isMeaningQuestion = (idx % 2 === 1);
+    // 打破奇偶規律，使用真隨機題型
+    const isMeaningQuestion = Math.random() > 0.5;
 
     if (isMeaningQuestion) {
       return {

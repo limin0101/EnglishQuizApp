@@ -50,7 +50,25 @@ let isQuizActive = false;
       switchListeningStage(stage);
     }
 
-    // 取得題目的實際所屬模組（支援錯題重測模式）
+    // 判斷是否啟動「聽力盲聽防作弊模式」(Part 1 看圖題、Part 2 簡答問答與考點專練)
+    function isBlindListeningQuestion(q) {
+      const qMod = getEffectiveModule(q);
+      if (qMod !== "listening") return false;
+      const part = q.part || "";
+      return part.includes("Part 1") || part.includes("Part 2") || part.includes("考點");
+    }
+
+    // 修正 2：盲聽模式下隱藏題幹英文問句，僅顯示題號提示，防止學生看字猜題
+    function getMaskedBlindPrompt(q) {
+      if (!isBlindListeningQuestion(q)) return q.prompt;
+      const m = q.prompt.match(/^(Question\s*\d+)/i);
+      const prefix = m ? m[1] : "🎧 聽力題";
+      if (q.svgData) {
+        return `${prefix}：請觀察下方圖片，並仔細聆聽語音選項`;
+      }
+      return `${prefix}：請仔細聆聽問題與 A、B、C 三個語音選項`;
+    }
+
     function getEffectiveModule(q) {
       if (q && q.module) return q.module;
       if (currentModule !== "analysis") return currentModule;
@@ -442,6 +460,14 @@ let isQuizActive = false;
       }
     }
 
+    // 修正 7：控制選項按鈕鎖定與解鎖 (防止審題預覽期間誤觸)
+    function setOptionButtonsDisabled(disabledState) {
+      const buttons = document.querySelectorAll(".opt-btn");
+      buttons.forEach(b => {
+        b.disabled = disabledState;
+      });
+    }
+
     function togglePauseQuiz() {
       if (!isQuizActive || isAnswering) return;
 
@@ -466,6 +492,7 @@ let isQuizActive = false;
         if (isPreviewPhase) {
           resumePreviewCountdown();
         } else if (isAudioPlayingPhase) {
+          setOptionButtonsDisabled(false);
           const badgeElem = document.getElementById("timer-badge");
           if (badgeElem) {
             badgeElem.classList.remove("preview", "warning", "danger");
@@ -480,12 +507,14 @@ let isQuizActive = false;
             }
           });
         } else {
+          setOptionButtonsDisabled(false);
           resumeQuestionTimer();
         }
       }
     }
 
     function resumePreviewCountdown() {
+      setOptionButtonsDisabled(true);
       let pTime = pausedPreviewTimeLeft > 0 ? pausedPreviewTimeLeft : PREVIEW_TIME;
       const badgeElem = document.getElementById("timer-badge");
       const barElem = document.getElementById("timer-bar");
@@ -507,6 +536,7 @@ let isQuizActive = false;
           previewTimer = null;
           isPreviewPhase = false;
           isAudioPlayingPhase = true;
+          setOptionButtonsDisabled(false);
           
           if (badgeElem) {
             badgeElem.classList.remove("preview");
@@ -566,6 +596,9 @@ let isQuizActive = false;
     function startPreviewCountdown(onPreviewEndCallback) {
       stopQuestionTimer();
       isPreviewPhase = true;
+      // 修正 7：預覽期間鎖定所有選項按鈕，避免手滑誤觸
+      setOptionButtonsDisabled(true);
+
       let pTime = PREVIEW_TIME;
       pausedPreviewTimeLeft = pTime;
       const badgeElem = document.getElementById("timer-badge");
@@ -595,6 +628,8 @@ let isQuizActive = false;
           clearInterval(previewTimer);
           previewTimer = null;
           isPreviewPhase = false;
+          // 預覽結束進入播音時解鎖按鈕
+          setOptionButtonsDisabled(false);
           if (onPreviewEndCallback) onPreviewEndCallback();
         }
       }, 1000);
@@ -604,6 +639,8 @@ let isQuizActive = false;
       stopQuestionTimer();
       isPreviewPhase = false;
       isAudioPlayingPhase = false;
+      setOptionButtonsDisabled(false);
+
       timeLeft = TOTAL_TIME;
       pausedTimeLeft = timeLeft;
       const barElem = document.getElementById("timer-bar");
@@ -650,9 +687,25 @@ let isQuizActive = false;
       });
     }
 
-    // ==== 核心作答檢查：支援針對性選項回饋 (2 號方案) ====
+    // 修正 2：作答後同時揭曉盲聽題的原英文問題句與各選項字句
+    function revealBlindListeningButtons(q) {
+      const promptElem = document.getElementById("display-prompt");
+      if (promptElem && q.prompt) {
+        promptElem.textContent = q.prompt;
+      }
+      const letters = ["A", "B", "C", "D"];
+      q.options.forEach((opt, idx) => {
+        const btn = document.getElementById(`opt-btn-${idx}`);
+        if (btn) {
+          btn.innerHTML = `<b>(${letters[idx]})</b> ${opt}`;
+        }
+      });
+    }
+
+    // ==== 核心作答檢查 (含預覽防誤觸攔截 + 盲聽揭曉 + 針對性盲點診斷) ====
     function checkAnswer(selectedIdx, targetBtn, correctIdx) {
-      if (isPaused || isAnswering) return;
+      // 修正 7：若處於預覽階段、暫停或已作答，直接攔截忽略點擊
+      if (isPaused || isAnswering || isPreviewPhase) return;
       isAnswering = true;
       isPreviewPhase = false;
       isAudioPlayingPhase = false;
@@ -661,19 +714,21 @@ let isQuizActive = false;
       cancelAutoNextTimer();
       stopQuestionTimer();
 
-      const buttons = document.querySelectorAll(".opt-btn");
-      buttons.forEach(b => b.disabled = true);
+      setOptionButtonsDisabled(true);
 
       const playBtn = document.getElementById("play-audio-btn");
       if (playBtn) playBtn.disabled = true;
 
       const letters = ["A", "B", "C", "D"];
       const feedback = document.getElementById("feedback");
+      const buttons = document.querySelectorAll(".opt-btn");
       const q = currentQuestions[currentIdx];
       const qMod = getEffectiveModule(q);
 
       if (qMod === "vocab") {
         expandVocabOptionButtons(q);
+      } else if (isBlindListeningQuestion(q)) {
+        revealBlindListeningButtons(q);
       }
 
       const correctOptText = q.options[correctIdx];
@@ -681,7 +736,6 @@ let isQuizActive = false;
       const correctEngWord = (q.wordsList && q.wordsList[correctIdx]) ? q.wordsList[correctIdx] : (q.word || correctOptText);
       const correctMeaning = (qMod === "vocab" && q.meanings) ? q.meanings[correctIdx] : (q.meaning || "");
 
-      // 取得干擾選項專屬盲點解析 (若無則使用標準提示)
       const specificFeedback = (q.dynamicTips && q.dynamicTips[selectedOptText]) ? q.dynamicTips[selectedOptText] : null;
 
       if (selectedIdx === correctIdx) {
@@ -745,7 +799,6 @@ let isQuizActive = false;
       const currentScore = Math.round((correctCount / currentQuestions.length) * 100);
       document.getElementById("score").textContent = currentScore;
 
-      // 呈現提示區：若有專屬盲點分析則優先高亮顯示
       const tipBox = document.getElementById("tip-box");
       if (tipBox) {
         if (selectedIdx !== correctIdx && specificFeedback) {
@@ -769,6 +822,7 @@ let isQuizActive = false;
     function handleTimeOut() {
       if (isAnswering) return;
       isAnswering = true;
+      isPreviewPhase = false;
       isAudioPlayingPhase = false;
 
       stopAllAudio();
@@ -777,19 +831,21 @@ let isQuizActive = false;
       updateComboBanner();
       playSfxWrong();
 
-      const buttons = document.querySelectorAll(".opt-btn");
-      buttons.forEach(b => b.disabled = true);
+      setOptionButtonsDisabled(true);
 
       const playBtn = document.getElementById("play-audio-btn");
       if (playBtn) playBtn.disabled = true;
 
       const letters = ["A", "B", "C", "D"];
       const feedback = document.getElementById("feedback");
+      const buttons = document.querySelectorAll(".opt-btn");
       const q = currentQuestions[currentIdx];
       const qMod = getEffectiveModule(q);
 
       if (qMod === "vocab") {
         expandVocabOptionButtons(q);
+      } else if (isBlindListeningQuestion(q)) {
+        revealBlindListeningButtons(q);
       }
 
       const correctOptText = q.options[q.ans];
@@ -918,14 +974,14 @@ let isQuizActive = false;
         descElem.textContent = "涵蓋時間介系詞、進行式、存在句與助動詞。具備選項專屬盲點診斷功能，每題限時 6 秒！";
       } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
-          titleElem.textContent = "🎯 聽力八大考點專練 (500題題庫)";
-          descElem.textContent = "先給予 3 秒審題預覽，音訊結束後才開始 6 秒倒數！選項與 Statement A/B/C 完全對齊。";
+          titleElem.textContent = "🎯 聽力八大考點專練 (12大考點桶防重複)";
+          descElem.textContent = "啟動全盲聽防作弊模式！預覽 3 秒期間按鈕鎖定防誤觸，作答後自動揭曉原英文問句與選項文字。";
         } else if (currentListeningStage === "p1") {
           titleElem.textContent = "🎯 Practice 1 全真模擬測驗 (40題)";
-          descElem.textContent = "依官方題號順序應試，Part 1 看圖題採用動態防背題技術，具備 3 秒審題時間與答對自動跳題。";
+          descElem.textContent = "啟動全盲聽防作弊模式！圖片已移除文字提示，Part 3/4 題組連播自動精簡，點擊重聽可聽完整故事。";
         } else if (currentListeningStage === "p2") {
           titleElem.textContent = "🎯 Practice 2 全真模擬測驗 (50題)";
-          descElem.textContent = "依官方題號順序應試，Part 1 看圖題採用動態時鐘與地圖生成，長篇對話支援重聽，審題 3 秒後開始播音。";
+          descElem.textContent = "啟動全盲聽防作弊模式！圖片已移除文字提示，Part 3/4 題組連播自動精簡，點擊重聽可聽完整故事。";
         }
       }
     }
@@ -1042,7 +1098,6 @@ let isQuizActive = false;
       }
     }
 
-    // 同步洗牌選項與語音
     function buildSyncedQuestion(q) {
       if (!q.options || q.options.length === 0) return Object.assign({}, q);
 
@@ -1084,7 +1139,6 @@ let isQuizActive = false;
       });
     }
 
-    // ==== 每次開始測驗時動態產生最新題庫 (3 號方案) ====
     function startCurrentQuiz() {
       isMistakeMode = false;
       isQuizActive = true;
@@ -1122,19 +1176,17 @@ let isQuizActive = false;
         }
       } else if (currentModule === "listening") {
         if (currentListeningStage === "review_quiz") {
-          if (typeof rawReviewQuestions !== 'undefined' && rawReviewQuestions.length > 0) {
-            source = shuffleArray(rawReviewQuestions).slice(0, 25);
+          if (typeof getDiverseListeningReviewQuiz === 'function') {
+            source = getDiverseListeningReviewQuiz(25);
             shouldShuffleQuestions = false;
-          } else if (typeof generate500ListeningReviewQuestions === 'function') {
-            source = shuffleArray(generate500ListeningReviewQuestions()).slice(0, 25);
+          } else if (typeof rawReviewQuestions !== 'undefined' && rawReviewQuestions.length > 0) {
+            source = shuffleArray(rawReviewQuestions).slice(0, 25);
             shouldShuffleQuestions = false;
           }
         } else if (currentListeningStage === "p1") {
-          // 動態呼叫 Practice 1 題庫生成器 (避免背題)
           source = (typeof buildDynamicMockP1 === 'function') ? buildDynamicMockP1() : ((typeof rawMockP1 !== 'undefined') ? rawMockP1 : []);
           shouldShuffleQuestions = false;
         } else if (currentListeningStage === "p2") {
-          // 動態呼叫 Practice 2 題庫生成器 (避免背題)
           source = (typeof buildDynamicMockP2 === 'function') ? buildDynamicMockP2() : ((typeof rawMockP2 !== 'undefined') ? rawMockP2 : []);
           shouldShuffleQuestions = false;
         }
@@ -1238,7 +1290,6 @@ let isQuizActive = false;
       }
     }
 
-    // ==== 行動裝置優化版語音引擎 (支援 Samantha / Alex / Google US English) ====
     function playSpeech(text, callback) {
       if (!('speechSynthesis' in window)) {
         if (callback) callback();
@@ -1251,7 +1302,6 @@ let isQuizActive = false;
       }
 
       window.speechSynthesis.cancel();
-      // 在 iOS 上，切換發音前必須稍微延遲，否則容易被吃字
       setTimeout(() => {
         const utter = new SpeechSynthesisUtterance(text);
         window.currentActiveUtterance = utter;
@@ -1266,16 +1316,14 @@ let isQuizActive = false;
         utter.volume = currentVol;
         utter.pitch = 1.0;
 
-        // 確保重新抓取最新語音清單 (解決 Android 延遲載入問題)
         cachedVoices = window.speechSynthesis.getVoices();
 
-        // 建立跨平台「高品質優質語音」白名單 (優先權由上到下)
         const preferredVoices = [
-          "Samantha",         // iOS 非常自然的女聲
-          "Alex",             // iOS 高品質男聲
-          "Google US English",// Android Chrome 專屬高品質美式
-          "Victoria",         // 其他優質美音
-          "en-US"             // 最後底線
+          "Samantha",
+          "Alex",
+          "Google US English",
+          "Victoria",
+          "en-US"
         ];
 
         let selectedVoice = null;
@@ -1284,7 +1332,6 @@ let isQuizActive = false;
           if (selectedVoice) break;
         }
 
-        // 如果白名單都找不到，找任何美式英文；再沒有，找任何英文
         if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en-US'));
         if (!selectedVoice) selectedVoice = cachedVoices.find(v => v.lang && v.lang.startsWith('en'));
         
@@ -1317,9 +1364,10 @@ let isQuizActive = false;
         }, expectedTimeMs);
 
         window.speechSynthesis.speak(utter);
-      }, 50); // 50ms 緩衝
+      }, 50);
     }
 
+    // 修正 6：使用者主動點擊「重聽音訊」時，若該題為題組子題，播放包含完整長文故事的 fullAudioText
     function playCurrentAudioUser() {
       if (audioReplayRemaining <= 0 || isPaused || isAnswering || isPreviewPhase || isAudioPlayingPhase) return;
 
@@ -1344,7 +1392,7 @@ let isQuizActive = false;
           updateAudioReplayButton();
           resumeQuestionTimer();
         }
-      });
+      }, true); // 傳入 true 啟用完整故事重聽
     }
 
     function updateAudioReplayButton() {
@@ -1364,21 +1412,23 @@ let isQuizActive = false;
       }
     }
 
-    function playCurrentAudio(onFinishedCallback) {
+    function playCurrentAudio(onFinishedCallback, useFullAudio = false) {
       const q = currentQuestions[currentIdx];
       if (!q || !q.audioText) {
         if (onFinishedCallback) onFinishedCallback();
         return;
       }
 
-      if (q.repeat) {
+      const targetSpeechText = (useFullAudio && q.fullAudioText) ? q.fullAudioText : q.audioText;
+
+      if (q.repeat && !useFullAudio) {
         currentPlayPhase = 1;
-        playSpeech(q.audioText, () => {
+        playSpeech(targetSpeechText, () => {
           if (isPaused) return;
           audioTimer = setTimeout(() => {
             if (isPaused) return;
             currentPlayPhase = 2;
-            playSpeech(q.audioText, () => {
+            playSpeech(targetSpeechText, () => {
               currentPlayPhase = 0;
               if (onFinishedCallback) onFinishedCallback();
             });
@@ -1386,7 +1436,7 @@ let isQuizActive = false;
         });
       } else {
         currentPlayPhase = 1;
-        playSpeech(q.audioText, () => {
+        playSpeech(targetSpeechText, () => {
           currentPlayPhase = 0;
           if (onFinishedCallback) onFinishedCallback();
         });
@@ -1412,6 +1462,7 @@ let isQuizActive = false;
 
       const q = currentQuestions[currentIdx];
       const qMod = getEffectiveModule(q);
+      const isBlind = isBlindListeningQuestion(q);
 
       audioReplayRemaining = 1;
 
@@ -1425,12 +1476,13 @@ let isQuizActive = false;
         listenHint.textContent = "🔊 進入題目自動發音，也可手動點擊：";
       } else {
         audioControls.style.display = "flex";
-        listenHint.textContent = "🎧 聽力播放中，請注意聆聽：";
+        listenHint.textContent = isBlind ? "🎧 盲聽模式：請專注聆聽發音，選出對應的代號：" : "🎧 聽力播放中，請注意聆聽：";
       }
 
       document.getElementById("q-index").textContent = currentIdx + 1;
       document.getElementById("total-q").textContent = currentQuestions.length;
-      document.getElementById("display-prompt").textContent = q.prompt;
+      // 修正 2：載入題目時，若為盲聽題則隱藏原英文問句
+      document.getElementById("display-prompt").textContent = getMaskedBlindPrompt(q);
       document.getElementById("feedback").textContent = "";
       document.getElementById("tip-box").style.display = "none";
       document.getElementById("next-btn").style.display = "none";
@@ -1445,7 +1497,7 @@ let isQuizActive = false;
       } else {
         imgContainer.innerHTML = "";
         imgContainer.style.display = "none";
-        if (q.sceneHint) {
+        if (q.sceneHint && !isBlind) {
           sceneBox.textContent = `🖼 畫面提示：${q.sceneHint}`;
           sceneBox.style.display = "block";
         } else {
@@ -1467,7 +1519,12 @@ let isQuizActive = false;
           kkHtml = `<span class="kk-badge">${q.kkList[idx]}</span>`;
         }
 
-        btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml}`;
+        if (isBlind) {
+          btn.innerHTML = `<b>(${letters[idx]})</b> 🎧 (請依語音內容選取)`;
+        } else {
+          btn.innerHTML = `<b>(${letters[idx]})</b> ${opt} ${kkHtml}`;
+        }
+
         btn.onclick = () => checkAnswer(idx, btn, q.ans);
         container.appendChild(btn);
       });
