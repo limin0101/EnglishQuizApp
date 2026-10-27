@@ -1,7 +1,7 @@
 /**
  * ===================================================================
  * @file data-listening.js
- * @description 聽力 500 題生成引擎 + Practice 1 & 2 (消除題組重複朗讀與 Q38 括號破綻)
+ * @description 聽力 500 題生成引擎 (徹底修復撞題漏洞 + 桶抽題全防重保障)
  * ===================================================================
  */
 
@@ -39,24 +39,38 @@ function generate500ListeningReviewQuestions() {
     { base: "listen to music", ing: "listening to music", third: "listens to music" }
   ];
   const transportMethods = [
-    { method: "take the MRT", resp: "I take the MRT.", hint: "捷運" },
-    { method: "take the school bus", resp: "I take the school bus.", hint: "校車" },
-    { method: "ride a bicycle", resp: "I ride my bicycle.", hint: "腳踏車" }
+    { method: "take the MRT", resp: "I take the MRT.", dest: "to school", hint: "捷運" },
+    { method: "take the school bus", resp: "I take the school bus.", dest: "to school", hint: "校車" },
+    { method: "ride a bicycle", resp: "I ride my bicycle.", dest: "to the park", hint: "腳踏車" },
+    { method: "walk on foot", resp: "I walk on foot.", dest: "to the library", hint: "走路" }
+  ];
+  // 擴充義務動詞池 (徹底修復考點 10 零變數 100% 撞題漏洞)
+  const obligationActions = [
+    { base: "practice English", hint: "練習英文" },
+    { base: "clean your room", hint: "打掃房間" },
+    { base: "wash the dishes", hint: "洗碗" },
+    { base: "do your homework", hint: "寫作業" },
+    { base: "go to bed early", hint: "早點睡覺" }
   ];
 
   const generated = [];
 
   for (let i = 0; i < 500; i++) {
     const type = i % 12;
+    const k = Math.floor(i / 12);
+
     const person = peopleList[i % peopleList.length];
     const loc = locations[i % locations.length];
     const uncnt = uncountables[i % uncountables.length];
     const cnt = countables[i % countables.length];
     const act = indoorActivities[i % indoorActivities.length];
-    const trans = transportMethods[i % transportMethods.length];
-    const hour = (i % 11) + 1;
-    const nextHour = hour + 1;
-    const floorNum = (i % 6) + 2;
+    const trans = transportMethods[k % transportMethods.length];
+    const obAct = obligationActions[k % obligationActions.length];
+    
+    // 使用 k 滾動小時，確保同一回測驗絕不撞鐘點
+    const hour = ((k + i) % 11) + 1;
+    const nextHour = hour === 12 ? 1 : hour + 1;
+    const floorNum = ((k + i) % 6) + 2;
 
     const lShuffled = localShuffle(landmarks);
     const centerB = lShuffled[0];
@@ -167,24 +181,24 @@ function generate500ListeningReviewQuestions() {
 
       case 10:
         qObj.part = "【考點 7】助動詞簡答 (Do you have to...)";
-        qObj.prompt = `Question: Do you have to practice English today?`;
-        qObj.audioText = `Do you have to practice English today? Statement A: No, I don't. Statement B: Yes, I have. Statement C: Yes, I can.`;
+        qObj.prompt = `Question: Do you have to ${obAct.base} today?`;
+        qObj.audioText = `Do you have to ${obAct.base} today? Statement A: No, I don't. Statement B: Yes, I have. Statement C: Yes, I can.`;
         qObj.options = ["No, I don't.", "Yes, I have.", "Yes, I can."];
         qObj.ans = 0;
-        qObj.tip = "💡【助動詞簡答】Do you have to... 提問，否定簡答一律用 No, I don't。";
+        qObj.tip = `💡【助動詞簡答】Do you have to... 提問，否定簡答一律用 No, I don't（${obAct.hint}）。`;
         break;
 
       case 11:
       default:
         qObj.part = "【考點 8】交通方式問答 (How do you go...)";
-        qObj.prompt = `Question: How do you usually go to school?`;
-        qObj.audioText = `How do you usually go to school? Statement A: ${trans.resp} Statement B: At 7:30 a.m. Statement C: I like my school.`;
-        qObj.options = [trans.resp, "At 7:30 a.m.", "I like my school."];
+        qObj.prompt = `Question: How do you usually go ${trans.dest}?`;
+        qObj.audioText = `How do you usually go ${trans.dest}? Statement A: ${trans.resp} Statement B: At 7:30 a.m. Statement C: I like this place.`;
+        qObj.options = [trans.resp, "At 7:30 a.m.", "I like this place."];
         qObj.ans = 0;
         qObj.tip = `💡【交通方式】How 詢問搭乘前往方式，回答應為搭乘工具（${trans.hint}）。`;
         break;
     }
-    qObj.qId = generateQuestionHash("l500_v11_" + i + "_" + qObj.prompt);
+    qObj.qId = generateQuestionHash("l500_v12_" + i + "_" + qObj.prompt);
     generated.push(qObj);
   }
   return generated;
@@ -192,6 +206,7 @@ function generate500ListeningReviewQuestions() {
 
 window.rawReviewQuestions = generate500ListeningReviewQuestions();
 
+// 聽力考點桶抽題器 (加入 usedQIds 全防重保護，單回 25 題 100% 不重複)
 window.getDiverseListeningReviewQuiz = function(count = 25) {
   const pool = window.rawReviewQuestions || generate500ListeningReviewQuestions();
   const buckets = {};
@@ -202,12 +217,20 @@ window.getDiverseListeningReviewQuiz = function(count = 25) {
 
   const availableTags = Object.keys(buckets);
   const selectedQuiz = [];
+  const usedQIds = new Set();
   let tagIdx = 0;
 
   for (let i = 0; i < count; i++) {
     const currentTag = availableTags[tagIdx % availableTags.length];
     const candidateList = buckets[currentTag];
-    selectedQuiz.push(candidateList[Math.floor(Math.random() * candidateList.length)]);
+    
+    // 嚴格過濾抽過的題目，杜絕重複
+    let availableCandidates = candidateList.filter(c => !usedQIds.has(c.qId));
+    if (availableCandidates.length === 0) availableCandidates = candidateList;
+    
+    const picked = availableCandidates[Math.floor(Math.random() * availableCandidates.length)];
+    usedQIds.add(picked.qId);
+    selectedQuiz.push(picked);
     tagIdx++;
   }
 
@@ -215,7 +238,7 @@ window.getDiverseListeningReviewQuiz = function(count = 25) {
 };
 
 // =======================================================================
-// Practice 1 & 2 真題資料庫 (修正 6：題組第2~3題自動播音僅念問題，重聽才念全文)
+// Practice 1 & 2 真題資料庫保持完整不變
 // =======================================================================
 const p1Conv23_24 = "Good evening, Tim. Good evening, Sally. How are you? I am fine. Thank you. And you? I am not feeling good. Why not? Because my parents will not come to my birthday party. Why won't they? They need to fly to America to work.";
 const p1Conv25_27 = "Hi Helen, where are you going? I'm going to watch a movie. Really, what kind of movie are you going to watch? I want to see a science fiction movie. I have to run now, the movie is about to start. Okay, and I have to be home before lunch. See you.";
@@ -256,7 +279,7 @@ window.buildDynamicMockP1 = function() {
     { part: "Part 2: Question Response", prompt: "Question 21: Where are you going to watch the movie?", audioText: "Question 21: Where are you going to watch the movie? Statement A: I am doing homework at school. Statement B: At the movie theater. Statement C: I am going to watch TV at home.", options: ["I am doing homework at school.", "At the movie theater.", "I am going to watch TV at home."], ans: 1, tip: "💡【地點回答】問去哪裡看電影，最直接合適的地點回答是 At the movie theater。" },
     { part: "Part 2: Question Response", prompt: "Question 22: People are trembling in their seats in the movie theater.", audioText: "Question 22: People are trembling in their seats in the movie theater. Statement A: They are watching a horror movie. Statement B: They are watching an adventure movie. Statement C: They are dreaming.", options: ["They are watching a horror movie.", "They are watching an adventure movie.", "They are dreaming."], ans: 0, tip: "💡【單字因果推論】tremble 代表發抖打顫，在電影院裡發抖代表正在觀看恐怖電影（horror movie）。" },
     
-    // Part 3 & 4: 同題組第 1 題播全文，後續子題預設只播問題，重聽可聽完整故事 (fullAudioText)
+    // Part 3 & 4
     { part: "Part 3: Conversations (23-24)", prompt: "Question 23: Is Sally sad?", audioText: `Listen to the conversation. ${p1Conv23_24} Now listen to Question 23: Is Sally sad?`, options: ["Yes, she is not sad.", "Yes, she is sad.", "No, she is happy."], ans: 1, tip: "💡【情意判斷】Sally 提到 I am not feeling good 且父母無法參加派對，因此 Yes, she is sad。" },
     { part: "Part 3: Conversations (23-24)", prompt: "Question 24: Why can't Sally's parents go to her birthday party?", audioText: "Question 24: Why can't Sally's parents go to her birthday party?", fullAudioText: `Listen to the conversation. ${p1Conv23_24} Now listen to Question 24: Why can't Sally's parents go to her birthday party?`, options: ["They will go to Sally's birthday party.", "They will go to work.", "They will come from America."], ans: 1, tip: "💡【因果細節】Sally 清楚說明 They need to fly to America to work，所以原因為 They will go to work。" },
     
@@ -291,9 +314,7 @@ window.buildDynamicMockP1 = function() {
 
 window.rawMockP1 = window.buildDynamicMockP1();
 
-// =======================================================================
-// Practice 2 官方聽力全真模擬 (完整 50 題 + 消除 Q38 括號與題組重複朗讀)
-// =======================================================================
+// Practice 2 (消除 Q38 括號洩題)
 const p2Conv31_33 = "Kevin, what are you doing? I'm playing a video game, Mom. Is your homework done? I can't do my homework now because I can't stop this game before I win. Then I can stop the game for you. Now do your homework before dinner.";
 const p2Conv34_35 = "How are you, Lucy? Not bad. What about you? Great. I haven't seen you for a week. You know, I lived with my parents, but they moved to London. So I live in a big house alone.";
 const p2Conv36_38 = "Hi, Lucy, your birthday is coming. Do you want to have a birthday party? Sure. We can invite some friends. Who do you want to invite? Jerry, Susan, and Henry. Okay. Sounds good. I will help you prepare your birthday party. Thanks. I need the help.";
@@ -339,7 +360,7 @@ window.buildDynamicMockP2 = function() {
     { part: "Part 2: Question Response", prompt: "Question 29: Do you always do your homework before dinner?", audioText: "Question 29: Do you always do your homework before dinner? Statement A: Yes, I never eat first. Statement B: Yes, it is always late when I do it. Statement C: Yes, always do my homework.", options: ["Yes, I never eat first.", "Yes, it is always late when I do it.", "Yes, always do my homework."], ans: 0, tip: "💡【邏輯常理】做完功課才吃晚餐，代表『從來不會先吃飯』（I never eat first）。" },
     { part: "Part 2: Question Response", prompt: "Question 30: What is the girl doing?", audioText: "Question 30: What is the girl doing? Statement A: The girl is sick. Statement B: The girl is painting. Statement C: Her favorite sport is soccer.", options: ["The girl is sick.", "The girl is painting.", "Her favorite sport is soccer."], ans: 1, tip: "💡【動作進行式】問女孩正在做什麼，回答為 The girl is painting（正在畫畫）。" },
     
-    // Part 3 & 4: 同題組第 1 題播全文，後續子題預設只播問題
+    // Part 3 & 4
     { part: "Part 3: Conversations (31-33)", prompt: "Question 31: What does Kevin's mom want him to do now?", audioText: `Listen to the conversation. ${p2Conv31_33} Now listen to Question 31: What does Kevin's mom want him to do now?`, options: ["Do his homework.", "Win the game.", "Eat dinner first."], ans: 0, tip: "💡【媽媽要求】媽媽最後清楚命令：Now do your homework before dinner。" },
     { part: "Part 3: Conversations (31-33)", prompt: "Question 32: What does Kevin want to do?", audioText: "Question 32: What does Kevin want to do?", fullAudioText: `Listen to the conversation. ${p2Conv31_33} Now listen to Question 32: What does Kevin want to do?`, options: ["Do his homework.", "Win the game before stopping.", "Help his mom cook dinner."], ans: 1, tip: "💡【兒子想法】Kevin 說 I can't stop this game before I win（贏了才肯罷休）。" },
     { part: "Part 3: Conversations (31-33)", prompt: "Question 33: Does Kevin finish his homework?", audioText: "Question 33: Does Kevin finish his homework?", fullAudioText: `Listen to the conversation. ${p2Conv31_33} Now listen to Question 33: Does Kevin finish his homework?`, options: ["Yes, he does.", "No, he hasn't done it yet.", "He did it at school."], ans: 1, tip: "💡【作業狀態】Kevin 的作業根本還沒做，故選 No, he hasn't done it yet。" },
@@ -349,7 +370,6 @@ window.buildDynamicMockP2 = function() {
     
     { part: "Part 3: Conversations (36-38)", prompt: "Question 36: What does Lucy want?", audioText: `Listen to the conversation. ${p2Conv36_38} Now listen to Question 36: What does Lucy want?`, options: ["To have a birthday party.", "To go to London.", "To study alone."], ans: 0, tip: "💡【活動目的】Lucy 想要辦生日派對（To have a birthday party）。" },
     { part: "Part 3: Conversations (36-38)", prompt: "Question 37: Whose birthday is coming?", audioText: "Question 37: Whose birthday is coming?", fullAudioText: `Listen to the conversation. ${p2Conv36_38} Now listen to Question 37: Whose birthday is coming?`, options: ["Jack's birthday.", "Lucy's birthday.", "Susan's birthday."], ans: 1, tip: "💡【壽星人物】開頭提到 Hi, Lucy, your birthday is coming，過生日的是 Lucy。" },
-    // 修正 3：移除 "3 friends" 後方的 "(Jerry, Susan, and Henry)" 括號洩題
     { part: "Part 3: Conversations (36-38)", prompt: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", audioText: "Question 38: How many friends may go to the birthday party with Lucy and Jack?", fullAudioText: `Listen to the conversation. ${p2Conv36_38} Now listen to Question 38: How many friends may go to the birthday party with Lucy and Jack?`, options: ["2 friends.", "3 friends.", "5 friends."], ans: 1, tip: "💡【名單清點】Lucy 邀請了 Jerry, Susan, Henry 共 3 位朋友（3 friends）。" },
     
     { part: "Part 3: Conversations (39-40)", prompt: "Question 39: What kind of movies does Helen like?", audioText: `Listen to the conversation. ${p2Conv39_40} Now listen to Question 39: What kind of movies does Helen like?`, options: ["Romance movies.", "Science fiction movies.", "Horror movies."], ans: 1, tip: "💡【喜好單字】Helen 想要看 science fiction movies（科幻電影）。" },
